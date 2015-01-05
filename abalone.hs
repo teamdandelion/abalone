@@ -14,7 +14,7 @@ data AbaloneGame = AbaloneGame {
 	board 		   :: AbaloneBoard,
 	nextPlayer 	   :: Player,
 	movesRemaining :: Int,
-	marblesPerMove :: Int,
+	marblesPerMove :: Int
 } deriving (Eq, Show, Read)
 
 data Player = White | Black deriving (Eq, Show, Read, Ord, Bounded)
@@ -22,13 +22,13 @@ type Position = (Int, Int)
 
 data Move = Move {
 	segment   :: Segment,
-	direction :: Direction,
+	direction :: Direction
 } deriving (Eq, Show, Read)
 
 data Segment = Segment {
 	head        :: Position,
 	orientation :: Direction,
-	length      :: Int,
+	segLength   :: Int
 } deriving (Eq, Show, Read)
 
 data Direction = TopRight | MidRight | BotRight 
@@ -37,20 +37,8 @@ data Direction = TopRight | MidRight | BotRight
 getPieces :: AbaloneBoard -> Player -> Set.Set Position
 getPieces b p = if p == White then whitePositions else blackPositions $ b
 
-segments :: AbaloneGame -> [Segment]
-segments g = segments (marblesPerMove g) (nextPlayer g) (board g)
-
-segments :: Int -> AbaloneBoard -> Player -> [Segment]
-segments len b p = flatten $ map f positionDirectionPairs where
-	pieces = getPieces b p 
-	positionDirectionPairs = zip (toList pieces) [TopRight, MidRight, BotRight]
-	f :: (Position, Direction) -> [Segment]
-	f (p, d) = map (Segment p d) [1..numSegments] where
-		tails = iterate (adjacent (opposite d)) p
-		validTails = takeWhile (\p -> p `member` pieces) tails
-		numSegments = min (length validTails) len
-
 adjacent :: Direction -> Position -> Position
+adjacent d p = p -- TODO: fix this
 
 opposite :: Direction -> Direction
 opposite d = case d of 
@@ -60,6 +48,11 @@ opposite d = case d of
 	BotLeft  -> TopRight
 	MidLeft  -> MidRight
 	TopLeft  -> BotRight
+
+next :: Player -> Player
+next p = case p of
+	White -> Black
+	Black -> White
 
 
 gameOver :: AbaloneGame -> Bool
@@ -86,3 +79,38 @@ isValid g0 g1 = g1 `elem` map (update g0) (possibleMoves g0)
 update :: AbaloneGame -> Move -> AbaloneGame
 
 possibleMoves :: AbaloneGame -> [Move]
+possibleMoves g = filter isMove allMoves where
+	allMoves = concat $ map (map Move (segments g)) [TopRight .. TopLeft]
+	b = board g
+	own   p = Set.member p $ getPieces b $ nextPlayer g
+	enemy p = Set.member p $ getPieces b $ next $ nextPlayer g
+	free  p = (not . own) p && (not . enemy) p
+	isMove (Move (Segment pos orient len) dir) = if aligned then forward else broadside where 
+		aligned = dir `elem` [orient, opposite orient] where 
+
+		broadside = all free destination where
+			destination = take len $ iterate (adjacent orient) $ adjacent dir pos
+
+		forward = iterF (adjacent dir front) (len - 1) where
+			front = if (orient == dir) then iterate (adjacent dir) pos !! len - 1 else pos
+			iterF pos force 
+				| free pos   = True
+				| own  pos   = False
+				| force == 0 = False
+				| otherwise  = iterF (adjacent dir pos) (force - 1)
+
+
+cross :: [a] -> [b] -> [(a, b)]
+cross as bs = concat $ map (\a -> map (\b -> (a, b)) bs) as 
+
+segments :: AbaloneGame -> [Segment]
+segments g = segments_ (marblesPerMove g) (nextPlayer g) (board g) where
+	segments_ :: Int -> AbaloneBoard -> Player -> [Segment]
+	segments_ len b p = concat $ map f positionDirectionPairs where
+		pieces = getPieces b p 
+		positionDirectionPairs = cross (Set.toList pieces) [TopRight, MidRight, BotRight]
+		f :: (Position, Direction) -> [Segment]
+		f (p, d) = map (Segment p d) [1..numSegments] where
+			tails = iterate (adjacent d) p
+			validTails = takeWhile (\p -> p `Set.member` pieces) tails
+			numSegments = min (segLength validTails) len
