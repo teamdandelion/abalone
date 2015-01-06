@@ -5,6 +5,7 @@ module Abalone (
 	) where
 
 import qualified Data.Set as Set
+import Player
 
 data Game = Game {
 	board 		   :: Board,
@@ -29,13 +30,6 @@ standardBoard :: Board
 standardBoard = Board (Set.fromList whitePos) (Set.fromList blackPos) 5 where
 	whitePos = [(-x, 4) | x <- [0..4]] ++ [(-x, 3) | x <- [-1..4]] ++ [(-2, 2), (-1, 2), (0, 2)]
 	blackPos = map (\(q, r) -> (-q, -r)) whitePos
-
--- Player & Related Functions--
-data Player = White | Black deriving (Eq, Show, Read, Ord, Bounded, Enum)
-next :: Player -> Player
-next p = case p of
-	White -> Black
-	Black -> White
 
 -- Position / Grid Functions --
 type Position = (Int, Int)
