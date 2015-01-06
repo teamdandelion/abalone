@@ -1,7 +1,7 @@
 module Abalone (
-	Game, Board, Player(White, Black), Position,
-	gameOver, winner, numPieces, futures,
-	Direction, Segment, segments, adjacent
+	Game(Game), Board(Board), Player(White, Black), Position,
+	gameOver, winner, numPieces, futures, isValid,
+	Direction, Segment, segments, adjacent, start
 	) where
 
 import qualified Data.Set as Set
@@ -18,6 +18,19 @@ data Board = Board {
 	blackPositions :: Set.Set Position,
 	boardRadius    :: Int
 } deriving (Eq, Show, Read)
+
+getPieces :: Board -> Player -> Set.Set Position
+getPieces b p = (if p == White then whitePositions else blackPositions) b
+
+
+
+start :: Game 
+start = Game standardBoard White 1000 3
+
+standardBoard :: Board
+standardBoard = Board (Set.fromList whitePos) (Set.fromList blackPos) 5 where
+	whitePos = [(-x, 4) | x <- [0..4]] ++ [(-x, 3) | x <- [-1..4]] ++ [(-2, 2), (-1, 2), (0, 2)]
+	blackPos = map (\(q, r) -> (-q, -r)) whitePos
 
 -- Player & Related Functions--
 data Player = White | Black deriving (Eq, Show, Read, Ord, Bounded, Enum)
@@ -56,19 +69,18 @@ opposite d = case d of
 colinear :: Direction -> Direction -> Bool
 colinear d1 d2 = d1 `elem` [d2, opposite d2]
 
+-- Moves are internal-only representation of a move - external API is just game states
 data Move = Move {
 	segment   :: Segment,
 	direction :: Direction
 } deriving (Eq, Show, Read)
 
+-- A segment is a linear group of marbles that could move. 
 data Segment = Segment {
-	basePos     :: Position,
-	orientation :: Direction,
-	segLength   :: Int
+	basePos     :: Position, -- The start position of the segment
+	orientation :: Direction, -- The direction the segment grows in (irrelevant if len is 1)
+	segLength   :: Int -- The length of the segment
 } deriving (Eq, Show, Read)
-
-getPieces :: Board -> Player -> Set.Set Position
-getPieces b p = (if p == White then whitePositions else blackPositions) b
 
 gameOver :: Game -> Bool
 gameOver g = movesRemaining g <= 0 || any (\p -> numPieces g p == 0) [White, Black]
@@ -87,14 +99,15 @@ numPieces g p
 	| p == White = Set.size . whitePositions . board $ g
 	| p == Black = Set.size . blackPositions . board $ g 
 
+-- this function will recieve new game states from client and verify validity
 isValid :: Game -> Game -> Bool
--- very inefficient impl but that should be fine
+-- very inefficient impl but that should be fine since occurs once per turn
 isValid g0 g1 = g1 `elem` (futures g0)
 
-onBoard :: Board -> Position -> Bool
+onBoard :: Board -> Position -> Bool -- is a piece on the board still?
 onBoard board pos = dist2 pos (0, 0) <= (boardRadius board) * 2
 
-update :: Game -> Move -> Game
+update :: Game -> Move -> Game 
 update (Game b p remaining perMove) (Move (Segment pos orient len) dir) = newGame where
 	newGame = Game newBoard (next p) (remaining - 1) perMove
 	ownPieces = take len $ iterate (adjacent orient) pos
@@ -120,8 +133,17 @@ update (Game b p remaining perMove) (Move (Segment pos orient len) dir) = newGam
 
 	newBoard = Board white black (boardRadius b)
 
-futures :: Game -> [Game]
+futures :: Game -> [Game] -- find all valid future states of this board (1 move)
 futures g = map (update g) (possibleMoves g) where 
+	{-- algorithm:
+	- find all segments (distinct groupings that can move)
+	- take cartesian product with all directions
+	- see if that direction is a valid move for given segment
+	- if orientation is aligned with direction, attempt a "forward" move - might push off
+		opponent so more complex computation
+	- if orientation is not aligned with direction, attempt a "broadside" - just check
+		that all destination spaces are free
+	--}
 	possibleMoves :: Game -> [Move]
 	possibleMoves g = filter isMove allMoves where
 		allMoves = crossApply (map Move (segments g)) [TopRight .. TopLeft]
@@ -144,20 +166,27 @@ futures g = map (update g) (possibleMoves g) where
 					| force == 0 = False
 					| otherwise  = iterF (adjacent dir pos) (force - 1)
 
+-- surely there's a more elegant way to implement this...
 cross :: [a] -> [b] -> [(a, b)]
 cross as bs = concat $ map (\a -> map (\b -> (a, b)) bs) as 
 
+-- can i rewrite this pointsfree? would have hoped `map (\(a, b) -> a b) $ cross` would work
 crossApply :: [a -> b] -> [a] -> [b]
 crossApply as bs = map (\(a, b) -> a b) (cross as bs)
 
+-- get every segement (distinct linear grouping) for current player in game
+-- handle singletons seperately because otherwise they could be triple-counted
 segments :: Game -> [Segment]
 segments g = segments_ (marblesPerMove g) (board g) (nextPlayer g) where
 	segments_ :: Int -> Board -> Player -> [Segment]
-	segments_ len b p = concat $ map f positionDirectionPairs where
+	segments_ len b p = singletons ++ lengthTwoOrMore where
 		pieces = getPieces b p 
+		pieceList = Set.toList pieces
+		singletons = map (\x -> Segment x TopRight 1) pieceList
 		positionDirectionPairs = cross (Set.toList pieces) [TopRight, MidRight, BotRight]
+		lengthTwoOrMore = concat $ map f positionDirectionPairs
 		f :: (Position, Direction) -> [Segment]
-		f (p, d) = map (Segment p d) [1..numSegments] where
+		f (p, d) = map (Segment p d) [2..numSegments] where
 			tails = iterate (adjacent d) p
 			validTails = takeWhile (\p -> p `Set.member` pieces) tails
 			numSegments = min (length validTails) len
