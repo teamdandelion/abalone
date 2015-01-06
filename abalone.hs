@@ -1,14 +1,10 @@
 module Abalone (
 	Game, Board, Player(White, Black), Position,
-	gameOver, winner, numPieces, update) where
+	gameOver, winner, numPieces, futures,
+	Direction, Segment, segments, adjacent
+	) where
 
 import qualified Data.Set as Set
-
-data Board = Board {
-	whitePositions :: Set.Set Position,
-	blackPositions :: Set.Set Position,
-	boardRadius    :: Int
-} deriving (Eq, Show, Read)
 
 data Game = Game {
 	board 		   :: Board,
@@ -17,26 +13,27 @@ data Game = Game {
 	marblesPerMove :: Int
 } deriving (Eq, Show, Read)
 
+data Board = Board {
+	whitePositions :: Set.Set Position,
+	blackPositions :: Set.Set Position,
+	boardRadius    :: Int
+} deriving (Eq, Show, Read)
+
+-- Player & Related Functions--
 data Player = White | Black deriving (Eq, Show, Read, Ord, Bounded, Enum)
+next :: Player -> Player
+next p = case p of
+	White -> Black
+	Black -> White
+
+-- Position / Grid Functions --
 type Position = (Int, Int)
-
-data Move = Move {
-	segment   :: Segment,
-	direction :: Direction
-} deriving (Eq, Show, Read)
-
-data Segment = Segment {
-	basePos     :: Position,
-	orientation :: Direction,
-	segLength   :: Int
-} deriving (Eq, Show, Read)
+dist2 :: Position -> Position -> Int -- distance * 2 (to avoid fractional types)
+dist2 (q1,r1) (q2,r2) = abs(q1 - q2) + abs(r1 - r2) + abs(q1 + r1 - q2 - r2)
 
 data Direction = TopRight | MidRight | BotRight 
 			   | BotLeft  | MidLeft  | TopLeft 
 			   deriving (Eq, Show, Read, Ord, Bounded, Enum)
-
-getPieces :: Board -> Player -> Set.Set Position
-getPieces b p = (if p == White then whitePositions else blackPositions) b
 
 adjacent :: Direction -> Position -> Position
 adjacent d (q, r) = case d of 
@@ -56,11 +53,22 @@ opposite d = case d of
 	MidLeft  -> MidRight
 	TopLeft  -> BotRight
 
-next :: Player -> Player
-next p = case p of
-	White -> Black
-	Black -> White
+colinear :: Direction -> Direction -> Bool
+colinear d1 d2 = d1 `elem` [d2, opposite d2]
 
+data Move = Move {
+	segment   :: Segment,
+	direction :: Direction
+} deriving (Eq, Show, Read)
+
+data Segment = Segment {
+	basePos     :: Position,
+	orientation :: Direction,
+	segLength   :: Int
+} deriving (Eq, Show, Read)
+
+getPieces :: Board -> Player -> Set.Set Position
+getPieces b p = (if p == White then whitePositions else blackPositions) b
 
 gameOver :: Game -> Bool
 gameOver g = movesRemaining g <= 0 || any (\p -> numPieces g p == 0) [White, Black]
@@ -81,16 +89,10 @@ numPieces g p
 
 isValid :: Game -> Game -> Bool
 -- very inefficient impl but that should be fine
-isValid g0 g1 = g1 `elem` map (update g0) (possibleMoves g0)
+isValid g0 g1 = g1 `elem` (futures g0)
 
-colinear :: Direction -> Direction -> Bool
-colinear d1 d2 = d1 `elem` [d2, opposite d2]
-
-dist2 :: Position -> Position -> Int
-dist2 (q1,r1) (q2,r2) = abs(q1 - q2) + abs(r1 - r2) + abs(q1 + r1 - q2 - r2)
-
-onBoard :: Int -> Position -> Bool
-onBoard radius pos = dist2 pos (0, 0) <= radius * 2
+onBoard :: Board -> Position -> Bool
+onBoard board pos = dist2 pos (0, 0) <= (boardRadius board) * 2
 
 update :: Game -> Move -> Game
 update (Game b p remaining perMove) (Move (Segment pos orient len) dir) = newGame where
@@ -104,7 +106,7 @@ update (Game b p remaining perMove) (Move (Segment pos orient len) dir) = newGam
 			| force == 0    = []
 			| otherwise     = x : recur (adjacent dir x) (force - 1)
 
-	updated = filter (onBoard (boardRadius b)) . map (adjacent dir)
+	updated = filter (onBoard b) . map (adjacent dir)
 
 	whiteMoved = if p == White then ownPieces else enemyPieces
 	blackMoved = if p == Black then ownPieces else enemyPieces
@@ -118,32 +120,29 @@ update (Game b p remaining perMove) (Move (Segment pos orient len) dir) = newGam
 
 	newBoard = Board white black (boardRadius b)
 
+futures :: Game -> [Game]
+futures g = map (update g) (possibleMoves g) where 
+	possibleMoves :: Game -> [Move]
+	possibleMoves g = filter isMove allMoves where
+		allMoves = crossApply (map Move (segments g)) [TopRight .. TopLeft]
+		b = board g
+		own   p = Set.member p $ getPieces b $ nextPlayer g
+		enemy p = Set.member p $ getPieces b $ next $ nextPlayer g
+		free  p = (not . own) p && (not . enemy) p
+		isMove (Move (Segment pos orient len) dir) = valid where 
+			valid = if colinear dir orient then forward else broadside 
 
-possibleMoves :: Game -> [Move]
-possibleMoves g = filter isMove allMoves where
-	allMoves = crossApply (map Move (segments g)) [TopRight .. TopLeft]
-	b = board g
-	own   p = Set.member p $ getPieces b $ nextPlayer g
-	enemy p = Set.member p $ getPieces b $ next $ nextPlayer g
-	free  p = (not . own) p && (not . enemy) p
-	isMove m = if colinear dir orient then forward else broadside where 
-		dir     = direction m
-		orient  = orientation $ segment m
-		len     = segLength   $ segment m
-		pos     = basePos     $ segment m
-		aligned = dir `elem` [orient, opposite orient] 
+			broadside = all free destination where
+				destination = take len $ iterate (adjacent orient) $ adjacent dir pos
 
-		broadside = all free destination where
-			destination = take len $ iterate (adjacent orient) $ adjacent dir pos
-
-		forward = iterF (adjacent dir front) (len - 1) where
-			front = if (orient == dir) then iterate (adjacent dir) pos !! (len-1) else pos
-			iterF pos force 
-				| free pos   = True
-				| own  pos   = False
-				| force == 0 = False
-				| otherwise  = iterF (adjacent dir pos) (force - 1)
-
+			forward = iterF (adjacent dir front) (len - 1) where
+				front = if (orient==dir) then otherEnd else pos
+				otherEnd = iterate (adjacent dir) pos !! (len - 1)
+				iterF pos force 
+					| free pos   = True
+					| own  pos   = False
+					| force == 0 = False
+					| otherwise  = iterF (adjacent dir pos) (force - 1)
 
 cross :: [a] -> [b] -> [(a, b)]
 cross as bs = concat $ map (\a -> map (\b -> (a, b)) bs) as 
