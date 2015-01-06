@@ -22,8 +22,6 @@ data Board = Board {
 getPieces :: Board -> Player -> Set.Set Position
 getPieces b p = (if p == White then whitePositions else blackPositions) b
 
-
-
 start :: Game 
 start = Game standardBoard White 1000 3
 
