@@ -40,8 +40,3 @@ round2AI = combineAIs (aiFromSearch White) stupid
 
 winner1 = play round1AI
 winner2 = play round2AI 
-
-main :: IO()
-main = do 
-	print winner1
-	print winner2
