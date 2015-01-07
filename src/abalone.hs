@@ -19,6 +19,7 @@ import Data.Ord
 import Data.List
 import Data.Set (Set)
 import qualified Data.Set as Set
+import Player
 
 import Control.Applicative
 import Control.Monad
@@ -38,22 +39,14 @@ getPieces :: Board -> Player -> Set Position
 getPieces b White = whitePositions b
 getPieces b Black = blackPositions b
 
-start :: Game
-start = Game standardBoard White 1000 3
+start :: Game 
+start = Game standardBoard White 200 3
 
 standardBoard :: Board
 standardBoard = Board whitePos blackPos 5
  where
   whitePos = Set.fromList $ [(-4,0,4),(-4,1,3),(-2,0,2)] >>= \(q,q',r) -> map (flip (,) r) [q..q']
   blackPos = Set.map (\(q, r) -> (-q, -r)) whitePos
-
--- Player & Related Functions--
-data Player = White | Black
-  deriving (Eq, Show, Read, Ord, Bounded, Enum)
-
-next :: Player -> Player
-next White = Black
-next Black = White
 
 -- Position / Grid Functions --
 type Position = (Int, Int)
@@ -201,3 +194,4 @@ segments (Game b p _ maxlen) = singletons ++ lengthTwoOrMore
     return seg
    where
     valid = all (`Set.member` getPieces b p) . segPieces
+

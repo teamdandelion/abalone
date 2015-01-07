@@ -1,0 +1,1 @@
+This is an an implementation of an Abalone engine for hosting a small AI competition between friends.

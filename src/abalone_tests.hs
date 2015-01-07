@@ -53,15 +53,3 @@ t8 = testEq "correct # moves subject to maxMarblesPerMove (1)" 14 m where
 t9 = testEq "correct # moves subject to maxMarblesPerMove (3)" 30 m where 
 	g = Game threeLinearStoneBoard White 1000 3
 	m = (length . futures) g 
-
-main :: IO()
-main = do
-	t1
-	t2
-	t3
-	t4
-	t5
-	t6
-	t7
-	t8 
-	t9
