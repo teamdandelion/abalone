@@ -61,9 +61,8 @@ type Position = (Int, Int)
 dist2 :: Position -> Position -> Int -- distance * 2 (to avoid fractional types)
 dist2 (q1,r1) (q2,r2) = abs (q1 - q2) + abs (r1 - r2) + abs (q1 + r1 - q2 - r2)
 
-data Direction = TopLeft | TopRight
-               | MidLeft | MidRight
-               | BotLeft | BotRight
+data Direction = TopRight | MidRight | BotRight
+               | TopLeft  | MidLeft  | BotLeft  
   deriving (Eq, Show, Read, Ord, Bounded, Enum)
 
 (|>) :: Position -> Direction -> Position
