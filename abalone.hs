@@ -128,7 +128,7 @@ update :: Game -> Move -> Game
 update (Game b p remaining perMove) m@(Move s@(Segment pos orient len) dir) = newGame
  where
   -- Pieces to move
-  ownPieces     = segPieces s
+  ownPieces = segPieces s
   enemyPieces
     | broadside m = []
     | inline m    = let start | orient == dir = last ownPieces |> dir
@@ -190,11 +190,10 @@ possibleMoves g@(Game b p _ _)  = do
 segments :: Game -> [Segment]
 segments (Game b p _ maxlen) = singletons ++ lengthTwoOrMore
  where
-  singletons = do
-    pos <- Set.toList $ getPieces b p
-    return $ Segment pos TopRight 1
+  pieces = Set.toList $ getPieces b p
+  singletons = [Segment p TopRight 1 | p <- pieces]
   lengthTwoOrMore = do
-    pos    <- Set.toList $ getPieces b p
+    pos    <- pieces
     orient <- [TopRight, MidRight, BotRight]
     len    <- [2..maxlen]
     let seg = Segment pos orient len
