@@ -1,7 +1,8 @@
 module Abalone (
-	Game(Game), Board(Board), Player(White, Black), Position,
+	Game(Game), nextPlayer, marblesPerMove, board, 
+	Board(Board), Position,
 	gameOver, winner, numPieces, futures, isValid,
-	Direction, Segment, segments, adjacent, start
+	Direction, Segment, segments, segments_, adjacent, start
 	) where
 
 import qualified Data.Set as Set
@@ -24,7 +25,7 @@ getPieces :: Board -> Player -> Set.Set Position
 getPieces b p = (if p == White then whitePositions else blackPositions) b
 
 start :: Game 
-start = Game standardBoard White 1000 3
+start = Game standardBoard White 200 3
 
 standardBoard :: Board
 standardBoard = Board (Set.fromList whitePos) (Set.fromList blackPos) 5 where
@@ -169,16 +170,16 @@ crossApply as bs = map (\(a, b) -> a b) (cross as bs)
 -- get every segement (distinct linear grouping) for current player in game
 -- handle singletons seperately because otherwise they could be triple-counted
 segments :: Game -> [Segment]
-segments g = segments_ (marblesPerMove g) (board g) (nextPlayer g) where
-	segments_ :: Int -> Board -> Player -> [Segment]
-	segments_ len b p = singletons ++ lengthTwoOrMore where
-		pieces = getPieces b p 
-		pieceList = Set.toList pieces
-		singletons = map (\x -> Segment x TopRight 1) pieceList
-		positionDirectionPairs = cross (Set.toList pieces) [TopRight, MidRight, BotRight]
-		lengthTwoOrMore = concat $ map f positionDirectionPairs
-		f :: (Position, Direction) -> [Segment]
-		f (p, d) = map (Segment p d) [2..numSegments] where
-			tails = iterate (adjacent d) p
-			validTails = takeWhile (\p -> p `Set.member` pieces) tails
-			numSegments = min (length validTails) len
+segments g = segments_ (marblesPerMove g) (board g) (nextPlayer g)
+segments_ :: Int -> Board -> Player -> [Segment]
+segments_ len b p = singletons ++ lengthTwoOrMore where
+	pieces = getPieces b p 
+	pieceList = Set.toList pieces
+	singletons = map (\x -> Segment x TopRight 1) pieceList
+	positionDirectionPairs = cross (Set.toList pieces) [TopRight, MidRight, BotRight]
+	lengthTwoOrMore = concat $ map f positionDirectionPairs
+	f :: (Position, Direction) -> [Segment]
+	f (p, d) = map (Segment p d) [2..numSegments] where
+		tails = iterate (adjacent d) p
+		validTails = takeWhile (\p -> p `Set.member` pieces) tails
+		numSegments = min (length validTails) len
