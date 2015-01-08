@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -6,6 +7,8 @@ import Player
 
 import qualified Data.Set as Set
 import Data.List 
+import Data.Aeson
+import Data.Maybe (fromJust)
 
 testGameFromBoard :: Board -> Game 
 testGameFromBoard b = Game b White 1000 3 
@@ -69,5 +72,17 @@ main = defaultMain $
 		],
 
 		testCase "Stones can be pushed off the board" $ 
-			(threeStoneGameAfterPush `elem` futures threeStoneGame) @?= True
+			(threeStoneGameAfterPush `elem` futures threeStoneGame) @?= True,
+
+		testGroup "serialization Tests" [
+			testCase "standard board serializes appropriately" $ 
+				encode start @?= "{\"marblesPerMove\":3,\"movesRemaining\":200,\"nextPlayer\":\"White\",\"board\":{\"whitePositions\":[[-4,3],[-4,4],[-3,3],[-3,4],[-2,2],[-2,3],[-2,4],[-1,2],[-1,3],[-1,4],[0,2],[0,3],[0,4],[1,3]],\"boardRadius\":5,\"blackPositions\":[[-1,-3],[0,-4],[0,-3],[0,-2],[1,-4],[1,-3],[1,-2],[2,-4],[2,-3],[2,-2],[3,-4],[3,-3],[4,-4],[4,-3]]}}",
+
+			testCase "deserialization works as expected" $ 
+				(fromJust . decode . encode) start @?= start
+		]
 	]
+
+
+
+

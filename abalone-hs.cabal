@@ -35,9 +35,10 @@ test-suite tests
   type:               exitcode-stdio-1.0
   main-is:            tests.hs
   hs-source-dirs:     test
+  default-language:   Haskell2010
   build-depends:      base >= 4.7 && <4.8, 
                       containers >= 0.5.5.1,
                       tasty >= 0.10.1, 
                       tasty-hunit, 
+                      aeson >= 0.8.0.2,
                       abalone-hs
-  default-language:   Haskell2010
