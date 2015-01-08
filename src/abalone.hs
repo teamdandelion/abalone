@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Abalone
   ( Game(Game)
   , Board(Board)
@@ -19,21 +21,27 @@ import Data.Ord
 import Data.List
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Player
-
+import Data.Aeson
+import GHC.Generics
 import Control.Applicative
 import Control.Monad
+
+import Player
 
 data Game = Game { board          :: Board
                  , nextPlayer     :: Player
                  , movesRemaining :: Int
                  , marblesPerMove :: Int
-                 } deriving (Eq, Show, Read)
+                 } deriving (Eq, Show, Read, Generic)
+instance FromJSON Game
+instance ToJSON   Game
 
 data Board = Board { whitePositions :: Set Position
                    , blackPositions :: Set Position
                    , boardRadius    :: Int
-                   } deriving (Eq, Show, Read)
+                   } deriving (Eq, Show, Read, Generic)
+instance FromJSON Board
+instance ToJSON   Board
 
 getPieces :: Board -> Player -> Set Position
 getPieces b White = whitePositions b
@@ -56,7 +64,9 @@ dist2 (q1,r1) (q2,r2) = abs (q1 - q2) + abs (r1 - r2) + abs (q1 + r1 - q2 - r2)
 
 data Direction = TopRight | MidRight | BotRight
                | TopLeft  | MidLeft  | BotLeft  
-  deriving (Eq, Show, Read, Ord, Bounded, Enum)
+  deriving (Eq, Show, Read, Ord, Bounded, Enum, Generic)
+instance FromJSON Direction
+instance ToJSON   Direction
 
 (|>) :: Position -> Direction -> Position
 (q, r) |> TopRight = (q+1, r-1)
@@ -80,7 +90,7 @@ colinear d1 d2 = d1 == d2 || d1 == opposite d2
 -- Moves are internal-only representation of a move - external API is just game states
 data Move = Move { segment   :: Segment
                  , direction :: Direction
-                 } deriving (Eq, Show, Read)
+                 } deriving (Eq, Show, Read, Generic)
 
 inline, broadside :: Move -> Bool
 inline m@(Move s _) = colinear (direction m) (orientation s)
@@ -90,7 +100,7 @@ broadside m         = not (inline m)
 data Segment = Segment { basePos     :: Position  -- The start position of the segment
                        , orientation :: Direction -- The direction the segment grows in (irrelevant if len is 1)
                        , segLength   :: Int       -- The length of the segment
-                       } deriving (Eq, Show, Read)
+                       } deriving (Eq, Show, Read, Generic)
 
 segPieces :: Segment -> [Position]
 segPieces (Segment pos orient len) = take len $ iterate (|> orient) pos
