@@ -56,6 +56,12 @@ standardBoard = Board whitePos blackPos 5
   whitePos = Set.fromList $ [(-4,0,4),(-4,1,3),(-2,0,2)] >>= \(q,q',r) -> map (flip (,) r) [q..q']
   blackPos = Set.map (\(q, r) -> (-q, -r)) whitePos
 
+{-- Chas:
+that code might make more sense if you replace(list) >>= function with (flip concatmap) (list) (function)
+Then flip the function args so it's set $ concatMap (function) [list]
+--}
+
+
 -- Position / Grid Functions --
 type Position = (Int, Int)
 
