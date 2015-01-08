@@ -14,3 +14,4 @@ cabal.config
 *.hp
 *.aux
 elm/elm_stuff/
+elm/elm.js
