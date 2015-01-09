@@ -19,6 +19,7 @@ module Abalone
 
 import Data.Ord
 import Data.List
+import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Aeson
@@ -106,10 +107,11 @@ broadside m         = not (inline m)
 data Segment = Segment { basePos     :: Position  -- The start position of the segment
                        , orientation :: Direction -- The direction the segment grows in (irrelevant if len is 1)
                        , segLength   :: Int       -- The length of the segment
+                       , player      :: Player    -- The controlling player
                        } deriving (Eq, Show, Read, Generic)
 
 segPieces :: Segment -> [Position]
-segPieces (Segment pos orient len) = take len $ iterate (|> orient) pos
+segPieces (Segment pos orient len _) = take len $ iterate (|> orient) pos
 
 gameOver :: Game -> Bool
 gameOver g = movesRemaining g <= 0 || any (\p -> numPieces g p == 0) [White, Black]
@@ -133,21 +135,29 @@ isValid g0 g1 = g1 `elem` (futures g0) -- very inefficient impl but that should 
 onBoard :: Board -> Position -> Bool -- is a piece on the board still?
 onBoard board pos = dist2 pos (0, 0) <= (boardRadius board) * 2
 
+-- Take a board and a proposed inline move, and return Just the moved enemy pieces if it is valid
+inlineMoved :: Board -> Move -> Maybe [Position]
+inlineMoved b m@(Move s@(Segment pos orient len player) dir)
+    | broadside m = Nothing
+    | inline m    = let front = if orient == dir then last else head
+                        attacked = (|> dir) . front $ segPieces s
+                        own   = flip Set.member $ getPieces b player
+                        enemy = flip Set.member $ getPieces b $ next player
+                        free x = not $ enemy x || own x
+                        clear x force 
+                          | free x = Just []
+                          | own x || force == 0 = Nothing
+                          | enemy x = fmap ((:) x) $ clear (x |> dir) (force - 1)
+                    in clear attacked (len - 1)
+
 update :: Game -> Move -> Game
-update (Game b p remaining perMove) m@(Move s@(Segment pos orient len) dir) = newGame
+update (Game b p remaining perMove) m@(Move s dir) = newGame
  where
   -- Pieces to move
   ownPieces = segPieces s
   enemyPieces
     | broadside m = []
-    | inline m    = let positioner = if orient == dir then last else head
-                        start = (|> dir) . positioner $ ownPieces
-                     in unfoldr ( \(x, force) -> if not (enemy x) || force == 0
-                                                 then Nothing
-                                                 else Just (x, (x |> dir, force - 1)) )
-                                (start, len - 1)
-   where
-    enemy x = x `Set.member` getPieces b (next p)
+    | inline m    = fromJust $ inlineMoved b m
 
   -- New game state
   updated = filter (onBoard b) . map (|> dir)
@@ -181,18 +191,12 @@ possibleMoves g@(Game b p _ _)  = do
   guard $ valid move
   return move
  where
-  valid m@(Move s@(Segment pos orient len) dir)
+  own   = flip Set.member $ getPieces b p
+  enemy = flip Set.member $ getPieces b $ next p
+  free x = not $ enemy x || own x
+  valid m@(Move s dir)
     | broadside m = all free $ map (|> dir) (segPieces s)
-    | inline m    = let start | orient == dir = last (segPieces s) |> dir
-                              | orient /= dir = pos                |> dir
-                        clear x force | free x              = True
-                                      | own x || force == 0 = False
-                                      | otherwise           = clear (x |> dir) (force - 1)
-                     in clear start (len - 1)
-   where
-    own   x = x `Set.member` getPieces b p
-    enemy x = x `Set.member` getPieces b (next p)
-    free  x = not (own x || enemy x)
+    | inline m    = isJust $ inlineMoved b m
 
 -- get every segment (distinct linear grouping) for current player in game
 -- handle singletons seperately because otherwise they could be triple-counted
@@ -200,12 +204,12 @@ segments :: Game -> [Segment]
 segments (Game b p _ maxlen) = singletons ++ lengthTwoOrMore
  where
   pieces = Set.toList $ getPieces b p
-  singletons = [Segment p TopRight 1 | p <- pieces]
+  singletons = [Segment x TopRight 1 p | x <- pieces]
   lengthTwoOrMore = do
     pos    <- pieces
     orient <- [TopRight, MidRight, BotRight]
     len    <- [2..maxlen]
-    let seg = Segment pos orient len
+    let seg = Segment pos orient len p
     guard $ valid seg
     return seg
    where
