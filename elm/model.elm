@@ -64,6 +64,11 @@ opposite d = case d of
     MidLeft  -> MidRight
     TopLeft  -> BotRight
 
+next : Player -> Player
+next p = case p of 
+    White -> Black
+    Black -> White
+
 colinear : Direction -> Direction -> Bool
 colinear d1 d2 = d1 == d2 || d1 == opposite d2
 
@@ -77,14 +82,14 @@ iterateN : Int -> (a -> a) -> a -> List a
 iterateN len f x = if len == 0 then [] else x :: iterateN (len-1) f (f x)
 
 segPieces : Segment -> List Position
-segPieces {pos, orient, len} = iterateN len (adjacent orient) pos
+segPieces {basePos, orientation, segLength} = iterateN segLength (adjacent orientation) basePos
 
 gameOver : Game -> Bool
 gameOver g = g.movesRemaining <= 0 || List.any (\p -> numPieces g p == 0) [White, Black]
 
 winner : Game -> Maybe Player
 winner g = let 
-                advantage = case compare (numPieces g) White Black of
+                advantage = case compare (numPieces g White) (numPieces g Black) of
                 GT -> Just White
                 LT -> Just Black
                 EQ -> Nothing
@@ -95,13 +100,62 @@ numPieces : Game -> Player -> Int
 numPieces g p = List.length <| Set.toList <| getPieces g.board p
 
 -- this function will recieve new game states from client and verify validity
-isValid : Game -> Game -> Bool
-isValid g0 g1 = List.member g1 (futures g0) -- very inefficient impl but that should be fine since occurs once per turn
+--isValid : Game -> Game -> Bool
+--isValid g0 g1 = List.member g1 (futures g0) -- very inefficient impl but that should be fine since occurs once per turn
 
 onBoard : Board -> Position -> Bool -- is a piece on the board still?
 onBoard board pos = dist2 pos (0, 0) <= board.boardRadius * 2
 
 -- ===
-futures : Game -> List Game -- find all valid future states of this board (1 move)
-futures g = map (update g) (possibleMoves g)
+--futures : Game -> List Game -- find all valid future states of this board (1 move)
+--futures g = map (update g) (possibleMoves g)
 
+crossApply : List (a -> b) -> List a -> List b
+crossApply fs xs = List.foldr (\a  -> (++) <| (flip List.map) xs a) [] fs
+crossApply3 : (a -> b -> c -> d) -> List a -> List b -> List c -> List d
+crossApply3 f a b c = List.map f a `crossApply` b `crossApply` c
+
+ --get every segment (distinct linear grouping) for current player in game
+ --handle singletons seperately because otherwise they could be triple-counted
+segments : Game -> List Segment
+segments {board, nextPlayer, movesRemaining, marblesPerMove} = let 
+    pieces : List Position
+    pieces = Set.toList <| getPieces board nextPlayer
+    segConstructor : Position -> Direction -> Int -> Segment
+    segConstructor = (\p o l -> {basePos = p, orientation = o, segLength = l})
+    singletons : List Segment
+    singletons = map (\p -> segConstructor p TopRight 1) pieces
+    longer : List Segment
+    longer = List.filter valid <| crossApply3 segConstructor pieces orients [2..marblesPerMove]
+    orients = [TopRight, MidRight, BotRight]
+    valid : Segment -> Bool
+    valid = List.all (flip Set.member <| getPieces board nextPlayer) << segPieces
+                            in singletons ++ longer
+
+last : List a -> a
+last = List.reverse >> List.head
+
+valid : Game -> Move -> Bool
+valid g m = let s = m.segment
+                dir = m.direction
+                orient = s.orientation
+                b = g.board
+                p = g.nextPlayer
+                accessor = if (orient == dir) then last else List.head
+                start = adjacent dir << accessor << segPieces <| s
+                clear x force = if | free x -> True
+                                   | own x || force == 0 -> False
+                                   | otherwise -> clear (adjacent dir x) (force - 1)
+                own x   = x `Set.member` getPieces b p
+                enemy x = x `Set.member` getPieces b (next p)
+                free x  = not (own x || enemy x)
+            in if broadside m 
+                    then List.all free <| List.map (adjacent dir) (segPieces s)
+                    else clear start (s.segLength - 1)
+
+
+possibleMoves : Game -> List Move
+possibleMoves g  = let moveConstructor = (\s d -> Move s d)
+                       allDirections = [TopRight, MidRight, BotRight, TopLeft, MidLeft, BotLeft]
+                       allMoves = crossApply (map moveConstructor <| segments g) allDirections
+                   in List.filter (valid g) <| allMoves
