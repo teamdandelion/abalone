@@ -140,8 +140,8 @@ update (Game b p remaining perMove) m@(Move s@(Segment pos orient len) dir) = ne
   ownPieces = segPieces s
   enemyPieces
     | broadside m = []
-    | inline m    = let start | orient == dir = last ownPieces |> dir
-                              | orient /= dir = pos            |> dir
+    | inline m    = let positioner = if orient == dir then last else head
+                        start = (|> dir) . positioner $ ownPieces
                      in unfoldr ( \(x, force) -> if not (enemy x) || force == 0
                                                  then Nothing
                                                  else Just (x, (x |> dir, force - 1)) )
