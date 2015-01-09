@@ -70,6 +70,7 @@ main = defaultMain $
 			testCase "Correct number of segments in three stone game" $ 
 				numSegments threeStoneGame @?= 3
 		],
+		-- todo - test that inline push works in both directions
 
 		testCase "Stones can be pushed off the board" $ 
 			(threeStoneGameAfterPush `elem` futures threeStoneGame) @?= True,
