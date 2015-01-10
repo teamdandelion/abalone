@@ -3,7 +3,6 @@ import Set(Set)
 import List(map, (::))
 import List
 import Maybe
-import Maybe(Maybe(..))
 
 type alias Game = { board          : Board
                   , nextPlayer     : Player
