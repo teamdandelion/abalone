@@ -2,6 +2,8 @@ import Set
 import Set(Set)
 import List(map, (::))
 import List
+import Maybe
+import Maybe(Maybe(..))
 
 type alias Game = { board          : Board
                   , nextPlayer     : Player
@@ -22,7 +24,8 @@ type alias Move =  { segment   : Segment
 
 type alias Segment =  { basePos     : Position  
                       , orientation : Direction 
-                      , segLength   : Int       
+                      , segLength   : Int
+                      , player      : Player   
                       }                 
 
 type alias Position = (Int, Int)
@@ -122,7 +125,7 @@ segments {board, nextPlayer, movesRemaining, marblesPerMove} = let
     pieces : List Position
     pieces = Set.toList <| getPieces board nextPlayer
     segConstructor : Position -> Direction -> Int -> Segment
-    segConstructor = (\p o l -> {basePos = p, orientation = o, segLength = l})
+    segConstructor = (\p o l -> {basePos = p, orientation = o, segLength = l, player = nextPlayer})
     singletons : List Segment
     singletons = map (\p -> segConstructor p TopRight 1) pieces
     longer : List Segment
@@ -132,26 +135,38 @@ segments {board, nextPlayer, movesRemaining, marblesPerMove} = let
     valid = List.all (flip Set.member <| getPieces board nextPlayer) << segPieces
                             in singletons ++ longer
 
+owner : Board -> Position -> Maybe Player
+owner b x = if 
+    | x `Set.member` getPieces b White -> Just White
+    | x `Set.member` getPieces b Black -> Just Black
+    | otherwise -> Nothing
+
+inlineMoved : Board -> Move -> Maybe (List Position)
+inlineMoved b m = if broadside m 
+    then  Nothing
+    else let front = if m.segment.orientation == m.direction then last else List.head
+             attacked = (adjacent m.direction) << front <| segPieces (m.segment)
+             clear x force = if  
+                 | owner b x == Nothing -> Just []
+                 | owner b x == Just (m.segment.player) || force == 0 -> Nothing
+                 | otherwise -> Maybe.map ((::) x) <| clear (adjacent m.direction x) (force - 1)
+         in clear attacked (m.segment.segLength - 1)
+
+
 last : List a -> a
 last = List.reverse >> List.head
+
+isJust : Maybe a -> Bool
+isJust x = if x == Nothing then False else True
 
 valid : Game -> Move -> Bool
 valid g m = let s = m.segment
                 dir = m.direction
-                orient = s.orientation
                 b = g.board
-                p = g.nextPlayer
-                accessor = if (orient == dir) then last else List.head
-                start = adjacent dir << accessor << segPieces <| s
-                clear x force = if | free x -> True
-                                   | own x || force == 0 -> False
-                                   | otherwise -> clear (adjacent dir x) (force - 1)
-                own x   = x `Set.member` getPieces b p
-                enemy x = x `Set.member` getPieces b (next p)
-                free x  = not (own x || enemy x)
+                free x  = owner b x == Nothing
             in if broadside m 
                     then List.all free <| List.map (adjacent dir) (segPieces s)
-                    else clear start (s.segLength - 1)
+                    else isJust <| inlineMoved b m
 
 
 possibleMoves : Game -> List Move
