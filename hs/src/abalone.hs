@@ -135,19 +135,22 @@ isValid g0 g1 = g1 `elem` (futures g0) -- very inefficient impl but that should 
 onBoard :: Board -> Position -> Bool -- is a piece on the board still?
 onBoard board pos = dist2 pos (0, 0) <= (boardRadius board) * 2
 
+owner :: Board -> Position -> Maybe Player
+owner b x 
+  | x `Set.member` getPieces b White = Just White
+  | x `Set.member` getPieces b Black = Just Black
+  | otherwise = Nothing
+
 -- Take a board and a proposed inline move, and return Just the moved enemy pieces if it is valid
 inlineMoved :: Board -> Move -> Maybe [Position]
 inlineMoved b m@(Move s@(Segment pos orient len player) dir)
     | broadside m = Nothing
     | inline m    = let front = if orient == dir then last else head
                         attacked = (|> dir) . front $ segPieces s
-                        own   = flip Set.member $ getPieces b player
-                        enemy = flip Set.member $ getPieces b $ next player
-                        free x = not $ enemy x || own x
                         clear x force 
-                          | free x = Just []
-                          | own x || force == 0 = Nothing
-                          | enemy x = fmap ((:) x) $ clear (x |> dir) (force - 1)
+                          | owner b x == Nothing = Just []
+                          | owner b x == Just player || force == 0 = Nothing
+                          | otherwise = fmap ((:) x) $ clear (x |> dir) (force - 1)
                     in clear attacked (len - 1)
 
 update :: Game -> Move -> Game
@@ -191,9 +194,7 @@ possibleMoves g@(Game b p _ _)  = do
   guard $ valid move
   return move
  where
-  own   = flip Set.member $ getPieces b p
-  enemy = flip Set.member $ getPieces b $ next p
-  free x = not $ enemy x || own x
+  free x = (owner b x == Nothing)
   valid m@(Move s dir)
     | broadside m = all free $ map (|> dir) (segPieces s)
     | inline m    = isJust $ inlineMoved b m
