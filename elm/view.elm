@@ -53,8 +53,8 @@ hexSize (w, h) game = let wholeBoardLen = toFloat (min w h)
                           hexesOnEdge = game.board.boardRadius
           in wholeBoardLen / (toFloat <| hexesOnEdge * 4) -- discovered experimentally ;)
 
-genHex : HexSize -> Hex.Position -> Form
-genHex size pos = 
+singleHex : HexSize -> Hex.Position -> Form
+singleHex size pos = 
     let style = Collage.outlined <| Collage.solid Color.black
         fill = Collage.filled Color.grey
         hexes = Collage.group <| map (hexagon size) [style, fill]
@@ -79,5 +79,5 @@ board (w, h) game =
         hexPositions : List Hex.Position
         hexPositions = Hex.hexagonalGrid hexesOnEdge
         hexagons : List Form
-        hexagons = map (genHex size) hexPositions
+        hexagons = map (singleHex size) hexPositions
     in  Collage.collage w h hexagons
