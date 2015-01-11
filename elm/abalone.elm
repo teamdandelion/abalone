@@ -28,7 +28,7 @@ type alias Move =  { segment   : Segment
                    } 
 
 type alias Segment =  { basePos     : Hex.Position  
-                      , orientation : Hex.Direction 
+                      , orientation : Maybe Hex.Direction 
                       , segLength   : Int
                       , player      : Player   
                       }                 
@@ -48,13 +48,17 @@ standardBoard = let genPos d = (\x -> (-x, d))
                     Board whitePos blackPos 5
 
 inline : Move -> Bool
-inline m = Hex.colinear m.direction m.segment.orientation
+inline m = if 
+  | m.segment.orientation == Nothing -> False 
+  | otherwise -> Hex.colinear m.direction (Misc.fromJust m.segment.orientation)
 
 broadside : Move -> Bool
 broadside m = not (inline m)
 
 segPieces : Segment -> List Hex.Position
-segPieces {basePos, orientation, segLength} = Misc.iterateN segLength (Hex.adjacent orientation) basePos
+segPieces {basePos, orientation, segLength} = if 
+    | orientation == Nothing -> [basePos]
+    | otherwise -> Misc.iterateN segLength (Hex.adjacent <| Misc.fromJust orientation) basePos
 
 gameOver : Game -> Bool
 gameOver g = g.movesRemaining <= 0 || List.any (\p -> numPieces g p == 0) [White, Black]
@@ -89,13 +93,13 @@ segments : Game -> List Segment
 segments {board, nextPlayer, movesRemaining, marblesPerMove} = let 
     pieces : List Hex.Position
     pieces = Set.toList <| getPieces board nextPlayer
-    segConstructor : Hex.Position -> Hex.Direction -> Int -> Segment
+    segConstructor : Hex.Position -> Maybe Hex.Direction -> Int -> Segment
     segConstructor = (\p o l -> {basePos = p, orientation = o, segLength = l, player = nextPlayer})
     singletons : List Segment
-    singletons = map (\p -> segConstructor p TopRight 1) pieces
+    singletons = map (\p -> segConstructor p Nothing 1) pieces
     longer : List Segment
     longer = List.filter valid <| Misc.crossApply3 segConstructor pieces orients [2..marblesPerMove]
-    orients = [TopRight, MidRight, BotRight]
+    orients = [Just TopRight, Just MidRight, Just BotRight]
     valid : Segment -> Bool
     valid = List.all (flip Set.member <| getPieces board nextPlayer) << segPieces
                             in singletons ++ longer
@@ -109,7 +113,7 @@ owner b x = if
 inlineMoved : Board -> Move -> Maybe (List Hex.Position)
 inlineMoved b m = if broadside m 
     then  Nothing
-    else let front = if m.segment.orientation == m.direction then Misc.last else List.head
+    else let front = if (Misc.fromJust m.segment.orientation) == m.direction then Misc.last else List.head
              attacked = (Hex.adjacent m.direction) << front <| segPieces (m.segment)
              clear x force = if  
                  | owner b x == Nothing -> Just []
@@ -146,6 +150,5 @@ valid g m = let s = m.segment
 
 possibleMoves : Game -> List Move
 possibleMoves g  = let moveConstructor = (\s d -> Move s d)
-                       allDirections = [TopRight, MidRight, BotRight, TopLeft, MidLeft, BotLeft]
-                       allMoves = Misc.crossApply (map moveConstructor <| segments g) allDirections
+                       allMoves = Misc.crossApply (map moveConstructor <| segments g) Hex.directions
                    in List.filter (valid g) <| allMoves
