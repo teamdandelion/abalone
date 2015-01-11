@@ -32,7 +32,7 @@ directions = [TopRight, MidRight, BotRight, BotLeft, MidLeft, TopLeft]
 nearbyDirections : Direction -> List Direction
 nearbyDirections d = 
     let idx = Misc.fromJust <| Misc.index d directions
-        nearby = map (\x -> (x + idx) % 6) [-1, 0, 1]
+        nearby = List.map (\x -> (x + idx) % 6) [-1, 0, 1]
     in  List.map (Misc.fromJust << (flip Misc.retrieve <| directions)) nearby
 
 colinear : Direction -> Direction -> Bool
