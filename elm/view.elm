@@ -37,10 +37,8 @@ scene (w,h) {x,y} =
     --    taps = collage w h [positioned (filled purple (circle 40)) ]
     in  Element.layers [backgroundBoard, marbles]
 
-margin = 0
-
-hexagon : HexSize -> Shape
-hexagon = Collage.ngon 6
+hexagon : HexSize -> (Shape -> Form) -> Form
+hexagon size style = Collage.ngon 6 size |> style |> Collage.rotate (degrees 30)
 
 reposition : HexSize -> Hex.Position -> Form -> Form
 reposition pixelRadius (q, r) hex = 
@@ -51,17 +49,18 @@ reposition pixelRadius (q, r) hex =
     in  Collage.move (x, y) hex
 
 hexSize : WidthHeight -> Abalone.Game -> HexSize
-hexSize (w, h) game = let wholeBoardLen = toFloat (min w h - margin)
+hexSize (w, h) game = let wholeBoardLen = toFloat (min w h)
                           hexesOnEdge = game.board.boardRadius
           in wholeBoardLen / (toFloat <| hexesOnEdge * 4) -- discovered experimentally ;)
 
 genHex : HexSize -> Hex.Position -> Form
 genHex size pos = 
     let style = Collage.outlined <| Collage.solid Color.black
-        hex = Collage.rotate (degrees 30) <| style <| hexagon size 
+        fill = Collage.filled Color.grey
+        hexes = Collage.group <| map (hexagon size) [style, fill]
         coord = Collage.toForm <| Text.plainText <| toString pos
         gp : Form 
-        gp = Collage.group [hex, coord]
+        gp = Collage.group [hexes, coord]
     in  reposition size pos gp
 
 stone : HexSize -> Player -> Hex.Position -> Form
