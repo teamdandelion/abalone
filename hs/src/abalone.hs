@@ -100,18 +100,22 @@ data Move = Move { segment   :: Segment
                  } deriving (Eq, Show, Read, Generic)
 
 inline, broadside :: Move -> Bool
-inline m@(Move s _) = colinear (direction m) (orientation s)
+inline m@(Move s _) 
+    | orientation s == Nothing = False
+    | otherwise                = colinear (direction m) (fromJust $ orientation s)
 broadside m         = not (inline m)
 
 -- A segment is a linear group of marbles that could move.
 data Segment = Segment { basePos     :: Position  -- The start position of the segment
-                       , orientation :: Direction -- The direction the segment grows in (irrelevant if len is 1)
+                       , orientation :: Maybe Direction -- The direction the segment grows in (Nothing if len is 1)
                        , segLength   :: Int       -- The length of the segment
                        , player      :: Player    -- The controlling player
                        } deriving (Eq, Show, Read, Generic)
 
 segPieces :: Segment -> [Position]
-segPieces (Segment pos orient len _) = take len $ iterate (|> orient) pos
+segPieces (Segment pos orient len _)
+    | orient == Nothing = [pos]
+    | otherwise = take len $ iterate (|> fromJust orient) pos
 
 gameOver :: Game -> Bool
 gameOver g = movesRemaining g <= 0 || any (\p -> numPieces g p == 0) [White, Black]
@@ -145,7 +149,7 @@ owner b x
 inlineMoved :: Board -> Move -> Maybe [Position]
 inlineMoved b m@(Move s@(Segment pos orient len player) dir)
     | broadside m = Nothing
-    | inline m    = let front = if orient == dir then last else head
+    | inline m    = let front = if (fromJust orient) == dir then last else head
                         attacked = (|> dir) . front $ segPieces s
                         clear x force 
                           | owner b x == Nothing = Just []
@@ -205,12 +209,12 @@ segments :: Game -> [Segment]
 segments (Game b p _ maxlen) = singletons ++ lengthTwoOrMore
  where
   pieces = Set.toList $ getPieces b p
-  singletons = [Segment x TopRight 1 p | x <- pieces]
+  singletons = [Segment x Nothing 1 p | x <- pieces]
   lengthTwoOrMore = do
     pos    <- pieces
     orient <- [TopRight, MidRight, BotRight]
     len    <- [2..maxlen]
-    let seg = Segment pos orient len p
+    let seg = Segment pos (Just orient) len p
     guard $ valid seg
     return seg
    where
