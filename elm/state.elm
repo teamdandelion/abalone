@@ -4,6 +4,7 @@ import Maybe
 import List
 import List(map)
 import Misc
+import Misc(fromJust)
 import Set
 import Set(Set)
 
@@ -23,15 +24,19 @@ type alias Update = Hex.Position -> State -> Maybe State
 
 extensions : Game -> Maybe Segment -> Set Hex.Position
 extensions g seg = if 
-    | seg == Nothing -> getPieces (g.board g.nextPlayer)
-    | (Misc.fromJust seg).segLength >= g.marblesPerMove -> Set.empty
-    | otherwise -> 
-        let s = Misc.fromJust seg 
-            dirAndOpposite = (\d -> [d, Hex.opposite d])
-            directions = Maybe.withDefault Hex.directions <| Maybe.map dirAndOpposite seg.orientation
-            possibleSpaces = map (\x -> Hex.adjacent x seg.basePos) directions
+    | seg == Nothing -> getPieces g.board g.nextPlayer
+    | (fromJust seg).segLength >= g.marblesPerMove -> Set.empty
+    | (fromJust seg).segLength == 1 ->
+        let spaces = map (\x -> Hex.adjacent x (fromJust seg).basePos) Hex.directions
             pieces = getPieces g.board g.nextPlayer
-        in  List.filter (\x -> x `Set.member` pieces) possibleSpaces
+        in Set.fromList <| List.filter (\x -> x `Set.member` pieces) spaces
+    | otherwise -> 
+        let s = fromJust seg 
+            orient = fromJust s.orientation
+            behind = Hex.adjacent (Hex.opposite orient) s.basePos
+            forward = Hex.adjacent orient (Misc.last <| segPieces s)
+            pieces = getPieces g.board g.nextPlayer
+        in  Set.fromList <| List.filter (\x -> x `Set.member` pieces) [behind, forward]
 
 
 -- Take a game and partially built segment and extend it (if possible)
@@ -39,7 +44,7 @@ extendSegment : State -> Hex.Position -> Maybe Segment
 extendSegment (g,s) pos = if 
     | not <| pos `Set.member` extensions g s -> Nothing
     | s == Nothing -> Just {basePos = pos, orientation = Nothing, segLength = 1, player = g.nextPlayer}
-    | otherwise      -> let seg = Misc.fromJust s
+    | otherwise      -> let seg = fromJust s
                         in  Just {seg | basePos     <- pos
                                       , orientation <- Hex.findDirection pos seg.basePos
                                       , segLength   <- seg.segLength + 1}
@@ -48,10 +53,10 @@ reduceState : State -> Hex.Position -> Maybe State
 reduceState (g, s) p = if 
     | s == Nothing -> Nothing
     | otherwise -> 
-        let seg = Misc.fromJust s 
+        let seg = fromJust s 
         in if 
             | seg.segLength == 1 && p == seg.basePos -> Just (g, Nothing)
-            | p == seg.basePos -> Just (g, {seg | basePos   <- Hex.adjacent seg.orientation seg.basePos
+            | p == seg.basePos -> Just (g, {seg | basePos   <- Hex.adjacent (fromJust seg.orientation) seg.basePos
                                                 , segLength <- seg.segLength - 1})
             | p == Misc.last <| segPieces seg -> Just (g, {seg | segLength <- seg.segLength - 1})
             | otherwise -> Nothing
