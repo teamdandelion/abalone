@@ -29,6 +29,28 @@ opposite d = case d of
 
 directions = [TopRight, MidRight, BotRight, BotLeft, MidLeft, TopLeft]
 
+axial2cube : Position -> (Int, Int, Int)
+axial2cube (q,r) = (q, -q-r, r)
+
+cube2axial : (Int, Int, Int) -> Position
+cube2axial (x,y,z) = (x,z)
+
+hexRound : (Float, Float) -> Position
+hexRound (q,r) = 
+    let x = q
+        y = -q-r
+        z = r
+        rx = round(x)
+        ry = round(y)
+        rz = round(z)
+        xdiff = abs(toFloat rx - x)
+        ydiff = abs(toFloat ry - y)
+        zdiff = abs(toFloat rz - z)
+        xAdj = if xdiff > ydiff && xdiff > zdiff then -ry-rz else rx
+        yAdj = if ydiff > xdiff && ydiff > zdiff then -rx-rz else ry
+        zAdj = if xdiff > ydiff && xdiff > zdiff then -ry-rz else rx
+    in  cube2axial (xAdj,yAdj,zAdj)
+
 nearbyDirections : Direction -> List Direction
 nearbyDirections d = 
     let idx = Misc.fromJust <| Misc.index d directions
