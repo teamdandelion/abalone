@@ -10,6 +10,7 @@ import Graphics.Collage as Collage
 import Graphics.Element(Element)
 import Graphics.Collage(Shape, Form)
 import Graphics.Element as Element
+import Text
 
 import Abalone 
 import Hex
@@ -25,7 +26,7 @@ type alias MousePosition = (Int, Int)
 type alias ViewState = (WidthHeight, AbaloneState, MousePosition)
 
 scene : ViewState -> Element
-scene (w,h) (game, segment) = 
+scene ((w,h), (game, segment), (x,y)) = 
     let backgroundBoard = board (w,h) game
         marbles = stones (w,h) game
         highlights = highlighter (w,h) (game, segment) 
@@ -34,7 +35,7 @@ scene (w,h) (game, segment) =
     in  Element.layers [backgroundBoard, highlights, marbles]
 
 
-highlighter : (Int, Int) -> State -> Element 
+highlighter : WidthHeight -> AbaloneState -> Element 
 highlighter (w,h) (g,s) = 
     let pieces = Maybe.withDefault [] <| Maybe.map Abalone.segPieces s
         size = hexSize (w,h) g
