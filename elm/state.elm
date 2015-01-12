@@ -1,3 +1,4 @@
+module State where 
 import Abalone(..)
 import Hex
 import Maybe
@@ -8,8 +9,8 @@ import Misc(fromJust)
 import Set
 import Set(Set)
 
-type alias State = (Game, Maybe Segment)
-type alias Update = Hex.Position -> State -> Maybe State
+type alias AbaloneState = (Game, Maybe Segment)
+type alias Update = Hex.Position -> AbaloneState -> Maybe AbaloneState
 
 {-- 
     Input right now is a very simple model: The user selects a Segment (a movable line of
@@ -40,7 +41,7 @@ extensions g seg = if
 
 
 -- Take a game and partially built segment and extend it (if possible)
-extendSegment : State -> Hex.Position -> Maybe Segment
+extendSegment : AbaloneState -> Hex.Position -> Maybe Segment
 extendSegment (g,s) pos = if 
     | not <| pos `Set.member` extensions g s -> Nothing
     | s == Nothing -> Just {basePos = pos, orientation = Nothing, segLength = 1, player = g.nextPlayer}
@@ -49,7 +50,7 @@ extendSegment (g,s) pos = if
                                       , orientation <- Hex.findDirection pos seg.basePos
                                       , segLength   <- seg.segLength + 1}
 
-reduceState : State -> Hex.Position -> Maybe State
+reduceState : AbaloneState -> Hex.Position -> Maybe AbaloneState
 reduceState (g, s) p = if 
     | s == Nothing -> Nothing
     | otherwise -> 
@@ -61,7 +62,7 @@ reduceState (g, s) p = if
             | p == (Misc.last <| segPieces seg) -> Just (g, Just {seg | segLength <- seg.segLength - 1})
             | otherwise -> Nothing
 
-generateMove : State -> Hex.Position -> Maybe Move
+generateMove : AbaloneState -> Hex.Position -> Maybe Move
 generateMove (g, s) p = if
     | s == Nothing -> Nothing
     | otherwise -> 
@@ -84,26 +85,20 @@ generateMoveHelper segmentEnd segmentDirection proposedPosition = if
                 then proposedDirection
                 else Nothing
 
-moveState : State -> Hex.Position -> Maybe State
+moveState : AbaloneState -> Hex.Position -> Maybe AbaloneState
 moveState (g,s) p = 
     let uncheckedMove = generateMove (g,s) p 
         checkedMove = Maybe.andThen uncheckedMove (\m -> if valid g m then Just m else Nothing)
     in  Maybe.map (\m -> (update g m, Nothing)) checkedMove
 
-initialState : State 
-initialState = (start, Nothing)
+initial : AbaloneState 
+initial = (start, Nothing)
 
-updateState : State -> Hex.Position -> State
+updateState : AbaloneState -> Hex.Position -> AbaloneState
 updateState t p = Maybe.withDefault t <| Maybe.oneOf [reduceState t p, extendState t p, moveState t p]
 
---reduceSegment : State -> Hex.Position -> Maybe State
---reduceSegment (g,s) p =  Maybe.map (\s -> (g,s)) <| Abalone.reduceSegment g s p
-
-extendState : State -> Hex.Position -> Maybe State
+extendState : AbaloneState -> Hex.Position -> Maybe AbaloneState
 extendState (g,s) p = 
     let maybeSeg = extendSegment (g,s) p
         segToState = (\x -> (g, Just x))
     in  Maybe.map segToState maybeSeg
-
---updateGame : State -> Hex.Position -> Maybe State
---updateGame (g,s) p = Maybe.map (\m -> (Abalone.update g m)) <| Abalone.constructMove g s p 
