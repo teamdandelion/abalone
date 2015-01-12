@@ -56,34 +56,38 @@ reduceState (g, s) p = if
         let seg = fromJust s 
         in if 
             | seg.segLength == 1 && p == seg.basePos -> Just (g, Nothing)
-            | p == seg.basePos -> Just (g, {seg | basePos   <- Hex.adjacent (fromJust seg.orientation) seg.basePos
-                                                , segLength <- seg.segLength - 1})
-            | p == Misc.last <| segPieces seg -> Just (g, {seg | segLength <- seg.segLength - 1})
+            | p == seg.basePos -> Just (g, Just {seg | basePos   <- Hex.adjacent (fromJust seg.orientation) seg.basePos
+                                                     , segLength <- seg.segLength - 1})
+            | p == (Misc.last <| segPieces seg) -> Just (g, Just {seg | segLength <- seg.segLength - 1})
             | otherwise -> Nothing
 
 generateMove : State -> Hex.Position -> Maybe Move
-generateMove (g, s) p = 
-    let directionFromBase = generateMoveHelper s.basePos (Hex.opposite s.orientation) p
-        endPos = Misc.last <| segPieces s 
-        directionFromEnd  = generateMoveHelper endPos s.orientation p
-        direction = Maybe.oneOf [directionFromBase, directionFromEnd]
-    in Maybe.map (\d -> {segment = s, direction = d}) direction
+generateMove (g, s) p = if
+    | s == Nothing -> Nothing
+    | otherwise -> 
+        let seg = fromJust s
+            oppositeOrientation = Maybe.map Hex.opposite seg.orientation
+            directionFromBase = generateMoveHelper seg.basePos oppositeOrientation p
+            endPos = Misc.last <| segPieces seg
+            directionFromEnd  = generateMoveHelper endPos seg.orientation p
+            direction = Maybe.oneOf [directionFromBase, directionFromEnd]
+        in Maybe.map (\d -> {segment = seg, direction = d}) direction
 
 
-generateMoveHelper : Hex.Position -> Hex.Direction -> Hex.Position -> Maybe Hex.Direction
+generateMoveHelper : Hex.Position -> Maybe Hex.Direction -> Hex.Position -> Maybe Hex.Direction
 generateMoveHelper segmentEnd segmentDirection proposedPosition = if 
     | Hex.dist2 segmentEnd proposedPosition /= 2 -> Nothing
     | segmentDirection == Nothing -> Hex.findDirection segmentEnd proposedPosition
     | otherwise -> 
         let proposedDirection = Hex.findDirection segmentEnd proposedPosition
-        in  if proposedDirection `List.member` Hex.nearbyDirections segmentDirection
-                then Just proposedDirection
+        in  if (fromJust proposedDirection) `List.member` Hex.nearbyDirections (fromJust segmentDirection)
+                then proposedDirection
                 else Nothing
 
 moveState : State -> Hex.Position -> Maybe State
 moveState (g,s) p = 
     let uncheckedMove = generateMove (g,s) p 
-        checkedMove = Maybe.map (\m -> if valid g m then Just m else Nothing) uncheckedMove
+        checkedMove = Maybe.andThen uncheckedMove (\m -> if valid g m then Just m else Nothing)
     in  Maybe.map (\m -> (update g m, Nothing)) checkedMove
 
 initialState : State 
