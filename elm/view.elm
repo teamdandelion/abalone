@@ -17,6 +17,7 @@ import Hex
 import Player
 import Player(Player(..))
 import Misc
+import State(State)
 
 import Debug
 
@@ -28,14 +29,16 @@ radiusInHex = 5
 main : Signal Element
 main = Signal.map2 scene Window.dimensions Touch.taps
 
-scene : (Int, Int) -> {x:Int, y:Int } -> Element
-scene (w,h) {x,y} = 
+scene : (Int, Int) -> State -> Element
+scene (w,h) (game, segment) = 
     let backgroundBoard = board (w,h) game
         game = Abalone.start
         marbles = stones (w,h) game 
     --positioned = move (toFloat x - toFloat w/2, toFloat h/2 - toFloat y)
     --    taps = collage w h [positioned (filled purple (circle 40)) ]
     in  Element.layers [backgroundBoard, marbles]
+
+--drawState : Maybe
 
 hexagon : HexSize -> (Shape -> Form) -> Form
 hexagon size style = Collage.ngon 6 size |> style |> Collage.rotate (degrees 30)
