@@ -1,44 +1,46 @@
+module View where
 import Set
 import List(map)
 import List
-import Signal
+import Maybe
 
 import Color 
+import Color(Color)
 import Graphics.Collage as Collage
 import Graphics.Element(Element)
 import Graphics.Collage(Shape, Form)
 import Graphics.Element as Element
-import Window
-import Touch
-import Text
 
 import Abalone 
 import Hex
 import Player
 import Player(Player(..))
 import Misc
-import State(State)
-
-import Debug
+import State(AbaloneState)
 
 type alias WidthHeight = (Int, Int)
 type alias HexSize = Float
+type alias MousePosition = (Int, Int)
 
-radiusInHex = 5
+type alias ViewState = (WidthHeight, AbaloneState, MousePosition)
 
-main : Signal Element
-main = Signal.map2 scene Window.dimensions Touch.taps
-
-scene : (Int, Int) -> State -> Element
+scene : ViewState -> Element
 scene (w,h) (game, segment) = 
     let backgroundBoard = board (w,h) game
-        game = Abalone.start
-        marbles = stones (w,h) game 
+        marbles = stones (w,h) game
+        highlights = highlighter (w,h) (game, segment) 
     --positioned = move (toFloat x - toFloat w/2, toFloat h/2 - toFloat y)
     --    taps = collage w h [positioned (filled purple (circle 40)) ]
-    in  Element.layers [backgroundBoard, marbles]
+    in  Element.layers [backgroundBoard, highlights, marbles]
 
---drawState : Maybe
+
+highlighter : (Int, Int) -> State -> Element 
+highlighter (w,h) (g,s) = 
+    let pieces = Maybe.withDefault [] <| Maybe.map Abalone.segPieces s
+        size = hexSize (w,h) g
+        circle p = Collage.circle (size * 0.55) |> Collage.filled Color.lightOrange |> reposition size p
+    in  Collage.collage w h <| map circle pieces
+
 
 hexagon : HexSize -> (Shape -> Form) -> Form
 hexagon size style = Collage.ngon 6 size |> style |> Collage.rotate (degrees 30)
