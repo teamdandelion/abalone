@@ -80,7 +80,7 @@ isValid : Game -> Game -> Bool
 isValid g0 g1 = List.member g1 (futures g0) -- very inefficient impl but that should be fine since occurs once per turn
 
 onBoard : Board -> Hex.Position -> Bool -- is a piece on the board still?
-onBoard board pos = Hex.dist2 pos (0, 0) <= board.boardRadius * 2
+onBoard board pos = Hex.dist2 pos (0, 0) < board.boardRadius * 2
 
 -- ===
 futures : Game -> List Game -- find all valid future states of this board (1 move)

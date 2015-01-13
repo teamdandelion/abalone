@@ -137,7 +137,7 @@ isValid :: Game -> Game -> Bool
 isValid g0 g1 = g1 `elem` (futures g0) -- very inefficient impl but that should be fine since occurs once per turn
 
 onBoard :: Board -> Position -> Bool -- is a piece on the board still?
-onBoard board pos = dist2 pos (0, 0) <= (boardRadius board) * 2
+onBoard board pos = dist2 pos (0, 0) < (boardRadius board) * 2
 
 owner :: Board -> Position -> Maybe Player
 owner b x 
