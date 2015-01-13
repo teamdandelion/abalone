@@ -23,8 +23,8 @@ type alias Update = Hex.Position -> AbaloneState -> Maybe AbaloneState
 --}
 
 
-extensions : Game -> Maybe Segment -> Set Hex.Position
-extensions g seg = if 
+extensions : AbaloneState -> Set Hex.Position
+extensions (g, seg) = if 
     | seg == Nothing -> getPieces g.board g.nextPlayer
     | (fromJust seg).segLength >= g.marblesPerMove -> Set.empty
     | (fromJust seg).segLength == 1 ->
@@ -43,12 +43,15 @@ extensions g seg = if
 -- Take a game and partially built segment and extend it (if possible)
 extendSegment : AbaloneState -> Hex.Position -> Maybe Segment
 extendSegment (g,s) pos = if 
-    | not <| pos `Set.member` extensions g s -> Nothing
+    | not <| pos `Set.member` extensions (g,s) -> Nothing
     | s == Nothing -> Just {basePos = pos, orientation = Nothing, segLength = 1, player = g.nextPlayer}
     | otherwise      -> let seg = fromJust s
                         in  Just {seg | basePos     <- pos
                                       , orientation <- Hex.findDirection pos seg.basePos
                                       , segLength   <- seg.segLength + 1}
+
+reductions : AbaloneState -> Set Hex.Position
+reductions (g, s) = Maybe.withDefault Set.empty <| Maybe.map extrema s
 
 reduceState : AbaloneState -> Hex.Position -> Maybe AbaloneState
 reduceState (g, s) p = if 
@@ -84,6 +87,32 @@ generateMoveHelper segmentEnd segmentDirection proposedPosition = if
         in  if (fromJust proposedDirection) `List.member` Hex.nearbyDirections (fromJust segmentDirection)
                 then proposedDirection
                 else Nothing
+
+-- return a set containing the front and end of a segment
+extrema : Segment -> Set Hex.Position
+extrema s = Set.fromList <| map (\f -> f <| segPieces s) [List.head, Misc.last]
+
+vanguard : Hex.Position -> Hex.Direction -> List (Hex.Position, Hex.Direction)
+vanguard p d = map (\d -> (Hex.adjacent d p, d)) <| Hex.nearbyDirections d
+
+adjacentHexDirs : Segment -> List (Hex.Position, Hex.Direction)
+adjacentHexDirs seg = if 
+    | seg.orientation == Nothing -> map (\d -> (Hex.adjacent d seg.basePos, d)) Hex.directions
+    | otherwise -> let o = fromJust seg.orientation
+                       pieces = segPieces seg
+                       front = vanguard (List.head pieces) (Hex.opposite o)
+                       back  = vanguard (Misc.last pieces) o 
+                    in front ++ back
+
+moves : AbaloneState -> Set Hex.Position
+moves (g, s) = let 
+        movesHelper : Segment -> Set Hex.Position
+        movesHelper seg = let 
+                possibilities = adjacentHexDirs seg
+                check : (Hex.Position, Hex.Direction) -> Bool
+                check (p, d) = valid g {segment = seg, direction = d}
+            in Set.fromList <| List.map fst <| List.filter check possibilities
+    in Maybe.withDefault Set.empty <| Maybe.map movesHelper s 
 
 moveState : AbaloneState -> Hex.Position -> Maybe AbaloneState
 moveState (g,s) p = 

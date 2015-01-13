@@ -2,7 +2,7 @@ import Abalone(Game)
 import Abalone
 import Hex
 import State
-import View(ViewState, HexSize, WidthHeight, MousePosition, hexSize, scene)
+import View(ViewState, HexSize, WidthHeight, MousePosition, hexSize, scene, xy2Pos)
 
 import Maybe
 
@@ -29,23 +29,13 @@ update input (wh, (game, seg), position) = case input of
                    finalState = Maybe.withDefault startingState maybeNewState
                in  (wh, finalState, position)
 
-initialViewState = ((0,0), State.initial, (0,0))
+initialViewState = ((500,500), State.initial, (0,0))
 
 viewState : Signal ViewState 
 viewState = Signal.foldp update initialViewState inputs 
 
 main : Signal Element
 main = Signal.map scene viewState 
-
-xy2Pos : WidthHeight -> Game -> (Int, Int) -> Maybe Hex.Position
-xy2Pos (w,h) g (x,y) = 
-    let size = hexSize (w,h) g
-        xf = toFloat x
-        yf = toFloat y 
-        q = (xf * sqrt(3)/3 - yf / 3) / size
-        r = yf * 2/3 / size
-        pos = Hex.hexRound (q,r)
-    in  if Abalone.onBoard g.board pos then Just pos else Nothing
 
 
 

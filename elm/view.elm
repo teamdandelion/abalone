@@ -18,6 +18,7 @@ import Player
 import Player(Player(..))
 import Misc
 import State(AbaloneState)
+import State
 
 type alias WidthHeight = (Int, Int)
 type alias HexSize = Float
@@ -25,15 +26,59 @@ type alias MousePosition = (Int, Int)
 
 type alias ViewState = (WidthHeight, AbaloneState, MousePosition)
 
+xy2Pos : WidthHeight -> Abalone.Game -> (Int, Int) -> Maybe Hex.Position
+xy2Pos (w,h) g (x,y) = 
+    let size = hexSize (w,h) g
+        xf = toFloat x
+        yf = toFloat y 
+        q = (xf * sqrt(3)/3 - yf / 3) / size
+        r = yf * 2/3 / size
+        pos = Hex.hexRound (q,r)
+    in  if Abalone.onBoard g.board pos then Just pos else Nothing
+
 scene : ViewState -> Element
-scene ((w,h), (game, segment), (x,y)) = 
-    let backgroundBoard = board (w,h) game
+scene vs = 
+    let 
+        ((w,h), (game, segment), xy) = vs
+        backgroundBoard = drawBoard vs 
         marbles = stones (w,h) game
         highlights = highlighter (w,h) (game, segment) 
-    --positioned = move (toFloat x - toFloat w/2, toFloat h/2 - toFloat y)
-    --    taps = collage w h [positioned (filled purple (circle 40)) ]
+        selectedPos = xy2Pos (w,h) game xy
     in  Element.layers [backgroundBoard, highlights, marbles]
 
+type CellState = Regular | Extension | Reduction | Move 
+
+state2Color : (CellState, Bool) -> Color
+state2Color (state, hovered) = if 
+    | state == Regular -> Color.lightGrey
+    | state == Extension -> if hovered then Color.green  else Color.lightGreen
+    | state == Reduction -> if hovered then Color.red    else Color.lightRed
+    | state == Move      -> if hovered then Color.orange else Color.lightOrange
+
+drawBoard : ViewState -> Element
+drawBoard (wh, (g,s), xy) = 
+    let 
+        size = hexSize wh g
+        cells = Hex.hexagonalGrid g.board.boardRadius
+        hoveredCell = xy2Pos wh g xy
+        states = map (getState (g,s)) cells
+        hovered = map (\x -> Just x == hoveredCell) cells
+        colors = map state2Color <| Misc.zip states hovered
+        cellements = map (drawHex size) <| Misc.zip cells colors
+        (w,h) = wh
+    in  Collage.collage w h cellements
+
+getState : AbaloneState -> Hex.Position -> CellState
+getState t = 
+    let
+        extensions = State.extensions t
+        reductions = State.reductions t 
+        moves = State.moves t 
+    in  (\p -> if 
+        | p `Set.member` extensions -> Extension
+        | p `Set.member` reductions -> Reduction
+        | p `Set.member` moves -> Move
+        | otherwise -> Regular)
 
 highlighter : WidthHeight -> AbaloneState -> Element 
 highlighter (w,h) (g,s) = 
@@ -45,6 +90,13 @@ highlighter (w,h) (g,s) =
 
 hexagon : HexSize -> (Shape -> Form) -> Form
 hexagon size style = Collage.ngon 6 size |> style |> Collage.rotate (degrees 30)
+
+drawHex : HexSize -> (Hex.Position, Color) -> Form 
+drawHex size (pos, color) = let 
+        outliner = Collage.outlined <| Collage.solid Color.black
+        filler = Collage.filled color
+        group = Collage.group <| map (hexagon size) [outliner, filler]
+    in reposition size pos group
 
 reposition : HexSize -> Hex.Position -> Form -> Form
 reposition pixelRadius (q, r) hex = 
