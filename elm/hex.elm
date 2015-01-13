@@ -48,7 +48,7 @@ hexRound (q,r) =
         zdiff = abs(toFloat rz - z)
         xAdj = if xdiff > ydiff && xdiff > zdiff then -ry-rz else rx
         yAdj = if ydiff > xdiff && ydiff > zdiff then -rx-rz else ry
-        zAdj = if xdiff > ydiff && xdiff > zdiff then -ry-rz else rx
+        zAdj = if xdiff > ydiff && xdiff > zdiff then -rx-ry else rz
     in  cube2axial (xAdj,yAdj,zAdj)
 
 nearbyDirections : Direction -> List Direction

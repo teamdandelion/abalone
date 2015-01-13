@@ -29,8 +29,8 @@ type alias ViewState = (WidthHeight, AbaloneState, MousePosition)
 xy2Pos : WidthHeight -> Abalone.Game -> (Int, Int) -> Maybe Hex.Position
 xy2Pos (w,h) g (x,y) = 
     let size = hexSize (w,h) g
-        xf = toFloat x
-        yf = toFloat y 
+        xf = toFloat x - toFloat w / 2
+        yf = -(toFloat y - toFloat h / 2)
         q = (xf * sqrt(3)/3 - yf / 3) / size
         r = yf * 2/3 / size
         pos = Hex.hexRound (q,r)
@@ -50,7 +50,7 @@ type CellState = Regular | Extension | Reduction | Move
 
 state2Color : (CellState, Bool) -> Color
 state2Color (state, hovered) = if 
-    | state == Regular -> Color.lightGrey
+    | state == Regular   -> if hovered then Color.grey   else Color.lightGrey
     | state == Extension -> if hovered then Color.green  else Color.lightGreen
     | state == Reduction -> if hovered then Color.red    else Color.lightRed
     | state == Move      -> if hovered then Color.orange else Color.lightOrange
@@ -97,7 +97,7 @@ drawHex size (pos, color) = let
         filler = Collage.filled color
         group = Collage.group <| map (hexagon size) [outliner, filler]
     in reposition size pos group
-
+    
 reposition : HexSize -> Hex.Position -> Form -> Form
 reposition pixelRadius (q, r) hex = 
     let qf = toFloat q
