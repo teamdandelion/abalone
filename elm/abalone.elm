@@ -57,8 +57,11 @@ broadside m = not (inline m)
 
 segPieces : Segment -> List Hex.Position
 segPieces {basePos, orientation, segLength} = if 
-    | orientation == Nothing -> [basePos]
+    | orientation == Nothing -> [basePos] -- equivalently; segLength == 0 
     | otherwise -> Misc.iterateN segLength (Hex.adjacent <| Misc.fromJust orientation) basePos
+
+lastPiece : Segment -> Hex.Position
+lastPiece = segPieces >> Misc.last
 
 gameOver : Game -> Bool
 gameOver g = g.movesRemaining <= 0 || List.any (\p -> numPieces g p == 0) [White, Black]

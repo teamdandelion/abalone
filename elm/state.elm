@@ -49,7 +49,7 @@ extensions (g, seg) = if
         let s = fromJust seg 
             orient = fromJust s.orientation
             behind = Hex.adjacent (Hex.opposite orient) s.basePos
-            forward = Hex.adjacent orient (Misc.last <| Abalone.segPieces s)
+            forward = Hex.adjacent orient (Abalone.lastPiece s)
             pieces = Abalone.getPieces g.board g.nextPlayer
         in  Set.fromList <| List.filter (\x -> x `Set.member` pieces) [behind, forward]
 
@@ -72,7 +72,7 @@ extendState (g,s) p =
 
 -- return a set containing the front and end of a segment
 extrema : Segment -> Set Hex.Position
-extrema s = Set.fromList <| Misc.apply [List.head, Misc.last] <| Abalone.segPieces s
+extrema s = Set.fromList <| Misc.apply [.basePos, Abalone.lastPiece] s
 
 reductions : AbaloneState -> Set Hex.Position
 reductions (g, s) = Maybe.withDefault Set.empty <| Maybe.map extrema s
@@ -80,12 +80,11 @@ reductions (g, s) = Maybe.withDefault Set.empty <| Maybe.map extrema s
 reduceState : AbaloneState -> Hex.Position -> Maybe AbaloneState
 reduceState (g, s) p = if 
     | s == Nothing -> Nothing 
-    | p /= (fromJust s).basePos && p /= (fromJust >> Abalone.segPieces >> Misc.last) s -> Nothing
+    | p /= (fromJust s).basePos && p /= (fromJust >> Abalone.lastPiece) s -> Nothing
     | (fromJust >> .segLength) s == 1 -> Just (g, Nothing)
     | otherwise ->  
         let seg = fromJust s 
             base = seg.basePos
-            end = Misc.last <| Abalone.segPieces seg
             orient = fromJust seg.orientation
             newStart = if p == base then Hex.adjacent orient base else base
             newSeg = {seg | basePos <- newStart, segLength <- seg.segLength - 1}
@@ -128,9 +127,8 @@ adjacentHexDirs : Segment -> List (Hex.Position, Hex.Direction)
 adjacentHexDirs seg = if 
     | seg.orientation == Nothing -> List.map (\d -> (Hex.adjacent d seg.basePos, d)) Hex.directions
     | otherwise -> let o = fromJust seg.orientation
-                       pieces = Abalone.segPieces seg
-                       front = vanguard (List.head pieces) (Hex.opposite o)
-                       back  = vanguard (Misc.last pieces) o 
+                       front = vanguard (.basePos seg) (Hex.opposite o)
+                       back  = vanguard (Abalone.lastPiece seg) o 
                     in front ++ back
 
 moveState : AbaloneState -> Hex.Position -> Maybe AbaloneState
