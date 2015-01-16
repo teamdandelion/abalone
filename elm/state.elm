@@ -79,15 +79,17 @@ reductions (g, s) = Maybe.withDefault Set.empty <| Maybe.map extrema s
 
 reduceState : AbaloneState -> Hex.Position -> Maybe AbaloneState
 reduceState (g, s) p = if 
-    | s == Nothing -> Nothing
-    | otherwise -> 
+    | s == Nothing -> Nothing 
+    | p /= (fromJust s).basePos && p /= (fromJust >> Abalone.segPieces >> Misc.last) s -> Nothing
+    | (fromJust >> .segLength) s == 1 -> Just (g, Nothing)
+    | otherwise ->  
         let seg = fromJust s 
-        in if 
-            | seg.segLength == 1 && p == seg.basePos -> Just (g, Nothing)
-            | p == seg.basePos -> Just (g, Just {seg | basePos   <- Hex.adjacent (fromJust seg.orientation) seg.basePos
-                                                     , segLength <- seg.segLength - 1})
-            | p == (Misc.last <| Abalone.segPieces seg) -> Just (g, Just {seg | segLength <- seg.segLength - 1})
-            | otherwise -> Nothing
+            base = seg.basePos
+            end = Misc.last <| Abalone.segPieces seg
+            orient = fromJust seg.orientation
+            newStart = if p == base then Hex.adjacent orient base else base
+            newSeg = {seg | basePos <- newStart, segLength <- seg.segLength - 1}
+        in  Just (g, Just newSeg)
 
 
 {--
