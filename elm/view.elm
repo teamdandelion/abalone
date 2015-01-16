@@ -117,5 +117,24 @@ stone size p pos = Collage.circle (size / 2) |> Collage.filled (Player.colorOf p
 stones : WidthHeight -> Abalone.Game -> Element
 stones wh game = 
     let size = hexSize wh game
+        drawPlayerStones player = player |> Abalone.getPieces game.board >> Set.toList >> map (stone size player)
         f = (\player -> map (stone size player) <| Set.toList <| Abalone.getPieces game.board player)
-    in  niceCollage wh <| List.concat <| map f [White, Black]
+    in  [White, Black] |> map drawPlayerStones >> List.concat >> niceCollage wh 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

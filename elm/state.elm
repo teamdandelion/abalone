@@ -107,15 +107,15 @@ reduceState (g, s) p = if
 moves : AbaloneState -> Set Hex.Position
 moves (g,s) = if 
     | s == Nothing -> Set.empty
-    | otherwise -> let validMove (p,d) = Abalone.valid g <| fromJust <| generateMove (g,s) p
+    | otherwise -> let validMove (p,d) = Abalone.valid g << fromJust << generateMove (g,s) <| p
                        possibilities = adjacentHexDirs <| fromJust s
-                   in  Set.fromList <| List.map fst <| List.filter validMove possibilities
+                   in  possibilities |> List.filter validMove >> List.map fst >> Set.fromList
 
 
 generateMove : AbaloneState -> Hex.Position -> Maybe Move
 generateMove (g,s) p = if 
     | s == Nothing -> Nothing
-    | otherwise -> let possibilities = adjacentHexDirs <| fromJust s
+    | otherwise -> let possibilities = s |> fromJust >> adjacentHexDirs 
                        direction = Maybe.map snd <| Misc.find (\x -> fst x == p) possibilities
                     in Maybe.map (\d -> {segment = fromJust s, direction = d}) direction
 
