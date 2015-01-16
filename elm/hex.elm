@@ -2,7 +2,9 @@ module Hex where
 import List
 import Dict
 import Misc
+import Debug
 type Direction = TopRight | MidRight | BotRight | TopLeft | MidLeft | BotLeft
+
 
 type alias Position = (Int, Int)
 
@@ -47,10 +49,11 @@ hexRound (q,r) =
         xdiff = abs(toFloat rx - x)
         ydiff = abs(toFloat ry - y)
         zdiff = abs(toFloat rz - z)
-        xAdj = if xdiff > ydiff && xdiff > zdiff then -ry-rz else rx
-        yAdj = if ydiff > xdiff && ydiff > zdiff then -rx-rz else ry
-        zAdj = if xdiff > ydiff && xdiff > zdiff then -rx-ry else rz
-    in  cube2axial (xAdj,yAdj,zAdj)
+        normalizedCoordinate = if 
+            | xdiff > ydiff && xdiff > zdiff -> (-ry-rz,ry,rz)
+            | ydiff > xdiff && ydiff > zdiff -> (rx,-rx-rz,rz)
+            | otherwise                      -> (rx,ry,-rx-ry)
+    in  cube2axial normalizedCoordinate
 
 -- Find the "close" directions; e.g. nearbyDirections MidRight = [TopRight, MidRight, BotRight]
 nearbyDirections : Direction -> List Direction
