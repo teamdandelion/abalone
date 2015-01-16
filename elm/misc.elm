@@ -38,3 +38,14 @@ retrieve idx xs = if
     | xs == [] || idx < 0 -> Nothing
     | idx == 0 -> Just <| head xs
     | otherwise -> retrieve (idx - 1) (tail xs)
+
+apply : List (a -> b) -> a -> List b
+apply fs a = map (\x -> x a) fs
+
+validate : (a -> Bool) -> a -> Maybe a 
+validate p a = if p a then Just a else Nothing
+
+find : (a -> Bool) -> List a -> Maybe a 
+find p xs = case xs of 
+    [] -> Nothing
+    (x::xx) -> if p x then Just x else find p xx
