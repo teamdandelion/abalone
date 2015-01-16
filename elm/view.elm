@@ -41,20 +41,20 @@ xy2Pos (w,h) g (x,y) =
 scene : ViewState -> Element
 scene vs = 
     let 
-        ((w,h), (game, segment), xy) = vs
+        (wh, (game, segment), xy) = vs
         backgroundBoard = drawBoard vs 
-        marbles = stones (w,h) game
-        highlights = highlighter (w,h) (game, segment) 
-        selectedPos = xy2Pos (w,h) game xy
+        marbles = stones wh game
+        highlights = highlighter wh (game, segment) 
+        selectedPos = xy2Pos wh game xy
     in  Element.layers [backgroundBoard, highlights, marbles]
 
 type CellState = Regular | Extension | Reduction | Move 
 
 state2Color : (CellState, Bool) -> Color
 state2Color (state, hovered) = if 
-    | state == Regular   -> if hovered then Color.grey   else Color.lightGrey
+    | state == Regular   -> if hovered then Color.darkGrey   else Color.grey
     | state == Extension -> if hovered then Color.green  else Color.lightGreen
-    | state == Reduction -> if hovered then Color.red    else Color.lightRed
+    | state == Reduction -> if hovered then Color.purple    else Color.lightPurple
     | state == Move      -> if hovered then Color.orange else Color.lightOrange
 
 drawBoard : ViewState -> Element
@@ -85,9 +85,8 @@ highlighter : WidthHeight -> AbaloneState -> Element
 highlighter wh (g,s) = 
     let pieces = Maybe.withDefault [] <| Maybe.map Abalone.segPieces s
         size = hexSize wh g
-        circle p = Collage.circle (size * 0.55) |> Collage.filled Color.lightOrange |> reposition size p
+        circle p = Collage.circle (size * 0.7) |> Collage.filled Color.green |> reposition size p
     in  niceCollage wh <| map circle pieces
-
 
 hexagon : HexSize -> (Shape -> Form) -> Form
 hexagon size style = Collage.ngon 6 size |> style |> Collage.rotate (degrees 30)
@@ -112,16 +111,6 @@ hexSize (w, h) game = let wholeBoardLen = toFloat (min w h)
                           hexesOnEdge = game.board.boardRadius
           in wholeBoardLen / (toFloat <| hexesOnEdge * 4) -- discovered experimentally ;)
 
-singleHex : HexSize -> Hex.Position -> Form
-singleHex size pos = 
-    let style = Collage.outlined <| Collage.solid Color.black
-        fill = Collage.filled Color.grey
-        hexes = Collage.group <| map (hexagon size) [style, fill]
-        coord = Collage.toForm <| Text.plainText <| toString pos
-        gp : Form 
-        gp = Collage.group [hexes, coord]
-    in  reposition size pos gp
-
 stone : HexSize -> Player -> Hex.Position -> Form
 stone size p pos = Collage.circle (size / 2) |> Collage.filled (Player.colorOf p) |> reposition size pos
 
@@ -130,13 +119,3 @@ stones wh game =
     let size = hexSize wh game
         f = (\player -> map (stone size player) <| Set.toList <| Abalone.getPieces game.board player)
     in  niceCollage wh <| List.concat <| map f [White, Black]
-
-board : WidthHeight -> Abalone.Game -> Element
-board wh game = 
-    let hexesOnEdge = game.board.boardRadius
-        size = hexSize wh game
-        hexPositions : List Hex.Position
-        hexPositions = Hex.hexagonalGrid hexesOnEdge
-        hexagons : List Form
-        hexagons = map (singleHex size) hexPositions
-    in  niceCollage wh hexagons
