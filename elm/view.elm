@@ -26,6 +26,8 @@ type alias MousePosition = (Int, Int)
 
 type alias ViewState = (WidthHeight, AbaloneState, MousePosition)
 
+niceCollage (w,h) = Collage.collage w h 
+
 xy2Pos : WidthHeight -> Abalone.Game -> (Int, Int) -> Maybe Hex.Position
 xy2Pos (w,h) g (x,y) = 
     let size = hexSize (w,h) g
@@ -65,8 +67,7 @@ drawBoard (wh, (g,s), xy) =
         hovered = map (\x -> Just x == hoveredCell) cells
         colors = map state2Color <| Misc.zip states hovered
         cellements = map (drawHex size) <| Misc.zip cells colors
-        (w,h) = wh
-    in  Collage.collage w h cellements
+    in  niceCollage wh cellements
 
 getState : AbaloneState -> Hex.Position -> CellState
 getState t = 
@@ -81,11 +82,11 @@ getState t =
         | otherwise -> Regular)
 
 highlighter : WidthHeight -> AbaloneState -> Element 
-highlighter (w,h) (g,s) = 
+highlighter wh (g,s) = 
     let pieces = Maybe.withDefault [] <| Maybe.map Abalone.segPieces s
-        size = hexSize (w,h) g
+        size = hexSize wh g
         circle p = Collage.circle (size * 0.55) |> Collage.filled Color.lightOrange |> reposition size p
-    in  Collage.collage w h <| map circle pieces
+    in  niceCollage wh <| map circle pieces
 
 
 hexagon : HexSize -> (Shape -> Form) -> Form
@@ -125,17 +126,17 @@ stone : HexSize -> Player -> Hex.Position -> Form
 stone size p pos = Collage.circle (size / 2) |> Collage.filled (Player.colorOf p) |> reposition size pos
 
 stones : WidthHeight -> Abalone.Game -> Element
-stones (w, h) game = 
-    let size = hexSize (w, h) game
+stones wh game = 
+    let size = hexSize wh game
         f = (\player -> map (stone size player) <| Set.toList <| Abalone.getPieces game.board player)
-    in  Collage.collage w h <| List.concat <| map f [White, Black]
+    in  niceCollage wh <| List.concat <| map f [White, Black]
 
 board : WidthHeight -> Abalone.Game -> Element
-board (w, h) game = 
+board wh game = 
     let hexesOnEdge = game.board.boardRadius
-        size = hexSize (w, h) game
+        size = hexSize wh game
         hexPositions : List Hex.Position
         hexPositions = Hex.hexagonalGrid hexesOnEdge
         hexagons : List Form
         hexagons = map (singleHex size) hexPositions
-    in  Collage.collage w h hexagons
+    in  niceCollage wh hexagons
