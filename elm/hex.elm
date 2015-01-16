@@ -35,6 +35,7 @@ axial2cube (q,r) = (q, -q-r, r)
 cube2axial : (Int, Int, Int) -> Position
 cube2axial (x,y,z) = (x,z)
 
+-- Round two floating point coordinates to closest hexagon. Algorithim from RedBlobGames
 hexRound : (Float, Float) -> Position
 hexRound (q,r) = 
     let x = q
@@ -51,6 +52,7 @@ hexRound (q,r) =
         zAdj = if xdiff > ydiff && xdiff > zdiff then -rx-ry else rz
     in  cube2axial (xAdj,yAdj,zAdj)
 
+-- Find the "close" directions; e.g. nearbyDirections MidRight = [TopRight, MidRight, BotRight]
 nearbyDirections : Direction -> List Direction
 nearbyDirections d = 
     let idx = Misc.fromJust <| Misc.index d directions
@@ -63,7 +65,6 @@ colinear d1 d2 = d1 == d2 || d1 == opposite d2
 hexagonalGrid : Int -> List Position
 hexagonalGrid rad = List.concat <| List.map ring [0..rad - 1]
 
-
 tailOrOnly : List a -> List a
 tailOrOnly (x::xs) = if xs == [] then [x] else xs
 
@@ -71,6 +72,7 @@ ring : Int -> List Position
 ring n = let ds = List.concat <| List.map (List.repeat n << adjacent) directions 
          in tailOrOnly <| List.scanl identity (-n, 0) ds 
 
+-- if p1 and p2 are distinct and colinear, then give the direction of the line from p1 to p2
 findDirection : Position -> Position -> Maybe Direction
 findDirection (q1, r1) (q2, r2) = 
     if
