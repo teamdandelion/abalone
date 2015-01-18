@@ -140,6 +140,8 @@ update {board, nextPlayer, movesRemaining, marblesPerMove} m = let
     newGame = {board = newBoard, nextPlayer = Player.next nextPlayer, movesRemaining = movesRemaining - 1, marblesPerMove = marblesPerMove}
                                                                in newGame
 
+selectSegment : Game -> Hex.Position -> Hex.Position -> Maybe Segment
+selectSegment g start end = if 
 
 valid : Game -> Move -> Bool
 valid g m = let s = m.segment

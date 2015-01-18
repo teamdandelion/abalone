@@ -11,6 +11,11 @@ isJust x = if x == Nothing then False else True
 fromJust : Maybe a -> a
 fromJust (Just x) = x
 
+maybeHead : List a -> Maybe a 
+maybeHead xs = case xs of 
+    [] -> Nothing
+    (x::xx) -> Just x
+
 crossApply : List (a -> b) -> List a -> List b
 crossApply fs xs = foldr (\a  -> (++) <| (flip map) xs a) [] fs
 

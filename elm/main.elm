@@ -2,38 +2,45 @@ import Abalone(Game)
 import Abalone
 import Hex
 import State
+import State(AbaloneState)
 import View(ViewState, WidthHeight, MousePosition)
 import View
+import Misc
+import Debug
 
 import Maybe
 
 import Signal
 import Signal(Signal)
 import Mouse
+import Touch(Touch)
+import Touch
 import Window
 import Graphics.Element(Element)
 
-type Input = WH WidthHeight | MP MousePosition | Click
-inputs : Signal Input
-inputs = Signal.mergeMany [Signal.map WH Window.dimensions
-                          ,Signal.map MP Mouse.position
-                          ,Signal.map (always Click) Mouse.clicks]
+touchInteractionSignal : Signal (Maybe (Position, Position)) -- start and end of touch
+touchInteractionSignal = Signal.map2 computeTouch Window.dimensions Touch.touches 
 
-update : Input -> ViewState -> ViewState
-update input (wh, (game, seg), position) = case input of 
-    (WH x) -> (x, (game, seg), position)
-    (MP x) -> (wh, (game, seg), x)
-    (Click) -> let clickedHex = View.xy2Pos wh game position 
-                   startingState = (game, seg)
-                   maybeNewState : Maybe State.AbaloneState
-                   maybeNewState = Maybe.map (State.updateState startingState) clickedHex
-                   finalState = Maybe.withDefault startingState maybeNewState
-               in  (wh, finalState, position)
+computeTouch : WidthHeight -> Maybe Touch -> Maybe (Position, Position)
+computeTouch wh touch = if 
+    | touch == Nothing -> Nothing
+    | otherwise -> let start = View.xy2Pos wh game (touch.x0, touch.y0)
+                       end   = View.xy2Pos wh game (touch.x , touch.y )
+                   in  Just (start, end)
 
-initialViewState = ((500,500), State.initial, (0,0))
 
-viewState : Signal ViewState 
-viewState = Signal.foldp update initialViewState inputs 
+update : Maybe (Position, Position) -> AbaloneState -> AbaloneState
+update touch (game, seg) = case touch of 
+    Nothing -> (game, seg)
+    Just (start, end) -> if 
+        | start `elem` getPieces game.board game.nextPlayer 
+            -> (game, Abalone.selectSegment game start end)
+        | start `elem` State.moves (game, seg)
+            -> State.moveState (game, seg) start
+        | otherwise -> (game, seg)
+
+gameState : Signal AbaloneState
+gameState = Signal.foldp update State.initial touchInteractionSignal
 
 main : Signal Element
 main = Signal.map View.scene viewState 
