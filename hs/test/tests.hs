@@ -11,7 +11,7 @@ import Data.Aeson
 import Data.Maybe (fromJust)
 
 testGameFromBoard :: Board -> Game 
-testGameFromBoard b = Game b White 1000 3 
+testGameFromBoard b = Game b White 1000 3 8
 
 testBoard :: [Position] -> [Position] -> Int -> Board
 testBoard whites blacks rad = Board (Set.fromList whites) (Set.fromList blacks) rad
@@ -28,7 +28,7 @@ trivialGame = testGame [(0, 0)] [] 5
 
 threeStoneGame = testGame [(-1, 0), (0, 0)] [(1, 0)] 1
 
-threeStoneGameAfterPush = Game (testBoard [(0, 0), (1, 0)] [] 1) Black 999 3
+threeStoneGameAfterPush = Game (testBoard [(0, 0), (1, 0)] [] 1) Black 999 3 8
 
 fourStoneGame = testGame [(x, 0) | x <- [-2, -1, 1]] [(0,0)] 5
 
@@ -58,10 +58,10 @@ main = defaultMain $
 				numMoves (testGame [(-2, 0), (-1, 0)] [(0, 0), (1, 0)] 5) @?= 14,
 
 			testCase "correct # moves subject to maxMarblesPerMove (1)" $
-				numMoves (Game threeLinearStoneBoard White 1000 1) @?= 14,
+				numMoves (Game threeLinearStoneBoard White 1000 1 8) @?= 14,
 
 			testCase "correct # moves subject to maxMarblesPerMove (3)" $
-				numMoves (Game threeLinearStoneBoard White 1000 3) @?= 30
+				numMoves (Game threeLinearStoneBoard White 1000 3 8) @?= 30
 
 		], testGroup "numSegments" [
 			testCase "Correct number of segments in 1 stone game" $ 
@@ -77,7 +77,7 @@ main = defaultMain $
 
 		testGroup "serialization Tests" [
 			testCase "standard board serializes appropriately" $ 
-				encode start @?= "{\"marblesPerMove\":3,\"movesRemaining\":200,\"nextPlayer\":\"White\",\"board\":{\"whitePositions\":[[-4,3],[-4,4],[-3,3],[-3,4],[-2,2],[-2,3],[-2,4],[-1,2],[-1,3],[-1,4],[0,2],[0,3],[0,4],[1,3]],\"boardRadius\":5,\"blackPositions\":[[-1,-3],[0,-4],[0,-3],[0,-2],[1,-4],[1,-3],[1,-2],[2,-4],[2,-3],[2,-2],[3,-4],[3,-3],[4,-4],[4,-3]]}}",
+				encode start @?= "{\"lossThreshold\":8,\"marblesPerMove\":3,\"movesRemaining\":200,\"nextPlayer\":\"White\",\"board\":{\"whitePositions\":[[-4,3],[-4,4],[-3,3],[-3,4],[-2,2],[-2,3],[-2,4],[-1,2],[-1,3],[-1,4],[0,2],[0,3],[0,4],[1,3]],\"boardRadius\":5,\"blackPositions\":[[-1,-3],[0,-4],[0,-3],[0,-2],[1,-4],[1,-3],[1,-2],[2,-4],[2,-3],[2,-2],[3,-4],[3,-3],[4,-4],[4,-3]]}}",
 
 			testCase "deserialization works as expected" $ 
 				(fromJust . decode . encode) start @?= start

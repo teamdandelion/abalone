@@ -12,7 +12,6 @@ data Player = White | Black
 instance FromJSON Player
 instance ToJSON   Player
 
-
 next :: Player -> Player
 next White = Black
 next Black = White
