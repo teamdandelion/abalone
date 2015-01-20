@@ -29,6 +29,8 @@ import Control.Monad
 
 import Player
 
+data Outcome = WhiteWins | BlackWins | TieGame | Ongoing
+
 data Game = Game { board          :: Board
                  , nextPlayer     :: Player
                  , movesRemaining :: Int
@@ -124,14 +126,14 @@ segPieces (Segment pos orient len _) = maybe [pos] safeGetPieces orient
 gameOver :: Game -> Bool
 gameOver g = movesRemaining g <= 0 || any (\p -> numPieces g p <= lossThreshold g) [White, Black]
 
-winner :: Game -> Either () (Maybe Player)
-winner g | gameOver g = Right advantage
-         | otherwise  = Left ()
+outcome :: Game -> Outcome
+outcome g | gameOver g = advantage
+          | otherwise  = Ongoing
   where
     advantage = case comparing (numPieces g) White Black of
-      GT -> Just White
-      LT -> Just Black
-      EQ -> Nothing
+      GT -> WhiteWins
+      LT -> BlackWins
+      EQ -> TieGame
 
 numPieces :: Game -> Player -> Int
 numPieces g p = Set.size $ getPieces (board g) p
