@@ -1,7 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Abalone
-  ( Game(Game)
+  ( Game(..)
+  , Outcome
   , Board(Board)
   , Player(White, Black)
   , Position
