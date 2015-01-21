@@ -47,6 +47,11 @@ retrieve idx xs = if
 apply : List (a -> b) -> a -> List b
 apply fs a = map (\x -> x a) fs
 
+iterateWhile : (a -> a) -> (a -> Bool) -> a -> List a 
+iterateWhile f p x = if p x 
+    then x :: iterateWhile f p (f x)
+    else []
+
 validate : (a -> Bool) -> a -> Maybe a 
 validate p a = if p a then Just a else Nothing
 

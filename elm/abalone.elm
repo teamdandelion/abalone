@@ -141,7 +141,19 @@ update {board, nextPlayer, movesRemaining, marblesPerMove} m = let
                                                                in newGame
 
 selectSegment : Game -> Hex.Position -> Hex.Position -> Maybe Segment
-selectSegment g start end = if 
+selectSegment g start end = 
+    let p = g.nextPlayer
+        maybePieces = Hex.linearPath start end 
+        piecesToSegment : (List Hex.Position, Maybe Direction) -> Segment
+        piecesToSegment (ps, d) = {basePos = start, orientation = d, segLength = List.length ps, player = p}
+        segment : Maybe Segment 
+        segment = Maybe.map piecesToSegment <| Hex.linearPath start end
+        validator : Segment -> Maybe Segment 
+        validator = Misc.validate <| validateSegment g.board 
+    in  Maybe.andThen segment validator  
+
+validateSegment : Board -> Segment -> Bool
+validateSegment b s = segPieces s |> map (owner b) |> List.all (\x -> x == Just s.player) 
 
 valid : Game -> Move -> Bool
 valid g m = let s = m.segment

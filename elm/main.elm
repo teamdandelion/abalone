@@ -1,6 +1,7 @@
 import Abalone(Game)
 import Abalone
 import Hex
+import Hex(Position)
 import State
 import State(AbaloneState)
 import View(ViewState, WidthHeight, MousePosition)
@@ -33,10 +34,10 @@ update : Maybe (Position, Position) -> AbaloneState -> AbaloneState
 update touch (game, seg) = case touch of 
     Nothing -> (game, seg)
     Just (start, end) -> if 
-        | start `elem` getPieces game.board game.nextPlayer 
-            -> (game, Abalone.selectSegment game start end)
         | start `elem` State.moves (game, seg)
             -> State.moveState (game, seg) start
+        | start `elem` getPieces game.board game.nextPlayer 
+            -> (game, Abalone.selectSegment game start end)
         | otherwise -> (game, seg)
 
 gameState : Signal AbaloneState
