@@ -20,6 +20,7 @@ executable abalone-hs
   build-depends:      base >=4.7 && <4.8, 
                       scotty, 
                       wai-extra,
+                      transformers,
                       containers >= 0.5.5.1,
                       aeson >= 0.8.0.2
 
