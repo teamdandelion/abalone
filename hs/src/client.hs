@@ -1,39 +1,39 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 import qualified Data.Aeson as Aeson
 import GHC.Generics
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
+import Network.Wreq 
+import Data.Maybe
+import Data.Text
 
-import Web.Scotty
-import Network.Wai.Middleware.RequestLogger
-
-import Player
-import Abalone
+import qualified Player
+import Player(Player)
+import Abalone(Game, Outcome)
+import qualified Abalone
 
 main :: IO ()
-main = scotty 8001 $ do
-	middleware logStdoutDev
-	runAbalone
+main = undefined 
 
-runAbalone :: ScottyM ()
-runAbalone = do
-	get "/" showLandingPage
-	post "/game" respondToGame
+addr :: Int -> Text 
+addr p = "http://localhost:" ++ show p 
 
-respondToGame :: ActionM ()
-respondToGame = do
-    g <- Aeson.fromJSON <$> jsonData
-    case g of
-         Aeson.Success game -> json $ stupidAI game
-         --TODO(brian): return a 400 error
-         Aeson.Error _ -> return ()
+remotePlayer :: Int -> Game -> IO Game 
+remotePlayer port = undefined
 
-showLandingPage :: ActionM ()
-showLandingPage = do
-	setHeader "Content-Type" "text/html"
-	html "hello world"
+playGame :: (Game -> IO Game) -> (Game -> IO Game) -> IO Outcome
+playGame white black = recurGame Abalone.start where 
+	recurGame :: Game -> IO Outcome 
+	recurGame g 
+		| Abalone.gameOver g = return . fromJust . Abalone.winner $ g 
+		| otherwise = getPlayerF (Abalone.nextPlayer g) g >>= recurGame 
 
-stupidAI :: Game -> Game
-stupidAI = head . futures
+	getPlayerF :: Player -> Game -> IO Game
+	getPlayerF Player.White = white 
+	getPlayerF Player.Black = black 
+
+
