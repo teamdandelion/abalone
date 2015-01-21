@@ -108,8 +108,8 @@ data Move = Move { segment   :: Segment
 
 inline, broadside :: Move -> Bool
 inline m@(Move s _) 
-    | orientation s == Nothing = False
-    | otherwise                = colinear (direction m) (fromJust $ orientation s)
+    | isNothing $ orientation s = False
+    | otherwise                 = colinear (direction m) (fromJust $ orientation s)
 broadside m         = not (inline m)
 
 -- A segment is a linear group of marbles that could move.
@@ -141,10 +141,10 @@ numPieces g p = Set.size $ getPieces (board g) p
 
 -- this function will recieve new game states from client and verify validity
 isValid :: Game -> Game -> Bool
-isValid g0 g1 = g1 `elem` (futures g0) -- very inefficient impl but that should be fine since occurs once per turn
+isValid g0 g1 = g1 `elem` futures g0 -- very inefficient impl but that should be fine since occurs once per turn
 
 onBoard :: Board -> Position -> Bool -- is a piece on the board still?
-onBoard board pos = dist2 pos (0, 0) <= (boardRadius board) * 2
+onBoard board pos = dist2 pos (0, 0) <= boardRadius board * 2
 
 owner :: Board -> Position -> Maybe Player
 owner b x 
@@ -155,12 +155,12 @@ owner b x
 -- Take a board and a proposed inline move, and return Just the moved enemy pieces if it is valid
 inlineMoved :: Board -> Move -> Maybe [Position]
 inlineMoved b m@(Move s@(Segment pos orient len player) dir)
-    | inline m    = let front = if (fromJust orient) == dir then last else head
+    | inline m    = let front = if fromJust orient == dir then last else head
                         attacked = (|> dir) . front $ segPieces s
                         attackedPieces x force 
-                          | owner b x == Nothing = Just []
+                          | isNothing $ owner b x = Just []
                           | owner b x == Just player || force == 0 = Nothing
-                          | otherwise = fmap ((:) x) $ attackedPieces (x |> dir) (force - 1)
+                          | otherwise = (:) x <$> attackedPieces (x |> dir) (force - 1)
                     in attackedPieces attacked (len - 1)
     | otherwise   = Nothing
 
@@ -205,7 +205,7 @@ possibleMoves g@(Game b p _ _ _)  = do
   guard $ valid move
   return move
  where
-  free x = (owner b x == Nothing)
+  free x = isNothing $ owner b x
   valid m@(Move s dir)
     | broadside m = all free $ map (|> dir) (segPieces s)
     | inline m    = isJust $ inlineMoved b m
