@@ -6,7 +6,7 @@ module Abalone
   , Player(White, Black)
   , Position
   , gameOver
-  , outcome
+  , winner
   , numPieces
   , futures
   , isValid
@@ -29,7 +29,7 @@ import Control.Monad
 
 import Player
 
-data Outcome = WhiteWins | BlackWins | TieGame | Ongoing
+data Outcome = WhiteWins | BlackWins | TieGame
 
 data Game = Game { board          :: Board
                  , nextPlayer     :: Player
@@ -126,9 +126,9 @@ segPieces (Segment pos orient len _) = maybe [pos] safeGetPieces orient
 gameOver :: Game -> Bool
 gameOver g = movesRemaining g <= 0 || any (\p -> numPieces g p <= lossThreshold g) [White, Black]
 
-outcome :: Game -> Outcome
-outcome g | gameOver g = advantage
-          | otherwise  = Ongoing
+winner :: Game -> Maybe Outcome
+winner g | gameOver g = Just advantage
+          | otherwise  = Nothing
   where
     advantage = case comparing (numPieces g) White Black of
       GT -> WhiteWins
