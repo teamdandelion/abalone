@@ -23,7 +23,8 @@ executable abalone-hs
                       transformers,
                       containers >= 0.5.5.1,
                       aeson >= 0.8.0.2,
-                      wreq
+                      wreq,
+                      text >= 1.2.0.3
 
 
   hs-source-dirs:     src

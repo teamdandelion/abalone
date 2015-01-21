@@ -20,7 +20,7 @@ main :: IO ()
 main = undefined 
 
 addr :: Int -> Text 
-addr p = "http://localhost:" ++ show p 
+addr p = pack $ "http://localhost:" ++ show p 
 
 remotePlayer :: Int -> Game -> IO Game 
 remotePlayer port = undefined
