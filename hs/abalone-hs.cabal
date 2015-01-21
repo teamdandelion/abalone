@@ -14,10 +14,16 @@ cabal-version:  >=1.10
 
 executable abalone-hs
   ghc-options:        -rtsopts -O2
-  main-is:            server.hs
+  main-is:            client.hs
   -- other-modules:       
   -- other-extensions:    
-  build-depends:      base >=4.7 && <4.8, scotty, wai-extra
+  build-depends:      base >=4.7 && <4.8, 
+                      scotty, 
+                      wai-extra,
+                      containers >= 0.5.5.1,
+                      aeson >= 0.8.0.2
+
+
   hs-source-dirs:     src
   default-language:   Haskell2010
 

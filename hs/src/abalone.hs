@@ -6,7 +6,7 @@ module Abalone
   , Player(White, Black)
   , Position
   , gameOver
-  , winner
+  , outcome
   , numPieces
   , futures
   , isValid
