@@ -4,37 +4,36 @@ import qualified Data.Aeson as Aeson
 import GHC.Generics
 import Control.Applicative
 import Control.Monad
-
+import Control.Monad.IO.Class
 
 import Web.Scotty
 import Network.Wai.Middleware.RequestLogger
 
 import Player
-import qualified Abalone as Abalone 
+import Abalone
 
 main :: IO ()
-main = scotty 8001 $ do 
-	middleware logStdoutDev 
-	runAbalone 
+main = scotty 8001 $ do
+	middleware logStdoutDev
+	runAbalone
 
-runAbalone :: ScottyM () 
-runAbalone = do 
+runAbalone :: ScottyM ()
+runAbalone = do
 	get "/" showLandingPage
-	post "/game" respondToGame 
+	post "/game" respondToGame
 
 respondToGame :: ActionM ()
-respondToGame = do 
-	-- game :: ActionM Game 
-	game <- jsonData 
-	-- nextState :: ActionM Game 
-	nextState <- fmap stupidAI game 
-	json nextState 
-
+respondToGame = do
+    g <- Aeson.fromJSON <$> jsonData
+    case g of
+         Aeson.Success game -> json $ stupidAI game
+         --TODO(brian): return a 400 error
+         Aeson.Error _ -> return ()
 
 showLandingPage :: ActionM ()
-showLandingPage = do 
+showLandingPage = do
 	setHeader "Content-Type" "text/html"
 	html "hello world"
 
-stupidAI :: Abalone.Game -> Abalone.Game 
-stupidAI = head . Abalone.futures 
+stupidAI :: Game -> Game
+stupidAI = head . futures
