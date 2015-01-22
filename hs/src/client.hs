@@ -1,15 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import qualified Data.Aeson as Aeson
 import GHC.Generics
 import Control.Applicative
 import Control.Monad
+import Control.Lens
 import Control.Monad.IO.Class
-import Network.Wreq 
 import Data.Maybe
 import Data.Text
+import Data.Aeson.Lens (key)
+
+import Network.Wreq 
 
 import qualified Player
 import Player(Player)
@@ -19,12 +21,16 @@ import qualified Abalone
 main :: IO ()
 main = undefined 
 
-addr :: Int -> Text 
-addr p = pack $ "http://localhost:" ++ show p 
+addr :: Int -> String 
+addr p = "http://localhost:" ++ show p 
 
 remotePlayer :: Int -> Game -> IO Game 
-remotePlayer port = undefined
-
+remotePlayer port g = undefined 
+{-- do 
+	response <- post (addr port) (Aeson.toJSON g)
+	let
+	return fromJust $ response ^? responseBody . key "json"
+--}
 playGame :: (Game -> IO Game) -> (Game -> IO Game) -> IO Outcome
 playGame white black = recurGame Abalone.start where 
 	recurGame :: Game -> IO Outcome 
