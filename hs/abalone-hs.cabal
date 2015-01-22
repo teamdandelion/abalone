@@ -14,7 +14,7 @@ cabal-version:  >=1.10
 
 executable abalone-hs
   ghc-options:        -rtsopts -O0
-  main-is:            client.hs
+  main-is:            server.hs
   -- other-modules:       
   -- other-extensions:    
   build-depends:      base >=4.7 && <4.8, 
@@ -23,8 +23,10 @@ executable abalone-hs
                       transformers,
                       containers >= 0.5.5.1,
                       aeson >= 0.8.0.2,
-                      wreq,
-                      text >= 1.2.0.3
+                      wreq >= 0.3.0.1,
+                      text >= 1.2.0.3,
+                      lens >= 4.7,
+                      lens-aeson >= 1.0.0.3
 
 
   hs-source-dirs:     src
