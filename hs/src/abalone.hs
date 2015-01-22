@@ -2,7 +2,7 @@
 
 module Abalone
   ( Game(..)
-  , Outcome
+  , Outcome(..)
   , Board(Board)
   , Player(White, Black)
   , Position
