@@ -14,7 +14,7 @@ cabal-version:  >=1.10
 
 executable abalone-hs
   ghc-options:        -rtsopts -O0
-  main-is:            remotePlayer.hs
+  main-is:            gameOperator.hs
   -- other-modules:       
   -- other-extensions:    
   build-depends:      base >=4.7 && <4.8, 
@@ -39,7 +39,10 @@ library
   default-language:   Haskell2010
   build-depends:      base >= 4.7 && <4.8, 
                       containers >= 0.5.5.1,
-                      aeson >= 0.8.0.2
+                      aeson >= 0.8.0.2,
+                      lens,
+                      wreq,
+                      lens-aeson
 
 test-suite tests
   ghc-options:        -O0

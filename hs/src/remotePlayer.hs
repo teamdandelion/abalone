@@ -13,7 +13,7 @@ import Player
 import Abalone
 
 main :: IO ()
-main = scotty 8001 $ do
+main = scotty 8002 $ do
 	middleware logStdoutDev
 	runAbalone
 

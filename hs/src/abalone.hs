@@ -30,7 +30,7 @@ import Control.Monad
 
 import Player
 
-data Outcome = WhiteWins | BlackWins | TieGame
+data Outcome = WhiteWins | BlackWins | TieGame deriving (Eq, Show, Read, Generic)
 
 data Game = Game { board          :: Board
                  , nextPlayer     :: Player

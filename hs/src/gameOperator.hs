@@ -19,18 +19,20 @@ import Abalone(Game, Outcome)
 import qualified Abalone
 
 main :: IO ()
-main = undefined 
+main = do
+	let white = remotePlayer 8001
+	let black = remotePlayer 8002 
+	playGame white black >>= print 
 
 addr :: Int -> String 
-addr p = "http://localhost:" ++ show p 
+addr p = "http://localhost:" ++ show p ++ "/game"
 
 remotePlayer :: Int -> Game -> IO Game 
-remotePlayer port g = undefined 
-{-- do 
+remotePlayer port g = do 
 	response <- post (addr port) (Aeson.toJSON g)
-	let
-	return fromJust $ response ^? responseBody . key "json"
---}
+	let newGame = fromJust $ Aeson.decode $ response ^. responseBody
+	return newGame
+
 playGame :: (Game -> IO Game) -> (Game -> IO Game) -> IO Outcome
 playGame white black = recurGame Abalone.start where 
 	recurGame :: Game -> IO Outcome 
