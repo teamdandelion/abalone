@@ -5,6 +5,8 @@ import GHC.Generics
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
+import Data.Maybe 
+import System.Environment
 
 import Web.Scotty
 import Network.Wai.Middleware.RequestLogger
@@ -13,12 +15,13 @@ import Player
 import Abalone
 
 main :: IO ()
-main = do 
-	port <- readLn 
-	initiate port 
+main = commandLineInt >>= initiate
 
-readInt :: IO Int 
-readInt = readLn 
+commandLineInt :: IO Int 
+commandLineInt = do 
+	args <- getArgs 
+	let a1 = listToMaybe args 
+	return $ maybe 8000 read a1 
 
 initiate :: Int -> IO ()
 initiate port = scotty port $ do 
