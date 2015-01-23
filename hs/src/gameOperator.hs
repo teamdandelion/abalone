@@ -18,38 +18,36 @@ import Player(Player)
 import Abalone(Game, Outcome)
 import qualified Abalone as A 
 
-type Agent = Game -> Maybe Game 
+type Agent = Game -> IO (Maybe Game)
 
 main :: IO ()
 main = do
 	let white = remotePlayer 8001
 	let black = remotePlayer 8002 
-	liftM2 playStandardGame white black >>= print 
+	outcome <- playStandardGame white black 
+	print outcome 
 
 addr :: Int -> String 
 addr p = "http://localhost:" ++ show p ++ "/game"
 
-remotePlayer :: Int -> IO Agent 
-remotePlayer port g = do 
-	response <- post (addr port) (Aeson.toJSON g)
-	let newGame = Aeson.decode $ response ^. responseBody
-	return mfilter (A.isValid g) newGame 
+playGame :: Agent -> Game -> IO Outcome
+playGame a g0 = do 
+	maybeG1 <- a g0
+	maybe winnerDueToInvalidResponse continue maybeG1  where 
+		winnerDueToInvalidResponse = return $ if A.nextPlayer g0 == P.White then A.BlackWins else A.WhiteWins
+		continue :: Game -> IO Outcome 
+		continue g = maybe (playGame a g) return (A.winner g)
 
-processGameStream :: [(Maybe Game, Outcome)] -> Outcome
-processGameStream ((g,o):xs) = maybe o (\x -> fromMaybe (processGameStream xs) (A.winner x)) g
+
+remotePlayer :: Int -> Agent 
+remotePlayer port g = do 
+		response <- post (addr port) (Aeson.toJSON g)
+		let newGame = Aeson.decode $ response ^. responseBody
+		return $ mfilter (A.isValid g) newGame 
 
 combineAgents :: Agent -> Agent -> Agent 
 combineAgents white black g = if A.nextPlayer g == P.White then white g else black g 
 
-gameStream :: Game -> Agent -> [(Maybe Game, Outcome)]
-gameStream start combinedAgent = iterate f (Just start, A.BlackWins) where 
-	f (game, outcome) = (game >>= combinedAgent, alternate outcome)
-	alternate A.WhiteWins = A.BlackWins
-	alternate A.BlackWins = A.WhiteWins 
-
-playGame :: Game -> Agent -> Agent -> Outcome
-playGame g white black = processGameStream . (gameStream g) $ combineAgents white black 
-
-playStandardGame :: Agent -> Agent -> Outcome 
-playStandardGame = playGame A.start 
+playStandardGame :: Agent -> Agent -> IO Outcome 
+playStandardGame white black = playGame (combineAgents white black) A.start
 
