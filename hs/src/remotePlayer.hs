@@ -13,7 +13,15 @@ import Player
 import Abalone
 
 main :: IO ()
-main = scotty 8002 $ do
+main = do 
+	port <- readLn 
+	initiate port 
+
+readInt :: IO Int 
+readInt = readLn 
+
+initiate :: Int -> IO ()
+initiate port = scotty port $ do 
 	middleware logStdoutDev
 	runAbalone
 
