@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 import qualified Data.Aeson as Aeson
-import GHC.Generics
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
