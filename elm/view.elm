@@ -28,9 +28,9 @@ type alias ViewState = (WidthHeight, AbaloneState, MousePosition)
 
 niceCollage (w,h) = Collage.collage w h 
 
-xy2Pos : WidthHeight -> Abalone.Game -> (Int, Int) -> Maybe Hex.Position
-xy2Pos (w,h) g (x,y) = 
-    let size = hexSize (w,h) g
+xy2Pos : Int -> WidthHeight -> (Int, Int) -> Maybe Hex.Position
+xy2Pos hexesOnEdge (w,h) (x,y) = 
+    let size = hexSize (w,h) hexesOnEdge
         xf = toFloat x - toFloat w / 2
         yf = -(toFloat y - toFloat h / 2)
         q = (xf * sqrt(3)/3 - yf / 3) / size
@@ -106,9 +106,8 @@ reposition pixelRadius (q, r) hex =
         y = pixelRadius * 3/2 * rf
     in  Collage.move (x, y) hex
 
-hexSize : WidthHeight -> Abalone.Game -> HexSize
-hexSize (w, h) game = let wholeBoardLen = toFloat (min w h)
-                          hexesOnEdge = game.board.boardRadius
+hexSize : WidthHeight -> Int -> HexSize
+hexSize (w, h) hexesOnEdge = let wholeBoardLen = toFloat (min w h)
           in wholeBoardLen / (toFloat <| hexesOnEdge * 4) -- discovered experimentally ;)
 
 stone : HexSize -> Player -> Hex.Position -> Form

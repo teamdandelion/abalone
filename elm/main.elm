@@ -7,6 +7,7 @@ import State(AbaloneState)
 import View(ViewState, WidthHeight, MousePosition)
 import View
 import Misc
+import Misc(fromJust, isJust)
 import Debug
 import Time(every)
 
@@ -24,12 +25,19 @@ import Http(Request, get, post)
 touchInteractionSignal : Signal (Maybe (Position, Position)) -- start and end of touch
 touchInteractionSignal = Signal.map2 computeTouch Window.dimensions Touch.touches 
 
+hoverSignal : Signal (Maybe Position)
+hoverSignal = Signal.map (View.xy2pos 5) Window.dimensions Mouse.position
+
 computeTouch : WidthHeight -> Maybe Touch -> Maybe (Position, Position)
 computeTouch wh touch = if 
     | touch == Nothing -> Nothing
     | otherwise -> let start = View.xy2Pos wh game (touch.x0, touch.y0)
                        end   = View.xy2Pos wh game (touch.x , touch.y )
-                   in  Just (start, end)
+                   in  if (isJust start && isJust end) 
+                            then Just (fromJust start, fromJust end)
+                            else Nothing 
+
+
 
 
 update : Maybe (Position, Position) -> AbaloneState -> AbaloneState
