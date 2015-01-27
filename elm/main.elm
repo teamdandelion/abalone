@@ -8,6 +8,7 @@ import View(ViewState, WidthHeight, MousePosition)
 import View
 import Misc
 import Debug
+import Time(every)
 
 import Maybe
 
@@ -18,6 +19,7 @@ import Touch(Touch)
 import Touch
 import Window
 import Graphics.Element(Element)
+import Http(Request, get, post)
 
 touchInteractionSignal : Signal (Maybe (Position, Position)) -- start and end of touch
 touchInteractionSignal = Signal.map2 computeTouch Window.dimensions Touch.touches 
@@ -43,8 +45,14 @@ update touch (game, seg) = case touch of
 gameState : Signal AbaloneState
 gameState = Signal.foldp update State.initial touchInteractionSignal
 
+poll : Request String 
+poll = get "localhost:8999"
+
+pollResults : Signal (Request String)
+pollResults = Signal.map (always poll) (every 500)
+
 main : Signal Element
-main = Signal.map View.scene viewState 
+main = Signal.map View.scene viewState
 
 
 

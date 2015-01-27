@@ -1,7 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Abalone
-  ( Game(Game)
+  ( Game(..)
+  , Outcome(..)
   , Board(Board)
   , Player(White, Black)
   , Position
@@ -13,7 +14,7 @@ module Abalone
   , Direction
   , Segment
   , segments
-  , (|>)
+  , adjacent
   , start
   ) where
 
@@ -29,10 +30,13 @@ import Control.Monad
 
 import Player
 
+data Outcome = WhiteWins | BlackWins | TieGame deriving (Eq, Show, Read, Generic)
+
 data Game = Game { board          :: Board
                  , nextPlayer     :: Player
                  , movesRemaining :: Int
                  , marblesPerMove :: Int
+                 , lossThreshold  :: Int -- if pieces <= threshold, loss occurs
                  } deriving (Eq, Show, Read, Generic)
 instance FromJSON Game
 instance ToJSON   Game
@@ -49,7 +53,7 @@ getPieces b White = whitePositions b
 getPieces b Black = blackPositions b
 
 start :: Game 
-start = Game standardBoard White 200 3
+start = Game standardBoard White 200 3 8
 
 standardBoard :: Board
 standardBoard = Board whitePos blackPos 5
@@ -75,13 +79,16 @@ data Direction = TopRight | MidRight | BotRight
 instance FromJSON Direction
 instance ToJSON   Direction
 
-(|>) :: Position -> Direction -> Position
-(q, r) |> TopRight = (q+1, r-1)
-(q, r) |> MidRight = (q+1, r  )
-(q, r) |> BotRight = (q  , r+1)
-(q, r) |> BotLeft  = (q-1, r+1)
-(q, r) |> MidLeft  = (q-1, r  )
-(q, r) |> TopLeft  = (q  , r-1)
+
+adjacent :: Direction -> Position -> Position
+adjacent TopRight (q, r) = (q+1, r-1)
+adjacent MidRight (q, r) = (q+1, r  )
+adjacent BotRight (q, r) = (q  , r+1)
+adjacent BotLeft  (q, r) = (q-1, r+1)
+adjacent MidLeft  (q, r) = (q-1, r  )
+adjacent TopLeft  (q, r) = (q  , r-1)
+
+(|>) = flip adjacent
 
 opposite :: Direction -> Direction
 opposite TopRight = BotLeft
@@ -101,8 +108,8 @@ data Move = Move { segment   :: Segment
 
 inline, broadside :: Move -> Bool
 inline m@(Move s _) 
-    | orientation s == Nothing = False
-    | otherwise                = colinear (direction m) (fromJust $ orientation s)
+    | isNothing $ orientation s = False
+    | otherwise                 = colinear (direction m) (fromJust $ orientation s)
 broadside m         = not (inline m)
 
 -- A segment is a linear group of marbles that could move.
@@ -113,52 +120,52 @@ data Segment = Segment { basePos     :: Position  -- The start position of the s
                        } deriving (Eq, Show, Read, Generic)
 
 segPieces :: Segment -> [Position]
-segPieces (Segment pos orient len _)
-    | orient == Nothing = [pos]
-    | otherwise = take len $ iterate (|> fromJust orient) pos
+segPieces (Segment pos orient len _) = maybe [pos] safeGetPieces orient 
+  where 
+    safeGetPieces orient = take len $ iterate (|> orient) pos
 
 gameOver :: Game -> Bool
-gameOver g = movesRemaining g <= 0 || any (\p -> numPieces g p == 0) [White, Black]
+gameOver g = movesRemaining g <= 0 || any (\p -> numPieces g p <= lossThreshold g) [White, Black]
 
-winner :: Game -> Maybe Player
-winner g | gameOver g = advantage
-         | otherwise  = Nothing
- where
-  advantage = case comparing (numPieces g) White Black of
-    GT -> Just White
-    LT -> Just Black
-    EQ -> Nothing
+winner :: Game -> Maybe Outcome
+winner g | gameOver g = Just advantage
+          | otherwise  = Nothing
+  where
+    advantage = case comparing (numPieces g) White Black of
+      GT -> WhiteWins
+      LT -> BlackWins
+      EQ -> TieGame
 
 numPieces :: Game -> Player -> Int
 numPieces g p = Set.size $ getPieces (board g) p
 
 -- this function will recieve new game states from client and verify validity
 isValid :: Game -> Game -> Bool
-isValid g0 g1 = g1 `elem` (futures g0) -- very inefficient impl but that should be fine since occurs once per turn
+isValid g0 g1 = g1 `elem` futures g0 -- very inefficient impl but that should be fine since occurs once per turn
 
 onBoard :: Board -> Position -> Bool -- is a piece on the board still?
-onBoard board pos = dist2 pos (0, 0) < (boardRadius board) * 2
+onBoard board pos = dist2 pos (0, 0) <= boardRadius board * 2
 
 owner :: Board -> Position -> Maybe Player
 owner b x 
   | x `Set.member` getPieces b White = Just White
   | x `Set.member` getPieces b Black = Just Black
-  | otherwise = Nothing
+  | otherwise                        = Nothing
 
 -- Take a board and a proposed inline move, and return Just the moved enemy pieces if it is valid
 inlineMoved :: Board -> Move -> Maybe [Position]
 inlineMoved b m@(Move s@(Segment pos orient len player) dir)
-    | broadside m = Nothing
-    | inline m    = let front = if (fromJust orient) == dir then last else head
+    | inline m    = let front = if fromJust orient == dir then last else head
                         attacked = (|> dir) . front $ segPieces s
-                        clear x force 
-                          | owner b x == Nothing = Just []
+                        attackedPieces x force 
+                          | isNothing $ owner b x = Just []
                           | owner b x == Just player || force == 0 = Nothing
-                          | otherwise = fmap ((:) x) $ clear (x |> dir) (force - 1)
-                    in clear attacked (len - 1)
+                          | otherwise = (:) x <$> attackedPieces (x |> dir) (force - 1)
+                    in attackedPieces attacked (len - 1)
+    | otherwise   = Nothing
 
 update :: Game -> Move -> Game
-update (Game b p remaining perMove) m@(Move s dir) = newGame
+update (Game b p remaining perMove lossThreshold) m@(Move s dir) = newGame
  where
   -- Pieces to move
   ownPieces = segPieces s
@@ -178,7 +185,7 @@ update (Game b p remaining perMove) m@(Move s dir) = newGame
   s \/ l = Set.union      s (Set.fromList l)
  
   newBoard = Board newWhitePos newBlackPos (boardRadius b)
-  newGame  = Game newBoard (next p) (remaining - 1) perMove
+  newGame  = Game newBoard (next p) (remaining - 1) perMove lossThreshold
 
 futures :: Game -> [Game] -- find all valid future states of this board (1 move)
 futures g = map (update g) (possibleMoves g)
@@ -193,12 +200,12 @@ futures g = map (update g) (possibleMoves g)
       that all destination spaces are free
  -}
 possibleMoves :: Game -> [Move]
-possibleMoves g@(Game b p _ _)  = do
-  move <- Move <$> segments g <*> [TopRight .. BotLeft]
+possibleMoves g@(Game b p _ _ _)  = do
+  move <- Move <$> segments g <*> [minBound .. maxBound]
   guard $ valid move
   return move
  where
-  free x = (owner b x == Nothing)
+  free x = isNothing $ owner b x
   valid m@(Move s dir)
     | broadside m = all free $ map (|> dir) (segPieces s)
     | inline m    = isJust $ inlineMoved b m
@@ -206,7 +213,7 @@ possibleMoves g@(Game b p _ _)  = do
 -- get every segment (distinct linear grouping) for current player in game
 -- handle singletons seperately because otherwise they could be triple-counted
 segments :: Game -> [Segment]
-segments (Game b p _ maxlen) = singletons ++ lengthTwoOrMore
+segments (Game b p _ maxlen _) = singletons ++ lengthTwoOrMore
  where
   pieces = Set.toList $ getPieces b p
   singletons = [Segment x Nothing 1 p | x <- pieces]
