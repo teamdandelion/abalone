@@ -4,6 +4,7 @@ import Hex
 import State
 import View(ViewState, WidthHeight, MousePosition)
 import View
+import Time(every)
 
 import Maybe
 
@@ -12,6 +13,7 @@ import Signal(Signal)
 import Mouse
 import Window
 import Graphics.Element(Element)
+import Http(Request, get, post)
 
 type Input = WH WidthHeight | MP MousePosition | Click
 inputs : Signal Input
@@ -35,8 +37,14 @@ initialViewState = ((500,500), State.initial, (0,0))
 viewState : Signal ViewState 
 viewState = Signal.foldp update initialViewState inputs 
 
+poll : Request String 
+poll = get "localhost:8999"
+
+pollResults : Signal (Request String)
+pollResults = Signal.map (always poll) (every 500)
+
 main : Signal Element
-main = Signal.map View.scene viewState 
+main = Signal.map View.scene viewState
 
 
 
