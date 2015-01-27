@@ -75,7 +75,18 @@ func Router(s *AgentSupervisor) *mux.Router {
 }
 
 var templateHome = `
+<html>
+<body>
 fxx >>= ai
+
+	<form action=/api/v0/validate method=GET>
+	<br>
+	validate your AI... Enter the name of the Docker image:
+		<input type=text name=image>
+		</input>
+	</form>
+</body>
+</html>
 `
 
 func WireHTMLRoutes(r *mux.Router, s *AgentSupervisor) {
