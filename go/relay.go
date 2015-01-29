@@ -7,45 +7,51 @@ import (
 	"net/http"
 )
 
-func respondGame(cResponse chan<- io.Reader) http.HandlerFunc {
+func responseFromFrontend(cGame <-chan io.Reader, cFrontendResponse chan<- io.Reader) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("responding to /response")
+		log.Println("responding to /frontend")
 		var buf bytes.Buffer
-		io.Copy(&buf, r.Body)
-		cResponse <- &buf
+		if r.ContentLength != 0 {
+			io.Copy(&buf, r.Body)
+			cFrontendResponse <- &buf
+		} else {
+			log.Println("received empty post to /frontend, not pushing to channel")
+		}
+
+		resultantGame := <-cGame
+		log.Println("sending game back to /frontend")
+		io.Copy(w, resultantGame)
 	}
 }
 
-func recieveGame(cGame chan<- io.Reader, cResponse <-chan io.Reader) http.HandlerFunc {
+func gameFromOperator(cGame chan<- io.Reader, cFrontendResponse <-chan io.Reader) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("responding to /game")
 		cGame <- r.Body
-		body := <-cResponse
+		body := <-cFrontendResponse
 		log.Println("resolving /game")
 		io.Copy(w, body)
 	}
 }
 
-func respondPoll(cGame <-chan io.Reader) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("responding to /poll")
-		select {
-		case g := <-cGame:
-			// w.Header().Set("response-type", "application/json")
-			log.Println("sending game to frontend")
-			io.Copy(w, g)
-		default:
-			log.Println("nothing to report")
-			w.WriteHeader(http.StatusNoContent)
-		}
-	}
-}
-
 func main() {
 	cGame := make(chan io.Reader)
-	cResponse := make(chan io.Reader)
-	http.HandleFunc("/game", recieveGame(cGame, cResponse))
-	http.HandleFunc("/poll", respondPoll(cGame))
-	http.HandleFunc("/response", respondGame(cResponse))
+	cFrontendResponse := make(chan io.Reader)
+	http.HandleFunc("/game", gameFromOperator(cGame, cFrontendResponse))
+	http.HandleFunc("/frontend", responseFromFrontend(cGame, cFrontendResponse))
 	log.Fatal(http.ListenAndServe(":8999", nil))
 }
+
+/* Sequence:
+
+FE POST ""
+OP POST Game1
+FE RECV Game1
+"" is thrown away.
+FE POST Game1
+OP RECV Game2
+OP POST Game3
+FE RECV Game3
+
+
+*/
