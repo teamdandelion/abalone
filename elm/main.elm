@@ -39,7 +39,6 @@ computeTouch wh touch = if
 
 
 
-
 update : Maybe (Position, Position) -> AbaloneState -> AbaloneState
 update touch (game, seg) = case touch of 
     Nothing -> (game, seg)
@@ -53,6 +52,18 @@ update touch (game, seg) = case touch of
 gameState : Signal AbaloneState
 gameState = Signal.foldp update State.initial touchInteractionSignal
 
+statesNeedingPlayerMove : Signal AbaloneState 
+
+statesNeedingServerMove : Signal AbaloneState 
+
+
+playerMove : Maybe (Position, Position) -> AbaloneState -> AbaloneState 
+
+serverMove : AbaloneState -> AbaloneState 
+
+
+
+
 poll : Request String 
 poll = get "localhost:8999"
 
@@ -61,6 +72,9 @@ pollResults = Signal.map (always poll) (every 500)
 
 main : Signal Element
 main = Signal.map View.scene viewState
+
+
+
 
 
 
