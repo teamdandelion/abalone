@@ -15,3 +15,9 @@ cabal.config
 *.aux
 elm/elm_stuff/
 elm/elm.js
+
+frontend/bower_components
+frontend/node_modules
+frontend/build
+.DS_Store
+.cabal_sandbox
