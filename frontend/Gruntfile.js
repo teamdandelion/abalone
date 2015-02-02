@@ -37,8 +37,13 @@ module.exports = function(grunt) {
         "files": ["src/**/*.ts", "test/**/*.ts"]
       }
     },
-    blanket_mocha: {
-      all: ['test/coverage.html'],
+    mocha: {
+      test: {
+        src: ['test/test.html'],
+        options: {
+          run: true
+        }
+      }
     },
     connect: {
       server: {
@@ -65,7 +70,7 @@ module.exports = function(grunt) {
                                   "ts:dev",
                                   "ts:test",
                                   "tslint",
-                                  "blanket_mocha"]);
+                                  "mocha"]);
 
   grunt.registerTask("launch", ["connect", "default", "watch"]);
 };
