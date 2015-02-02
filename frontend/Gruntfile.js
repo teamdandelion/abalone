@@ -7,11 +7,14 @@ module.exports = function(grunt) {
   var tsJSON = {
     dev: {
       src: ["src/**/*.ts", "typings/**/*.d.ts"],
-      outDir: "build/src/",
+      out: "build/abalone.js",
+      options: {
+        declaration: true
+      }
     },
     test: {
       src: ["test/*.ts", "typings/**/*.d.ts", "build/**/*.d.ts"],
-      outDir: "build/test/",
+      out: "build/test.js",
     }
   };
 
@@ -60,6 +63,7 @@ module.exports = function(grunt) {
   // default task (this is what runs when a task isn't specified)
   grunt.registerTask("default", [
                                   "ts:dev",
+                                  "ts:test",
                                   "tslint",
                                   "blanket_mocha"]);
 

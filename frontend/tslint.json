@@ -1,10 +1,8 @@
 {
   "rules": {
     "class-name": false,
-    "curly": true,
     "eofline": true,
     "forin": true,
-    "indent": [true, 2],
     "jsdoc-format": true,
     "label-position": true,
     "label-undefined": true,
@@ -14,7 +12,6 @@
     "no-construct": true,
     "no-duplicate-key": true,
     "no-duplicate-variable": true,
-    "no-empty": true,
     "no-eval": true,
     "no-trailing-comma": true,
     "no-trailing-whitespace": true,
@@ -22,7 +19,6 @@
     "no-unreachable": true,
     "no-use-before-declare": true,
     "one-line": [true,
-        "check-open-brace",
         "check-catch",
         "check-else"
     ],
