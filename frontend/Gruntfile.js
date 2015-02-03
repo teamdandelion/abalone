@@ -9,7 +9,8 @@ module.exports = function(grunt) {
       src: ["src/**/*.ts", "typings/**/*.d.ts"],
       out: "build/abalone.js",
       options: {
-        declaration: true
+        declaration: true,
+        sourceMap: false
       }
     },
     test: {
@@ -17,7 +18,6 @@ module.exports = function(grunt) {
       out: "build/test.js",
     }
   };
-
 
   var configJSON = {
     pkg: grunt.file.readJSON("package.json"),
@@ -58,7 +58,6 @@ module.exports = function(grunt) {
       tscommand: ["tscommand*.tmp.txt"]
     },
   };
-
 
   // project configuration
   grunt.initConfig(configJSON);

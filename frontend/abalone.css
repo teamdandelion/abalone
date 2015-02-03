@@ -1,0 +1,13 @@
+.grid polygon {
+	fill: lightgray;
+	stroke: gray;
+	stroke-width: 1;
+}
+
+.board .white circle {
+	fill: white;
+}
+
+.board .black circle {
+	fill: black;
+}

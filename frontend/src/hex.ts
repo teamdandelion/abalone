@@ -1,6 +1,6 @@
 module Abalone {
 	export module Hex {
-		var directions = [Direction.TopRight, Direction.MidRight, Direction.BotRight, Direction.TopLeft, Direction.MidLeft, Direction.BotLeft];
+		var directions = [Direction.TopRight, Direction.MidRight, Direction.BotRight, Direction.BotLeft, Direction.MidLeft, Direction.TopLeft];
 
 		export function hexagonalGrid(hexesOnEdge: number): [number, number][] {
 			var out: [number, number][] = [];

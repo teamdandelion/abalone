@@ -5,6 +5,7 @@ module Abalone {
         private whitePieces: D3.Selection;
         private blackPieces: D3.Selection;
         private overlay: D3.Selection;
+        private grid: D3.Selection;
         private hexesOnEdge: number;
         private height: number;
         private width: number;
@@ -13,10 +14,11 @@ module Abalone {
         constructor(svg: D3.Selection, width: number, height: number) {
             this.svg = svg;
             this.hexesOnEdge = 5;
-            this.board = this.svg.append("g").classed("board", true);
-            this.whitePieces = this.svg.append("g").classed("white", true);
-            this.blackPieces = this.svg.append("g").classed("black", true);
             this.overlay = this.svg.append("g").classed("overlay", true);
+            this.board = this.svg.append("g").classed("board", true);
+            this.grid = this.board.append("g").classed("grid", true);
+            this.whitePieces = this.board.append("g").classed("white", true);
+            this.blackPieces = this.board.append("g").classed("black", true);
 
             this.resize(width, height);
         }
@@ -26,15 +28,40 @@ module Abalone {
             this.height = height;
             this.hexSize = Math.min(width, height) / this.hexesOnEdge / 4;
             this.drawBoard();
-            this.drawPieces();
-            this.drawOverlay();
+            // this.drawPieces();
+            // this.drawOverlay();
         }
 
         private qr2xy(q: number, r: number): [number, number] {
-            return [this.hexSize * Math.sqrt(3) * (q + r/2), this.hexSize * 3/2 * r];
+            return [
+                this.hexSize * Math.sqrt(3) * (q + r/2) + this.width/2, 
+                this.hexSize * 3/2 * r + this.height/2
+                ];
         }
 
-        private drawPieces() {
+        public drawGame(g: Game) {
+            this.drawPieces(g.board);
+        }
+
+        private drawPieces(b: Board) {
+            this.addPieces(this.whitePieces, b.whitePositions);
+            this.addPieces(this.blackPieces, b.blackPositions);
+        }
+
+        private addPieces(selection: D3.Selection, pieces: [number,number][]) {
+            var xf = (d,i) => this.qr2xy(d[0], d[1])[0];
+            var yf = (d,i) => this.qr2xy(d[0], d[1])[1];
+            var update = selection
+                .selectAll("circle")
+                .data(pieces);
+            update
+                .enter()
+                    .append("circle")
+                    .attr("cx", xf)
+                    .attr("cy", yf)
+                    .attr("r",  this.hexSize/2);
+            update
+                .exit().remove();
 
         }
 
@@ -43,11 +70,10 @@ module Abalone {
         }
 
         private drawBoard() {
-            this.board.select(".grid").remove();
-            var grid = this.board.append("g").classed("grid", true);
+            this.grid.selectAll("polygon").remove();
             var hexes = Hex.hexagonalGrid(this.hexesOnEdge);
             hexes.forEach((h) => {
-                this.drawHex(grid, h[0], h[1]);
+                this.drawHex(this.grid, h[0], h[1]);
             });
         }
 
