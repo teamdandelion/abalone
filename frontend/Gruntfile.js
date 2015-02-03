@@ -33,7 +33,7 @@ module.exports = function(grunt) {
         livereload: true
       },
       "rebuild": {
-        "tasks": ["default"],
+        "tasks": ["buildtest"],
         "files": ["src/**/*.ts", "test/**/*.ts"]
       }
     },
@@ -54,9 +54,6 @@ module.exports = function(grunt) {
         }
       }
     },
-    // clean: {
-    //   tscommand: ["tscommand*.tmp.txt"]
-    // },
   };
 
 
@@ -65,12 +62,12 @@ module.exports = function(grunt) {
 
   require('load-grunt-tasks')(grunt);
 
-  // default task (this is what runs when a task isn't specified)
-  grunt.registerTask("default", [
+  grunt.registerTask("buildtest", [
                                   "ts:dev",
                                   "ts:test",
                                   "tslint",
                                   "mocha"]);
 
-  grunt.registerTask("launch", ["connect", "default", "watch"]);
+  // default task (this is what runs when a task isn't specified)
+  grunt.registerTask("default", ["connect", "buildtest", "watch"]);
 };

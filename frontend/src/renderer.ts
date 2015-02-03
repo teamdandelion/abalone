@@ -1,5 +1,5 @@
 module Abalone {
-    class Renderer {
+    export class Renderer {
         private svg: D3.Selection;
         private board: D3.Selection;
         private whitePieces: D3.Selection;
