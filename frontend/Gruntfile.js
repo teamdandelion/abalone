@@ -54,6 +54,9 @@ module.exports = function(grunt) {
         }
       }
     },
+    clean: {
+      tscommand: ["tscommand*.tmp.txt"]
+    },
   };
 
 
@@ -65,6 +68,7 @@ module.exports = function(grunt) {
   grunt.registerTask("buildtest", [
                                   "ts:dev",
                                   "ts:test",
+                                  "clean",
                                   "tslint",
                                   "mocha"]);
 
