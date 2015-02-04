@@ -1,6 +1,6 @@
 module Abalone {
 	export module Hex {
-		var directions = [Direction.TopRight, Direction.MidRight, Direction.BotRight, Direction.BotLeft, Direction.MidLeft, Direction.TopLeft];
+		export var directions = [Direction.TopRight, Direction.MidRight, Direction.BotRight, Direction.BotLeft, Direction.MidLeft, Direction.TopLeft];
 
 		export function hexagonalGrid(hexesOnEdge: number): [number, number][] {
 			var out: [number, number][] = [];
@@ -21,6 +21,33 @@ module Abalone {
 				}
 			});
 			return out;
+		}
+
+		export function dist(x1: [number, number], x2: [number, number]) {
+			var q1 = x1[0];
+			var q2 = x2[0];
+			var r1 = x1[1];
+			var r2 = x2[1];
+			return Math.abs(q1 - q2) + Math.abs(r1 - r2) + Math.abs(q1 + r1 - q2 - r2);
+		}
+
+		export function onBoard(b: Board, p: [number, number]): boolean {
+			return dist(p, [0,0]) < b.boardRadius;
+		}
+
+		export function opposite(d: Direction): Direction {
+			switch(d) {
+			case Direction.TopRight: return Direction.BotLeft
+			case Direction.MidRight: return Direction.MidLeft
+			case Direction.BotRight: return Direction.TopLeft
+			case Direction.BotLeft : return Direction.TopRight
+			case Direction.MidLeft : return Direction.MidRight
+			case Direction.TopLeft : return Direction.BotRight	
+			}
+		}
+
+		export function colinear(d1: Direction, d2: Direction): boolean {
+			return d1 === d2 || d1 === opposite(d2);
 		}
 
 		export function adjacent(position: [number, number], d: Direction): [number, number] {

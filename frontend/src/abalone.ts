@@ -1,11 +1,14 @@
 
 module Abalone {
 	export enum Player {White, Black}
+	export function next(p: Player) {
+		return (p === Player.White) ? Player.Black : Player.White;
+	}
 	export enum Outcome {WhiteWins, BlackWins, TieGame}
 	export enum Direction {TopRight, MidRight, BotRight, TopLeft, MidLeft, BotLeft}
 	export interface Game {
 		board: Board;
-		nextPlayer: string;
+		nextPlayer: Player;
 		movesRemaining: number;
 		marblesPerMove: number;
 		lossThreshold: number;
@@ -18,7 +21,15 @@ module Abalone {
 	}
 
 	export interface Segment {
-		base: [number, number];
+		basePos: [number, number];
+		orientation: Direction;
+		segLength: number;
+		player: Player;
+	}
+
+	export interface Move {
+		segment: Segment;
+		direction: Direction;
 	}
 
 	export function winner(g: Game): Outcome {
@@ -32,10 +43,163 @@ module Abalone {
 		return null;
 	}
 
+	export function getPieces(b: Board, p: Player): [number, number][] {
+		if (p == Player.White) {
+			return b.whitePositions;
+		} else {
+			return b.blackPositions;
+		}
+	}
+
 	export function gameOver(g: Game): boolean {
 		var b = g.board;
 		return  g.movesRemaining <= 0 || Math.min(b.whitePositions.length, b.blackPositions.length)  <= g.lossThreshold;
 	}
+
+	export function possibleMoves(g: Game): Move[] {
+		var allMoves = [];
+		segments(g).forEach((s) => {
+			Hex.directions.forEach((d) => {
+				allMoves.push({segment: s, direction: d});
+			});
+		});
+		return allMoves.filter((m) => isValid(g, m));
+	}
+
+	function segments(g: Game): Segment[] {
+		var pieces = getPieces(g.board, g.nextPlayer);
+		var presentSet: any = {};
+		var singletons = pieces.map((pos) => {
+			presentSet[pos.toString()] = true;
+			return {basePos: pos, orientation: null, segLength: 1, player: g.nextPlayer}
+		});
+
+		var twoOrMore = [];
+		pieces.forEach((pos) => {
+			[Direction.TopRight, Direction.MidRight, Direction.BotRight].forEach((d) => {
+				var nextPiece = Hex.adjacent(pos, d);
+				var length = 2;
+				while (length <= g.marblesPerMove && presentSet[nextPiece.toString()]) {
+					twoOrMore.push({
+						basePos: pos, 
+						orientation: d, 
+						segLength: length, 
+						player: g.nextPlayer
+					});
+					nextPiece = Hex.adjacent(pos, d);
+					length++;
+				}
+			});
+		});
+		return singletons.concat(twoOrMore);
+	}
+
+	function isValid(g: Game, m: Move): boolean {
+		if (broadside(m)) {
+			return segPieces(m.segment)
+				.map((p) => Hex.adjacent(p, m.direction))
+				.every((p) => free(g.board, p));
+		} else {
+			return inlineMoved(g.board, m) !== null;
+		}
+	}
+
+	function segPieces(s: Segment): [number, number][] {
+		var front = s.basePos;
+		var pieces = [front];
+		for (var i=0; i<s.segLength-1; i++) {
+			front = Hex.adjacent(front, s.orientation);
+			pieces.push(front);
+		}
+		return pieces;
+	}
+
+	function free(b: Board, x: [number, number]): boolean {
+		return owner(b,x) == null;
+	}
+
+	function tupleIndexOf(tuples: [number,number][], x: [number, number]): number {
+		for (var i=0; i<tuples.length; i++) {
+			if (tuples[i][0] === x[0] && tuples[i][1] === x[1]) return i;
+		}
+		return -1;
+	}
+
+	function owner(b: Board, x: [number, number]): Player {
+		if (tupleIndexOf(b.whitePositions, x) !== -1) return Player.White;
+		if (tupleIndexOf(b.blackPositions, x) !== -1) return Player.Black;
+		return null;
+	}
+
+	export function update(g: Game, m: Move): Game {
+		var ownPieces = segPieces(m.segment);
+		var enemyPieces = broadside(m) ? [] : inlineMoved(g.board, m);
+		var whiteMoved = (g.nextPlayer === Player.White) ? ownPieces : enemyPieces;
+		var blackMoved = (g.nextPlayer === Player.White) ? enemyPieces : ownPieces;
+
+		var movePieces = (ps: [number,number][]) => {
+			return ps
+				.map((p) => Hex.adjacent(p, m.direction))
+				.filter((p) => Hex.onBoard(p, g.board));
+		}
+
+		function removeAll(source: [number,number][], remove: [number,number][]): [number,number][] {
+			var out = source.slice();
+			remove.forEach((x) => {
+				var idx = tupleIndexOf(out, x);
+				if (idx !== -1) {
+					source.splice(idx, 1);
+				}
+			});
+			return out;
+		}
+
+		var newWhite = removeAll(g.board.whitePositions, whiteMoved).concat(movePieces(whiteMoved));
+		var newBlack = removeAll(g.board.blackPositions, blackMoved).concat(movePieces(blackMoved));
+
+		var newBoard = {
+			whitePositions: newWhite, 
+			blackPositions: newBlack, 
+			boardRadius: g.board.boardRadius
+		}
+
+		return {
+			board: newBoard, 
+			nextPlayer: next(g.nextPlayer), 
+			movesRemaining: g.movesRemaining - 1,
+			marblesPerMove: g.marblesPerMove
+		}
+	}
+
+	function inline(m: Move): boolean {
+		return m.segment.orientation !== null && Hex.colinear(m.direction, m.segment.orientation)
+	}
+
+	function broadside(m: Move): boolean {
+		return !broadside(m);
+	}
+
+	function inlineMoved(b: Board, m: Move): [number, number][] {
+		if (broadside(m)) return false;
+		var pieces = segPieces(m.segment);
+		var attacked = m.segment.orientation === m.direction ? pieces[pieces.length-1] : pieces[0];
+		var pieces = [];
+		for (var i=0; i<m.segment.segLength - 1; i++) {
+			attacked = Hex.adjacent(attacked, m.direction);
+			var controller = owner(b, attacked);
+			if (controller == null) return pieces;
+			if (controller === m.segment.player) return null;
+			pieces.append(attacked);
+		}
+		return null;
+	}
+
+		// 	getPieces(g.board, next(g.nextPlayer));
+		// var ownSet: any = {};
+		// ownPieces.forEach((p) => ownSet[p] = true);
+		// var enemySet: any = {};
+		// enemyPieces.forEach((p) => enemySet[p] = true);
+		// var updated = 
 
 	function standardBoard() {
 		return <Board> <any> {
