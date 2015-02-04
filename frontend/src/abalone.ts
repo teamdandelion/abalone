@@ -44,7 +44,7 @@ module Abalone {
 	}
 
 	export function getPieces(b: Board, p: Player): [number, number][] {
-		if (p == Player.White) {
+		if (p === Player.White) {
 			return b.whitePositions;
 		} else {
 			return b.blackPositions;
@@ -140,7 +140,7 @@ module Abalone {
 		var movePieces = (ps: [number,number][]) => {
 			return ps
 				.map((p) => Hex.adjacent(p, m.direction))
-				.filter((p) => Hex.onBoard(p, g.board));
+				.filter((p) => Hex.onBoard(g.board, p));
 		}
 
 		function removeAll(source: [number,number][], remove: [number,number][]): [number,number][] {
@@ -167,7 +167,8 @@ module Abalone {
 			board: newBoard, 
 			nextPlayer: next(g.nextPlayer), 
 			movesRemaining: g.movesRemaining - 1,
-			marblesPerMove: g.marblesPerMove
+			marblesPerMove: g.marblesPerMove,
+			lossThreshold: g.lossThreshold
 		}
 	}
 
@@ -176,20 +177,20 @@ module Abalone {
 	}
 
 	function broadside(m: Move): boolean {
-		return !broadside(m);
+		return !inline(m);
 	}
 
 	function inlineMoved(b: Board, m: Move): [number, number][] {
-		if (broadside(m)) return false;
+		if (broadside(m)) return null;
 		var pieces = segPieces(m.segment);
 		var attacked = m.segment.orientation === m.direction ? pieces[pieces.length-1] : pieces[0];
-		var pieces = [];
+		var movedEnemyPieces = [];
 		for (var i=0; i<m.segment.segLength - 1; i++) {
 			attacked = Hex.adjacent(attacked, m.direction);
 			var controller = owner(b, attacked);
-			if (controller == null) return pieces;
+			if (controller == null) return movedEnemyPieces;
 			if (controller === m.segment.player) return null;
-			pieces.append(attacked);
+			movedEnemyPieces.push(attacked);
 		}
 		return null;
 	}
@@ -214,7 +215,7 @@ module Abalone {
 			lossThreshold : 8,
 			marblesPerMove: 3,
 			movesRemaining: 200,
-			nextPlayer    : "White",
+			nextPlayer    : Player.White,
 			board         : standardBoard()
 		}
 	}	
