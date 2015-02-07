@@ -74,12 +74,15 @@ describe("Abalone", () => {
 		var blacks1 = [[0,-1]];
 		var cantpush = genTestBoard(whites2, blacks2, 4);
 		var canpush = genTestBoard(whites2, blacks1, 4);
+		var whites3 = [[0,0], [0,1], [0, -2]];
+		var whiteblock = genTestBoard(whites3, blacks1, 4);
 		var move = {
-			segment: {basePos: <[number, number]> [0,0], segLength: 2, orientation: Direction.BotRight, player: Player.White},
+			segment: {basePos: <[number, number]> 	[0,0], segLength: 2, orientation: Direction.BotRight, player: Player.White},
 			direction: Direction.TopLeft
 		}
 		assert.isNull(Abalone.inlineMoved(cantpush, move), "cant push equal # pieces");
 		assert.deepEqual(Abalone.inlineMoved(canpush, move), [[0,-1]], "can push 1 piece");
+		assert.isNull(Abalone.inlineMoved(whiteblock, move), "push blocked by own piece");
 
 	});
 
@@ -88,7 +91,7 @@ describe("Abalone", () => {
 		assert.lengthOf(possibleMoves(twoStoneGame), 16, "2 stone game");
 		assert.lengthOf(possibleMoves(threeStoneGame), 15, "3 stone game");
 		assert.lengthOf(possibleMoves(fourStoneGame), 19, "4 stone game (own piece protection)");
-		assert.lengthOf(possibleMoves(balancedGame), 19, "balanced game (enemy piece protection)");
+		assert.lengthOf(possibleMoves(balancedGame), 14, "balanced game (enemy piece protection)");
 		
 		var marblesPerMove = genTestGame([[0,1], [0,2], [0,3]], [], 5);
 		assert.lengthOf(possibleMoves(marblesPerMove), 30, "marblesPerMove respected (3)");
