@@ -21,13 +21,11 @@ module.exports = function(grunt) {
 
   var watchJSON = {
     ts: {
-      "options": {
+      options: {
         livereload: true
       },
-      "rebuild": {
-        "tasks": ["buildts"],
-        "files": ["src/ts/*.ts", "test/**/*.ts"]
-      }
+      tasks: ["buildts"],
+      files: ["src/ts/*.ts", "test/**/*.ts"]
     },
     watchreact: {
       tasks: ["react"],
