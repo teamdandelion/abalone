@@ -66,7 +66,7 @@ module Abalone {
 		return allMoves.filter((m) => isValid(g, m));
 	}
 
-	function segments(g: Game): Segment[] {
+	export function segments(g: Game): Segment[] {
 		var pieces = getPieces(g.board, g.nextPlayer);
 		var presentSet: any = {};
 		var singletons = pieces.map((pos) => {
@@ -86,7 +86,7 @@ module Abalone {
 						segLength: length, 
 						player: g.nextPlayer
 					});
-					nextPiece = Hex.adjacent(pos, d);
+					nextPiece = Hex.adjacent(nextPiece, d);
 					length++;
 				}
 			});
@@ -180,12 +180,12 @@ module Abalone {
 		return !inline(m);
 	}
 
-	function inlineMoved(b: Board, m: Move): [number, number][] {
+	export function inlineMoved(b: Board, m: Move): [number, number][] {
 		if (broadside(m)) return null;
 		var pieces = segPieces(m.segment);
 		var attacked = m.segment.orientation === m.direction ? pieces[pieces.length-1] : pieces[0];
 		var movedEnemyPieces = [];
-		for (var i=0; i<m.segment.segLength - 1; i++) {
+		for (var i=0; i<m.segment.segLength; i++) {
 			attacked = Hex.adjacent(attacked, m.direction);
 			var controller = owner(b, attacked);
 			if (controller == null) return movedEnemyPieces;
