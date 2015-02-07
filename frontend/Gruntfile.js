@@ -6,7 +6,7 @@ module.exports = function(grunt) {
 
   var tsJSON = {
     dev: {
-      src: ["src/**/*.ts", "typings/**/*.d.ts"],
+      src: ["src/ts/*.ts", "typings/**/*.d.ts"],
       out: "build/abalone.js",
       options: {
         declaration: true,
@@ -19,6 +19,22 @@ module.exports = function(grunt) {
     }
   };
 
+  var watchJSON = {
+    ts: {
+      "options": {
+        livereload: true
+      },
+      "rebuild": {
+        "tasks": ["buildts"],
+        "files": ["src/ts/*.ts", "test/**/*.ts"]
+      }
+    },
+    watchreact: {
+      tasks: ["react"],
+      files: ["src/jsx/*.jsx"]
+    }
+  }
+
   var configJSON = {
     pkg: grunt.file.readJSON("package.json"),
     ts: tsJSON,
@@ -28,13 +44,12 @@ module.exports = function(grunt) {
       },
       files: ["src/**/*.ts", "test/**.ts"]
     },
-    watch: {
-      "options": {
-        livereload: true
-      },
-      "rebuild": {
-        "tasks": ["buildtest"],
-        "files": ["src/**/*.ts", "test/**/*.ts"]
+    watch: watchJSON,
+    react: {
+      combined_file_output: {
+        files: {
+        'build/react_main.js': ['src/jsx/*.jsx']
+        }
       }
     },
     mocha: {
@@ -64,13 +79,16 @@ module.exports = function(grunt) {
 
   require('load-grunt-tasks')(grunt);
 
-  grunt.registerTask("buildtest", [
+  grunt.registerTask("buildts", [
                                   "ts:dev",
                                   "ts:test",
                                   "clean",
                                   "tslint",
                                   "mocha"]);
 
+  grunt.registerTask("tsrunner", ["connect", "buildts", "watch:ts"]);
+  grunt.registerTask("r", ["connect", "react", "watch:watchreact"])
+
   // default task (this is what runs when a task isn't specified)
-  grunt.registerTask("default", ["connect", "buildtest", "watch"]);
+  grunt.registerTask("default", ["tsrunner"]);
 };

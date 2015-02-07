@@ -26,6 +26,7 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-mocha": "^0.4.11",
     "grunt-mocha-phantomjs": "^0.6.0",
+    "grunt-react": "^0.10.0",
     "grunt-ts": "^2.0.1",
     "grunt-tslint": "^1.0.1",
     "load-grunt-tasks": "^3.1.0",
