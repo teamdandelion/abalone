@@ -1,0 +1,49 @@
+GET /games/{game_id} | 
+  Game(
+    first player_id
+    second player_id
+    start_state board_json
+    moves [6byte blobs]
+  )
+
+GET /players/{player_id} |
+  Player(
+    author: author_id
+    nickname: nick
+    version: version
+    container: container
+    games: [game_id]
+  )
+
+GET /authors/{author_id} |
+  Author(
+    name: name
+    players: [player_id]
+  )
+
+POST /player/ {
+  Player(
+    author: author_id
+    nickname: nick
+    version: version
+    container: container
+  )}  | Status: 200
+
+
+~~~~~~~~~~~~~~~HIDDEN~~~~~~~~~~~~~~~
+
+POST /game/ {
+  Game(
+    first player_id
+    second player_id
+    start_state board_json
+ )} | Status: 200
+
+UPDATE /game/ {
+  Move(
+    move: 6byte move as follows:
+      32bit   | 2bit | 3bit | 11bit
+      board     orientation   length
+     position          direction
+    winner: player_id
+  )} | Status: 200
