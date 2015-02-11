@@ -2,16 +2,16 @@ module Abalone {
 	export module Hex {
 		export var directions = [Direction.TopRight, Direction.MidRight, Direction.BotRight, Direction.BotLeft, Direction.MidLeft, Direction.TopLeft];
 
-		export function hexagonalGrid(hexesOnEdge: number): [number, number][] {
-			var out: [number, number][] = [];
+		export function hexagonalGrid(hexesOnEdge: number): number[][] {
+			var out: number[][] = [];
 			for (var r = 0; r < hexesOnEdge; r++) {
 				out = out.concat(ring(r));
 			}
 			return out;
 		}
 
-		function ring(rad: number): [number, number][] {
-			var current: [number, number] = [-rad, 0];
+		export function ring(rad: number): number[][] {
+			var current: number[] = [-rad, 0];
 			if (rad === 0) return [current];
 			var out = [];
 			directions.forEach((d) => {
@@ -23,7 +23,7 @@ module Abalone {
 			return out;
 		}
 
-		export function dist(x1: [number, number], x2: [number, number]) {
+		export function dist2(x1: number[], x2: number[]) {
 			var q1 = x1[0];
 			var q2 = x2[0];
 			var r1 = x1[1];
@@ -31,8 +31,8 @@ module Abalone {
 			return Math.abs(q1 - q2) + Math.abs(r1 - r2) + Math.abs(q1 + r1 - q2 - r2);
 		}
 
-		export function onBoard(b: Board, p: [number, number]): boolean {
-			return dist(p, [0,0]) < b.boardRadius;
+		export function onBoard(b: Board, p: number[]): boolean {
+			return dist2(p, [0,0]) < b.boardRadius * 2;
 		}
 
 		export function opposite(d: Direction): Direction {
@@ -50,7 +50,7 @@ module Abalone {
 			return d1 === d2 || d1 === opposite(d2);
 		}
 
-		export function adjacent(position: [number, number], d: Direction): [number, number] {
+		export function adjacent(position: number[], d: Direction): number[] {
 			var q = position[0];
 			var r = position[1];
 			switch (d) {

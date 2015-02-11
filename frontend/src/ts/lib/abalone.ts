@@ -15,13 +15,13 @@ module Abalone {
 	}
 
 	export interface Board {
-		whitePositions: [number, number][];
-		blackPositions: [number, number][];
+		whitePositions: number[][];
+		blackPositions: number[][];
 		boardRadius: number;
 	}
 
 	export interface Segment {
-		basePos: [number, number];
+		basePos: number[];
 		orientation: Direction;
 		segLength: number;
 		player: Player;
@@ -43,7 +43,7 @@ module Abalone {
 		return null;
 	}
 
-	export function getPieces(b: Board, p: Player): [number, number][] {
+	export function getPieces(b: Board, p: Player): number[][] {
 		if (p === Player.White) {
 			return b.whitePositions;
 		} else {
@@ -104,7 +104,7 @@ module Abalone {
 		}
 	}
 
-	function segPieces(s: Segment): [number, number][] {
+	function segPieces(s: Segment): number[][] {
 		var front = s.basePos;
 		var pieces = [front];
 		for (var i=0; i<s.segLength-1; i++) {
@@ -114,18 +114,18 @@ module Abalone {
 		return pieces;
 	}
 
-	function free(b: Board, x: [number, number]): boolean {
+	function free(b: Board, x: number[]): boolean {
 		return owner(b,x) == null;
 	}
 
-	function tupleIndexOf(tuples: [number,number][], x: [number, number]): number {
+	function tupleIndexOf(tuples: number[][], x: number[]): number {
 		for (var i=0; i<tuples.length; i++) {
 			if (tuples[i][0] === x[0] && tuples[i][1] === x[1]) return i;
 		}
 		return -1;
 	}
 
-	function owner(b: Board, x: [number, number]): Player {
+	function owner(b: Board, x: number[]): Player {
 		if (tupleIndexOf(b.whitePositions, x) !== -1) return Player.White;
 		if (tupleIndexOf(b.blackPositions, x) !== -1) return Player.Black;
 		return null;
@@ -137,18 +137,18 @@ module Abalone {
 		var whiteMoved = (g.nextPlayer === Player.White) ? ownPieces : enemyPieces;
 		var blackMoved = (g.nextPlayer === Player.White) ? enemyPieces : ownPieces;
 
-		var movePieces = (ps: [number,number][]) => {
+		var movePieces = (ps: number[][]) => {
 			return ps
 				.map((p) => Hex.adjacent(p, m.direction))
 				.filter((p) => Hex.onBoard(g.board, p));
 		}
 
-		function removeAll(source: [number,number][], remove: [number,number][]): [number,number][] {
+		function removeAll(source: number[][], remove: number[][]): number[][] {
 			var out = source.slice();
 			remove.forEach((x) => {
 				var idx = tupleIndexOf(out, x);
 				if (idx !== -1) {
-					source.splice(idx, 1);
+					out.splice(idx, 1);
 				}
 			});
 			return out;
@@ -158,8 +158,8 @@ module Abalone {
 		var newBlack = removeAll(g.board.blackPositions, blackMoved).concat(movePieces(blackMoved));
 
 		var newBoard = {
-			whitePositions: newWhite, 
-			blackPositions: newBlack, 
+			whitePositions: newWhite,
+			blackPositions: newBlack,
 			boardRadius: g.board.boardRadius
 		}
 
@@ -172,6 +172,10 @@ module Abalone {
 		}
 	}
 
+	export function futures(g: Game): Game[] {
+		return possibleMoves(g).map((m) => update(g, m));
+	}
+
 	function inline(m: Move): boolean {
 		return m.segment.orientation !== null && Hex.colinear(m.direction, m.segment.orientation)
 	}
@@ -180,7 +184,7 @@ module Abalone {
 		return !inline(m);
 	}
 
-	export function inlineMoved(b: Board, m: Move): [number, number][] {
+	export function inlineMoved(b: Board, m: Move): number[][] {
 		if (broadside(m)) return null;
 		var pieces = segPieces(m.segment);
 		var attacked = m.segment.orientation === m.direction ? pieces[pieces.length-1] : pieces[0];

@@ -11,9 +11,9 @@ module Abalone {
         private width: number;
         private hexSize: number;
 
-        constructor(svg: D3.Selection, width: number, height: number) {
+        constructor(svg: D3.Selection, width: number, height: number, hexesOnEdge=5) {
             this.svg = svg;
-            this.hexesOnEdge = 5;
+            this.hexesOnEdge = hexesOnEdge;
             this.overlay = this.svg.append("g").classed("overlay", true);
             this.board = this.svg.append("g").classed("board", true);
             this.grid = this.board.append("g").classed("grid", true);
@@ -48,7 +48,7 @@ module Abalone {
             this.addPieces(this.blackPieces, b.blackPositions);
         }
 
-        private addPieces(selection: D3.Selection, pieces: [number,number][]) {
+        private addPieces(selection: D3.Selection, pieces: number[][]) {
             var xf = (d,i) => this.qr2xy(d[0], d[1])[0];
             var yf = (d,i) => this.qr2xy(d[0], d[1])[1];
             var update = selection
