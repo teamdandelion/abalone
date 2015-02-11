@@ -10,7 +10,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func setupDB(t *testing.T) (*gorm.DB, func()) {
+// setupDB creates a SQLite DB in a temporary directory. Call the teardown to
+// delete the database.
+func setupDB(t *testing.T) (db *gorm.DB, teardown func()) {
 	name, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Fatal(err)
@@ -25,6 +27,8 @@ func setupDB(t *testing.T) (*gorm.DB, func()) {
 	}
 }
 
+// TestAuthorHasManyPlayers ensures that the relationship between authors and
+// players is defined and functional (in both directions)
 func TestAuthorHasManyPlayers(t *testing.T) {
 	sql, teardownDB := setupDB(t)
 	defer teardownDB()
