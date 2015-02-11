@@ -4,6 +4,7 @@ import "github.com/jinzhu/gorm"
 
 // TODO enforce 'non-nullable' on relevant fields
 
+// Author represents a human player
 type Author struct {
 	Id   int64
 	Name string
@@ -11,11 +12,12 @@ type Author struct {
 	Players []Player
 }
 
+// Player is an AI agent
 type Player struct {
 	Id        int64
-	Nick      string
-	Version   int64
-	Container string
+	Nick      string // represents a series of agents
+	Version   int64  // represents a version within a Series
+	Container string // name of Docker container
 
 	AuthorId int64
 }
@@ -44,9 +46,10 @@ type Participant struct {
 type Record struct {
 	Game Game
 	Turn int64
-	Move []byte
+	Move []byte // 6-byte diff
 }
 
+// AutoMigrate ensures all tables and columns are up to date (non-destructive)
 func AutoMigrate(sql *gorm.DB) *gorm.DB {
 	return sql.AutoMigrate(
 		&Author{},
