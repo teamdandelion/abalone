@@ -1,0 +1,36 @@
+assume non-null fields
+
+Author
+  id index int Primary key
+  name string
+
+Player
+  id index int Primary key
+  author_id int Foreign Key(Author::id)
+  nick string
+  vers int
+  container hash/address
+
+Start
+  id index int Primary Key
+  state json of board start state
+
+Game
+  id index int Primary Key
+  winner int nullable Foreign Key(Player::id)
+  start_state int Foreign Key(Start::id)
+
+Participant
+  game_id int Foreign Key(Game::id)
+  player_id int Foreign Key(Player::id)
+  order int
+  Primary Key( game_id, order)
+
+Record
+  game_id int Foreign Key(Game::id)
+  turn int
+  move 6 bytes:
+
+  32bit   | 2bit | 3bit | 11bit
+  board     orientation   length
+ position          direction
