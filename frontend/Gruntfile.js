@@ -3,15 +3,18 @@ module.exports = function(grunt) {
 
   var path = require("path");
   var cwd = process.cwd();
-
   var tsJSON = {
     dev: {
-      src: ["src/ts/*.ts", "typings/**/*.d.ts"],
+      src: ["src/ts/lib/*.ts", "typings/**/*.d.ts"],
       out: "build/abalone.js",
       options: {
         declaration: true,
         sourceMap: false
       }
+    },
+    main: {
+      src: ["src/ts/main/*.ts", "build/**/*.d.ts", "typings/**/*.d.ts"],
+      out: "main.js"
     },
     test: {
       src: ["test/*.ts", "typings/**/*.d.ts", "build/**/*.d.ts"],
@@ -25,7 +28,7 @@ module.exports = function(grunt) {
         livereload: true
       },
       tasks: ["buildts"],
-      files: ["src/ts/*.ts", "test/**/*.ts"]
+      files: ["src/ts/**/*.ts", "test/**/*.ts"]
     },
     watchreact: {
       tasks: ["react"],
@@ -80,6 +83,7 @@ module.exports = function(grunt) {
   grunt.registerTask("buildts", [
                                   "ts:dev",
                                   "ts:test",
+                                  "ts:main",
                                   "clean",
                                   "tslint",
                                   "mocha"]);
