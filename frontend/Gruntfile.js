@@ -10,22 +10,29 @@ module.exports = function(grunt) {
       options: {
         declaration: true,
         sourceMap: false
-      }
+      },
     },
     main: {
       src: ["src/ts/main/*.ts", "build/**/*.d.ts", "typings/**/*.d.ts"],
-      out: "main.js"
+      out: "main.js",
+      options: {
+        sourceMap: false
+      },
     },
     test: {
       src: ["test/*.ts", "typings/**/*.d.ts", "build/**/*.d.ts"],
       out: "build/test.js",
-    }
+      options: {
+        sourceMap: false
+      },
+    },
   };
 
   var watchJSON = {
     ts: {
       options: {
-        livereload: true
+        livereload: true,
+        atBegin: true
       },
       tasks: ["buildts"],
       files: ["src/ts/**/*.ts", "test/**/*.ts"]
@@ -88,7 +95,7 @@ module.exports = function(grunt) {
                                   "tslint",
                                   "mocha"]);
 
-  grunt.registerTask("tsrunner", ["connect", "buildts", "watch:ts"]);
+  grunt.registerTask("tsrunner", ["connect", "watch:ts", "buildts", ]);
   grunt.registerTask("r", ["connect", "react", "watch:watchreact"])
 
   // default task (this is what runs when a task isn't specified)
