@@ -1,10 +1,11 @@
 module Abalone {
-    export class Renderer {
+    export class Renderer implements PlayerAgent {
         private svg: D3.Selection;
         private board: D3.Selection;
         private whitePieces: D3.Selection;
         private blackPieces: D3.Selection;
         private overlay: D3.Selection;
+        private eventLayer: D3.Selection;
         private grid: D3.Selection;
         private hexesOnEdge: number;
         private height: number;
@@ -14,6 +15,7 @@ module Abalone {
         constructor(svg: D3.Selection, width: number, height: number, hexesOnEdge=5) {
             this.svg = svg;
             this.hexesOnEdge = hexesOnEdge;
+            this.eventLayer = this.svg.append("g");
             this.overlay = this.svg.append("g").classed("overlay", true);
             this.board = this.svg.append("g").classed("board", true);
             this.grid = this.board.append("g").classed("grid", true);
@@ -65,7 +67,11 @@ module Abalone {
 
         }
 
-        private drawOverlay() {
+        private hexFromXY(x: number, y: number): number[] {
+            return [0,0];
+        }
+
+        private drawOverlay(segment: Segment, isDragging: boolean) {
 
         }
 
@@ -85,8 +91,89 @@ module Abalone {
             var points = hexPointString(rad, x, y);
             container.append("polygon").attr("points", points).classed("hex", true);
         }
+
+        public play(g: Game, cb: (g: Game) => void): void {
+            var selectedPieces: Segment;
+
+            var disabled = false;
+            var dragInProgress = false;
+            var originHex = null;
+
+            var finish = (m: Move) => {
+                this.drawOverlay(null, false);
+                disabled = true;
+                cb(update(g, m));
+            }
+
+            var dragstart = () => {
+                if (disabled) return;
+                var location = d3.mouse(this.eventLayer.node());
+                originHex = this.hexFromXY(location[0], location[1]);
+                if (selectedPieces !== null) {
+                    var move = generateMove(selectedPieces, originHex);
+                    if (move != null && isValid(g, move)) {
+                        finish(move);
+                    } else {
+                        selectedPieces = null;
+                    }
+                } else {
+                    if ((selectedPieces = getSegment(g, originHex)) !== null) {
+                        dragInProgress = true;
+                    }
+                }
+            }
+
+            var drag = () => {
+                if (disabled) return;
+                var currentHex = this.hexFromXY(d3.event.x, d3.event.y);
+                selectedPieces = getSegment(originHex, currentHex);
+                this.drawOverlay(selectedPieces, true);
+            }
+
+            var dragend = () => {
+                if (disabled) return;
+                var currentHex = this.hexFromXY(d3.event.x, d3.event.y);
+                selectedPieces = getSegment(originHex, currentHex);
+                this.drawOverlay(selectedPieces, false);
+            }
+
+            this.eventLayer.call(
+                d3.behavior.drag()
+                    .on("dragstart", dragstart)
+                    .on("drag", drag)
+                    .on("dragend", dragend)
+            )
+        }
+
     }
 
+    export function generateMove(s: Segment, target: number[]): Move {
+        var possibilities = adjacentHexDirs(s);
+        var foundDir: Direction;
+        possibilities.forEach((hd) => {
+            var hex = hd[0];
+            var dir = hd[1];
+            if (hex.toString() === target.toString()) {
+                foundDir = dir;
+            }
+        });
+        var move = foundDir != null ? {segment: s, direction: foundDir} : null;
+        return move;
+    }
+
+    function vanguard(pos: number[], d: Direction): [number[], Direction][] {
+        return <any> Hex.nearbyDirections(d).map((dir) => [Hex.adjacent(pos, dir), dir]);
+    }
+
+    function adjacentHexDirs(s: Segment): [number[], Direction][] {
+        if (s.orientation == null) {
+            return <any> Hex.directions.map((d) => [Hex.adjacent(s.basePos, d), d]);
+        } else {
+            var front = vanguard(s.basePos, Hex.opposite(s.orientation));
+            var back = vanguard(_.last(segPieces(s)), s.orientation);
+            return front.concat(back);
+        }
+    }
 
     function hexPointString(size, x, y) {
         var s = "";

@@ -24,5 +24,20 @@ describe("Hex", () => {
 		Hex.hexagonalGrid(5).forEach((h) => assert.isTrue(Hex.onBoard(b5, h), h.toString()));
 		Hex.ring(6).forEach((h) => assert.isFalse(Hex.onBoard(b5, h), h.toString()));
 	});
+
+	it("dist works (for at least colinear points)", () => {
+		var h1 = [0,0];
+		var h2 = [1,0];
+		var h3 = [-2, 0]
+		var h4 = [2,-2];
+
+		assert.equal(Hex.dist(h1, h1), 0);
+		assert.equal(Hex.dist(h1, h2), 1);
+		assert.equal(Hex.dist(h2, h1), 1);
+		assert.equal(Hex.dist(h1, h3), 2);
+		assert.equal(Hex.dist(h2, h3), 3);
+		assert.equal(Hex.dist(h1, h4), 2);
+
+	});
 });
 }

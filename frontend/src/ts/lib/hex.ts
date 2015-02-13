@@ -23,12 +23,40 @@ module Abalone {
 			return out;
 		}
 
+		export function nearbyDirections(d: Direction): Direction[] {
+			var idx = directions.indexOf(d);
+			var nearby = [-1, 0, 1].map((x) => (x + idx) % 6);
+			return nearby.map((i) => directions[i]);
+		}
+
+		export function findDirection(p1: number[], p2: number[]) {
+			var q1 = p1[0];
+			var r1 = p1[1];
+			var q2 = p2[0];
+			var r2 = p2[1];
+			if (q1 === q2 && r1 === r2) {
+				return null;
+			} else if (q1 === q2) {
+				return r1 < r2 ? Direction.BotRight : Direction.TopLeft;
+			} else if (r1 === r2) {
+				return q1 < q2 ? Direction.MidRight : Direction.MidLeft;
+			} else if (r1 + q1 === r2 + q2) {
+				return q1 < q2 ? Direction.TopRight : Direction.BotLeft;
+			} else {
+				return null;
+			}
+		}
+
 		export function dist2(x1: number[], x2: number[]) {
 			var q1 = x1[0];
 			var q2 = x2[0];
 			var r1 = x1[1];
 			var r2 = x2[1];
 			return Math.abs(q1 - q2) + Math.abs(r1 - r2) + Math.abs(q1 + r1 - q2 - r2);
+		}
+
+		export function dist(x1: number[], x2: number[]) {
+			return Math.round(dist2(x1, x2) / 2)
 		}
 
 		export function onBoard(b: Board, p: number[]): boolean {

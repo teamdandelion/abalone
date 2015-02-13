@@ -94,7 +94,39 @@ module Abalone {
 		return singletons.concat(twoOrMore);
 	}
 
-	function isValid(g: Game, m: Move): boolean {
+	export function getSegment(g: Game, origin: number[], destination?: number[]): Segment {
+		function getProposedSegment(origin: number[], destination?: number[]) {
+			if (destination == null) {
+				return {basePos: origin, segLength: 1, player: g.nextPlayer, orientation: null};
+			}
+			var d = Hex.findDirection(origin, destination);
+			if (d != null) {
+				return {
+					basePos: origin, 
+					segLength: Hex.dist(origin, destination) + 1,
+					orientation: d,
+					player: g.nextPlayer
+				}
+			}
+		}
+
+		var proposedSegment = getProposedSegment(origin, destination);
+		
+		var pieces = getPieces(g.board, g.nextPlayer);
+		var pieceSet: any = {};
+		pieces.forEach((p) => pieceSet[p.toString()] = true);
+		var pieceChecker = (p: number[]) => {
+			return pieceSet[p.toString()];
+		}
+
+		if (proposedSegment && segPieces(proposedSegment).every(pieceChecker)) {
+			return proposedSegment;
+		} else {
+			return null;
+		}
+	}
+
+	export function isValid(g: Game, m: Move): boolean {
 		if (broadside(m)) {
 			return segPieces(m.segment)
 				.map((p) => Hex.adjacent(p, m.direction))
@@ -104,7 +136,7 @@ module Abalone {
 		}
 	}
 
-	function segPieces(s: Segment): number[][] {
+	export function segPieces(s: Segment): number[][] {
 		var front = s.basePos;
 		var pieces = [front];
 		for (var i=0; i<s.segLength-1; i++) {

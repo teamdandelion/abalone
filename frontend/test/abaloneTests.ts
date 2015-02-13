@@ -142,7 +142,7 @@ describe("Abalone", () => {
 			var before = threeStoneGame;
 			var m = move([-1,0], null, 0, Player.White, Direction.TopRight);
 			var after = update(before, m);
-			var expected = continueGame(before, [[0,-1], [0,1]], [[1,0]]);
+			var expected = continueGame(before, [[0,-1], [0,0]], [[1,0]]);
 			assertGameEq(after, expected, "move updated");
 		});
 
@@ -150,24 +150,31 @@ describe("Abalone", () => {
 			var moves = Abalone.possibleMoves(threeStoneGame);
 			var futures = Abalone.futures(threeStoneGame);
 			var found = futures.some((g) => gameEq(g, threeStoneGameAfterPush));
-
-			var drawGame = (game) => {
-				var svg = d3.select("body").append("svg").attr("width", 400).attr("height", 400);
-				var renderer = new Abalone.Renderer(svg, 400, 400, 2);
-				renderer.drawGame(game);
-			}
-
-			drawGame(threeStoneGame);
-			drawGame(threeStoneGameAfterPush);
-			d3.select("body").append("svg").attr("width", 800).attr("height", 200)
-			futures.forEach(drawGame);
-			window.threeStoneGame = threeStoneGame;
-			window.futures = futures;
-			window.moves = moves;
-
-
-			assert.isTrue(found, "foo with stone pushed off board is in futures");
+			assert.isTrue(found, "game with stone pushed off board is in futures");
 		});
+	});
+
+	it("getSegment works", () => {
+		var actual1 = getSegment(fourStoneGame, [-2, 0]);
+		var expected1 = {basePos: [-2, 0], segLength: 1, orientation: null, player: Player.White};
+		assert.deepEqual(actual1, expected1, "getSegment1");
+
+		var actual2 = getSegment(fourStoneGame, [0, 0]);
+		var expected2 = null;
+		assert.deepEqual(actual2, expected2, "getSegment2");
+
+		var actual3 = getSegment(fourStoneGame, [-2, 0], [-1, 0]);
+		var expected3 = {basePos: [-2, 0], segLength: 2, orientation: Direction.MidRight, player: Player.White};
+		assert.deepEqual(actual3, expected3, "getSegment3");
+
+		var actual4 = getSegment(fourStoneGame, [-1, 0], [-2, 0]);
+		var expected4 = {basePos: [-1, 0], segLength: 2, orientation: Direction.MidLeft, player: Player.White};
+		assert.deepEqual(actual4, expected4, "getSegment4");
+
+		var actual5 = getSegment(fourStoneGame, [-2, 0], [0, 0]);
+		var expected5 = null;
+		assert.deepEqual(actual5, expected5, "getSegment5");
+
 	});
 
 	it("hexagonal grid seems to work", () => {
