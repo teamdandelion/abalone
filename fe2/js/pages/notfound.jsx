@@ -11,7 +11,7 @@ module.exports = React.createClass({
 
       <h1>404 - Not Found</h1>
 
-      <p><a href="/">Go to console home</a></p>
+      <p><a href="/">Go Home</a></p>
 
     </div>
   </div>
