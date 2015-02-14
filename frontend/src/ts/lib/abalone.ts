@@ -96,7 +96,7 @@ module Abalone {
 
 	export function getSegment(g: Game, origin: number[], destination?: number[]): Segment {
 		function getProposedSegment(origin: number[], destination?: number[]) {
-			if (destination == null) {
+			if (destination == null || origin.toString() === destination.toString()) {
 				return {basePos: origin, segLength: 1, player: g.nextPlayer, orientation: null};
 			}
 			var d = Hex.findDirection(origin, destination);
@@ -111,7 +111,7 @@ module Abalone {
 		}
 
 		var proposedSegment = getProposedSegment(origin, destination);
-		
+
 		var pieces = getPieces(g.board, g.nextPlayer);
 		var pieceSet: any = {};
 		pieces.forEach((p) => pieceSet[p.toString()] = true);
@@ -137,6 +137,7 @@ module Abalone {
 	}
 
 	export function segPieces(s: Segment): number[][] {
+		if (s == null) return [];
 		var front = s.basePos;
 		var pieces = [front];
 		for (var i=0; i<s.segLength-1; i++) {

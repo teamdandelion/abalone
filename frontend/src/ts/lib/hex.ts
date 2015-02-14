@@ -25,7 +25,7 @@ module Abalone {
 
 		export function nearbyDirections(d: Direction): Direction[] {
 			var idx = directions.indexOf(d);
-			var nearby = [-1, 0, 1].map((x) => (x + idx) % 6);
+			var nearby = [-1, 0, 1].map((x) => (x + idx + 6) % 6);
 			return nearby.map((i) => directions[i]);
 		}
 

@@ -14,7 +14,7 @@ module.exports = function(grunt) {
     },
     main: {
       src: ["src/ts/main/*.ts", "build/**/*.d.ts", "typings/**/*.d.ts"],
-      out: "main.js",
+      out: "build/main.js",
       options: {
         sourceMap: false
       },

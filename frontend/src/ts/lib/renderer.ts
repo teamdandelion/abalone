@@ -15,12 +15,15 @@ module Abalone {
         constructor(svg: D3.Selection, width: number, height: number, hexesOnEdge=5) {
             this.svg = svg;
             this.hexesOnEdge = hexesOnEdge;
-            this.eventLayer = this.svg.append("g");
             this.overlay = this.svg.append("g").classed("overlay", true);
             this.board = this.svg.append("g").classed("board", true);
             this.grid = this.board.append("g").classed("grid", true);
             this.whitePieces = this.board.append("g").classed("white", true);
             this.blackPieces = this.board.append("g").classed("black", true);
+            this.eventLayer = this.svg.append("rect")
+                                    .attr({width: width, height: height})
+                                    .style({fill: "black", opacity: 0})
+                                    .classed("hitbox", true);
 
             this.resize(width, height);
         }
@@ -30,8 +33,6 @@ module Abalone {
             this.height = height;
             this.hexSize = Math.min(width, height) / this.hexesOnEdge / 4;
             this.drawBoard();
-            // this.drawPieces();
-            // this.drawOverlay();
         }
 
         private qr2xy(q: number, r: number): [number, number] {
@@ -43,6 +44,11 @@ module Abalone {
 
         public drawGame(g: Game) {
             this.drawPieces(g.board);
+            var whiteIsNext = g.nextPlayer === Player.White;
+            this.whitePieces.classed("faded", !whiteIsNext);
+            this.blackPieces.classed("faded", whiteIsNext);
+
+
         }
 
         private drawPieces(b: Board) {
@@ -58,38 +64,82 @@ module Abalone {
                 .data(pieces);
             update
                 .enter()
-                    .append("circle")
-                    .attr("cx", xf)
-                    .attr("cy", yf)
-                    .attr("r",  this.hexSize/2);
+                    .append("circle");
+            update
+                .attr("cx", xf)
+                .attr("cy", yf)
+                .attr("r",  this.hexSize/2);
             update
                 .exit().remove();
 
         }
 
         private hexFromXY(x: number, y: number): number[] {
-            return [0,0];
+            x = x - this.width/2;
+            y = y - this.height/2;
+            var q = (x * Math.sqrt(3)/3 - y/3) / this.hexSize;
+            var r = y * 2/3 / this.hexSize;
+            return this.hexRound(q,r);
         }
 
-        private drawOverlay(segment: Segment, isDragging: boolean) {
+        private hexRound(q: number, r: number): number[] {
+            var x = q;
+            var z = r;
+            var y = -x-z;
+            
+            var rx = Math.round(x);
+            var ry = Math.round(y);
+            var rz = Math.round(z);
 
+            var xdiff = Math.abs(rx - x);
+            var ydiff = Math.abs(ry - y);
+            var zdiff = Math.abs(rz - z);
+
+            if (xdiff > ydiff && xdiff > zdiff) {
+                rx = -ry-rz;
+            } else if (ydiff > zdiff) {
+                ry = -rx-rz;
+            } else {
+                rz = -rx-ry;
+            }
+            return [rx, rz];
+        }
+
+        private drawOverlay(segment: Segment, isDragging: boolean, game: Game) {
+            this.highlightHexes(segPieces(segment), "selected");
+            if (segment != null && !isDragging) {
+                this.highlightHexes(moveHexes(segment, game), "moves");
+            } else {
+                this.highlightHexes([], "moves");
+            }
+        }
+
+        private highlightHexes(hexes: number[][], classToApply: string) {
+            var hexSet: any = {};
+            hexes.forEach((h) => hexSet[h.toString()]=true);
+            var isHighlighted = (d: any) => hexSet[d.toString()];
+            this.grid.selectAll("polygon").classed(classToApply, isHighlighted);
         }
 
         private drawBoard() {
-            this.grid.selectAll("polygon").remove();
             var hexes = Hex.hexagonalGrid(this.hexesOnEdge);
-            hexes.forEach((h) => {
-                this.drawHex(this.grid, h[0], h[1]);
-            });
+            var pointsFn = (d) => {
+                var xy = this.qr2xy(d[0], d[1]);
+                return hexPointString(this.hexSize, xy[0], xy[1]);
+            }
+            var update = this.grid.selectAll("polygon").data(hexes);
+            update
+                .enter()
+                    .append("polygon")
+                    .attr("points", pointsFn);
+
+            update.exit().remove();
         }
 
-        private drawHex(container: D3.Selection, q: number, r: number) {
-            var rad = this.hexSize;
-            var xy = this.qr2xy(q,r);
-            var x = xy[0];
-            var y = xy[1];
-            var points = hexPointString(rad, x, y);
-            container.append("polygon").attr("points", points).classed("hex", true);
+        private hoveredHex(): number[] {
+            var location = d3.mouse(this.eventLayer.node());
+            var hex = this.hexFromXY(location[0], location[1]);
+            return hex;
         }
 
         public play(g: Game, cb: (g: Game) => void): void {
@@ -100,16 +150,15 @@ module Abalone {
             var originHex = null;
 
             var finish = (m: Move) => {
-                this.drawOverlay(null, false);
+                this.drawOverlay(null, false, g);
                 disabled = true;
                 cb(update(g, m));
             }
 
             var dragstart = () => {
                 if (disabled) return;
-                var location = d3.mouse(this.eventLayer.node());
-                originHex = this.hexFromXY(location[0], location[1]);
-                if (selectedPieces !== null) {
+                originHex = this.hoveredHex();
+                if (selectedPieces != null) {
                     var move = generateMove(selectedPieces, originHex);
                     if (move != null && isValid(g, move)) {
                         finish(move);
@@ -117,24 +166,25 @@ module Abalone {
                         selectedPieces = null;
                     }
                 } else {
-                    if ((selectedPieces = getSegment(g, originHex)) !== null) {
+                    if ((selectedPieces = getSegment(g, originHex)) != null) {
                         dragInProgress = true;
+                        this.drawOverlay(selectedPieces, true, g);
                     }
                 }
             }
 
             var drag = () => {
                 if (disabled) return;
-                var currentHex = this.hexFromXY(d3.event.x, d3.event.y);
-                selectedPieces = getSegment(originHex, currentHex);
-                this.drawOverlay(selectedPieces, true);
+                var currentHex = this.hoveredHex();
+                selectedPieces = getSegment(g, originHex, currentHex);
+                this.drawOverlay(selectedPieces, true, g);
             }
 
             var dragend = () => {
                 if (disabled) return;
-                var currentHex = this.hexFromXY(d3.event.x, d3.event.y);
-                selectedPieces = getSegment(originHex, currentHex);
-                this.drawOverlay(selectedPieces, false);
+                var currentHex = this.hoveredHex();
+                selectedPieces = getSegment(g, originHex, currentHex);
+                this.drawOverlay(selectedPieces, false, g);
             }
 
             this.eventLayer.call(
@@ -145,6 +195,16 @@ module Abalone {
             )
         }
 
+    }
+
+    export function moveHexes(s: Segment, g: Game): number[][] {
+        return adjacentHexDirs(s)
+            .filter((hd) => {
+                var d = hd[1];
+                var move = {segment: s, direction: d};
+                return isValid(g, move);
+            })
+            .map((hd) => hd[0]);
     }
 
     export function generateMove(s: Segment, target: number[]): Move {
@@ -171,6 +231,7 @@ module Abalone {
         } else {
             var front = vanguard(s.basePos, Hex.opposite(s.orientation));
             var back = vanguard(_.last(segPieces(s)), s.orientation);
+            if (back[0][0] === undefined) debugger;
             return front.concat(back);
         }
     }
