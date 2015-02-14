@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/danmane/abalone",
   "devDependencies": {
+    "bower": "^1.3.12",
     "clean": "^4.0.1",
     "grunt": "^0.4.5",
     "grunt-blanket-mocha": "^0.4.1",
