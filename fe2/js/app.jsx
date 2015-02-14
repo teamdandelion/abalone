@@ -58,18 +58,40 @@ var PlayHandler = React.createClass({
 
 var UploadHandler = React.createClass({
   render: function() {
+    var loading = false;
+    if (loading) {
+      view = (
+        <Loading/>
+      );
+    } else {
+      view = (
+        <span>
+          <div className="col-sm-6">
+            <UploadPanel
+              image="static/img/upload-logo-docker.png"
+              message="Pull a Docker image from DockerHub"
+              >
+              <UploadForm btnMessage="Pull Image" url="api/v0/images" />
+            </UploadPanel>
+          </div>
+          <div className="col-sm-6">
+            <UploadPanel
+              image="static/img/upload-logo-github.png"
+              message="Build a Docker image from a GitHub Repo"
+              >
+              <UploadForm disabled="true" btnMessage="Build Image" url="api/v0/images" />
+            </UploadPanel>
+          </div>
+        </span>
+      );
+    }
     return (
       <div className="row">
         <div className="col-sm-8 col-sm-offset-2">
 
           <Nav activeKey={3} />
 
-          <div className="col-sm-6">
-            <DockerHubUploadPanel />
-          </div>
-          <div className="col-sm-6">
-            <GitHubUploadPanel />
-          </div>
+          { view }
 
         </div>
       </div>
@@ -77,19 +99,19 @@ var UploadHandler = React.createClass({
   }
 })
 
-var DockerHubUploadPanel = React.createClass({
+var UploadPanel = React.createClass({
   render: function() {
     return (
       <div>
-        Pull a Docker image from DockerHub 
-        <img className="upload-logo" src="static/img/upload-logo-docker.png"></img>
-        <DockerHubUploadForm url="api/v0/image" />
+        {this.props.message}
+        <img className="upload-logo" src={this.props.image}></img>
+        {this.props.children}
       </div>
     )
   }
 })
 
-var DockerHubUploadForm = React.createClass({
+var UploadForm = React.createClass({
   handleSubmit: function(e) {
     e.preventDefault();
     var image = this.refs.image.getDOMNode().value;
@@ -101,43 +123,30 @@ var DockerHubUploadForm = React.createClass({
   render: function() {
     return (
       <form className="uploadForm" onSubmit={this.handleSubmit}>
-        <input type="text" ref="image" className="form-control" />
+        <input
+          type="text"
+          ref="image"
+          className="form-control"
+          disabled={this.props.disabled}
+        />
         <br/>
-        <Button bsStyle="primary" bsSize="large" block>Pull Image</Button>
+        <Button
+          bsStyle="primary"
+          bsSize="large"
+          block
+          disabled={this.props.disabled}>{this.props.btnMessage}</Button>
       </form>
     )
   }
 })
 
-var GitHubUploadPanel = React.createClass({
+var Loading = React.createClass({
   render: function() {
     return (
-      <div>
-        Build a Docker image from a GitHub Repo
-        <img className="upload-logo" src="static/img/upload-logo-github.png"></img>
-        <GitHubUploadForm />
+      <div className="row">
+        loading...
       </div>
     )
   }
 })
 
-var GitHubUploadForm = React.createClass({
-  handleSubmit: function(e) {
-    e.preventDefault();
-    console.log(this.refs.repo.getDOMNode().value);
-    var repo = this.refs.repo.getDOMNode().value.trim();
-    if (!repo) {
-      return;
-    }
-    this.refs.repo.getDOMNode().value = '';
-  },
-  render: function() {
-    return (
-      <form className="uploadForm" onSubmit={this.handleSubmit}>
-        <input type="text" ref="repo" className="form-control" disabled/>
-        <br/>
-        <Button bsStyle="primary" bsSize="large" block disabled>Build Image</Button>
-      </form>
-    )
-  }
-})
