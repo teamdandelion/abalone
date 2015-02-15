@@ -1,4 +1,4 @@
-var $ = require('jquery')
+var superagent = require('superagent')
 var React = require('react')
 var Router = require('react-router')
 var RouteHandler = Router.RouteHandler
@@ -164,6 +164,11 @@ var UploadPanel = React.createClass({
 
 var UploadForm = React.createClass({
   handleSubmit: function(e) {
+    UIDispatcher.handleAction({
+      type: ActionTypes.IMAGES_UPLOAD_SUBMIT_FORM,
+      name: this.refs.image.getDOMNode().value.trim(),
+      url: this.props.url
+    });
     e.preventDefault();
   },
   render: function() {
@@ -211,31 +216,32 @@ var UIConstants = module.exports = {
   }),
 };
 var ActionTypes = UIConstants.ActionTypes;
-var CHANGE_EVENT = 'change';
 
 var ImagesStore = assign({}, EventEmitter.prototype, {
-
   emitChange: function() {
     this.emit(CHANGE_EVENT);
   },
   addChangeListener: function(callback) {
     this.on(CHANGE_EVENT, callback);
-    console.log("added change listener");
   },
   removeChangeListener: function(callback) {
     this.removeListener(CHANGE_EVENT, callback);
-    console.log("removed change listener");
   },
-
 });
+var CHANGE_EVENT = 'change';
 
 ImagesStore.dispatchToken = UIDispatcher.register(function(payload) {
   var action = payload.action;
 
   switch(action.type) {
-
     case ActionTypes.IMAGES_UPLOAD_SUBMIT_FORM:
-      UIDispatcher.waitFor([ThreadStore.dispatchToken]);
+      superagent
+        .post(action.url)
+        .send(action)
+        .set('Accept', 'application/json')
+        .end(function(err, res) {
+          console.log(res.status);
+        });
       ImagesStore.emitChange();
       break;
 
