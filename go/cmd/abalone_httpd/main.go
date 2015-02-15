@@ -56,12 +56,12 @@ func run() error {
 		}
 	}
 	s := &AgentSupervisor{Client: client}
-	log.Fatal(http.ListenAndServe(*host, Router(s)))
+	log.Fatal(http.ListenAndServe(*host, Router(s, *staticPath)))
 	return nil
 }
 
 // Router defines URL routes
-func Router(s *AgentSupervisor) *mux.Router {
+func Router(s *AgentSupervisor, path string) *mux.Router {
 	r := mux.NewRouter()
 	WireAPIRoutes(r, s)
 	WireHTMLRoutes(r, s) // after API routes
@@ -71,7 +71,7 @@ func Router(s *AgentSupervisor) *mux.Router {
 	// single-page app's root HTML entrypoint. The app will handle the route.
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = "/"
-		http.FileServer(http.Dir(*staticPath)).ServeHTTP(w, r)
+		http.FileServer(http.Dir(path)).ServeHTTP(w, r)
 	})
 	return r
 }
