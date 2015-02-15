@@ -136,6 +136,7 @@ func WireAPIRoutes(r *mux.Router, s *AgentSupervisor) {
 	apiV0.Path("/validate").HandlerFunc(ValidateAgentHandler(s))
 
 	apiV0.Path("/image").HandlerFunc(ShowAgentInfoHandler(s))
+	apiV0.Path("/images").Methods("POST").HandlerFunc(UploadImageHandler(s))
 
 	// If no API routes matched, but path had API prefix, return 404.
 	apiV0.Path("/{rest:.*}").HandlerFunc(http.NotFound)
@@ -238,6 +239,36 @@ func ShowAgentInfoHandler(s *AgentSupervisor) http.HandlerFunc {
 			return
 		}
 		json.NewEncoder(w).Encode(image.Config.ExposedPorts)
+	}
+}
+
+// UploadImageHandler ensures that the Agent image responds to the PING
+// command.
+func UploadImageHandler(s *AgentSupervisor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		rs := struct {
+			Image  string
+			Source string
+		}{}
+		if err := json.NewDecoder(r.Body).Decode(&rs); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "error decoding request: %s", err)
+			return
+		}
+		switch rs.Source {
+		case "dockerhub":
+			if err := s.ValidateImage(rs.Image); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Fprintf(w, "image %s is not valid. error: %s", rs.Image, err)
+				return
+			}
+		case "github":
+			w.WriteHeader(http.StatusNotImplemented)
+			fmt.Fprintln(w, "Sorry. GitHub repo support has not been implemented yet.")
+		default:
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "Unrecognized image source: %s", rs.Source)
+		}
 	}
 }
 
