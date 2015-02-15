@@ -3,10 +3,11 @@ var React = require('react')
 var Router = require('react-router')
 var RouteHandler = Router.RouteHandler
 var Route = Router.Route
+var Link = Router.Link
 var DefaultRoute = Router.DefaultRoute
 var NotFound = Router.NotFoundRoute
 var BSNav = require('react-bootstrap/Nav')
-var NavItem = require('react-bootstrap/NavItem')
+var NavItemLink = require('react-router-bootstrap').NavItemLink
 
 var Input = require('react-bootstrap/Input');
 var Button = require('react-bootstrap/Button');
@@ -22,9 +23,9 @@ var Nav = React.createClass({
   render: function() {
     return (
       <BSNav bsStyle="tabs" activeKey={this.props.activeKey}  style={{"marginBottom": "60px"}}>
-        <NavItem eventKey={1} href="/"><i className="fa fa-trophy"></i> Leaderboard</NavItem>
-        <NavItem eventKey={2} href="/play"><i className="fa fa-gamepad"></i> Play</NavItem>
-        <NavItem eventKey={3} href="/upload"><i className="fa fa-upload"></i> Upload a Player</NavItem>
+        <NavItemLink eventKey={1} to="leaderboard"><i className="fa fa-trophy"></i> Leaderboard</NavItemLink>
+        <NavItemLink eventKey={2} to="play"><i className="fa fa-gamepad"></i> Play</NavItemLink>
+        <NavItemLink eventKey={3} to="upload"><i className="fa fa-upload"></i> Upload a Player</NavItemLink>
       </BSNav>
     )
   }
