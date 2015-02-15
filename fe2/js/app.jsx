@@ -11,6 +11,9 @@ var NavItem = require('react-bootstrap/NavItem')
 var Input = require('react-bootstrap/Input');
 var Button = require('react-bootstrap/Button');
 
+var Flux = require('flux')
+var Dispatcher = Flux.Dispatcher;
+
 var Nav = React.createClass({
 
   render: function() {
@@ -94,6 +97,12 @@ var PlayHandler = React.createClass({
 })
 
 var UploadHandler = React.createClass({
+  componentDidMount: function() {
+    ImagesStore.addChangeListener(this._onChange);
+  },
+  componentWillUnmount: function() {
+    ImagesStore.removeChangeListener(this._onChange);
+  },
   render: function() {
     var loading = false;
     if (loading) {
@@ -192,6 +201,8 @@ var Loading = React.createClass({
     )
   }
 })
+
+var ImagesStore = 
 
 module.exports = (
   <Route name="app" path="/" handler={App}>
