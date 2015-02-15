@@ -1,0 +1,2 @@
+next: set a loading screen while the image is being validated. when the server
+returns a response, redirect to it.
