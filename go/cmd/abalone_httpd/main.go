@@ -57,6 +57,7 @@ func run() error {
 		}
 	}
 	s := &AgentSupervisor{Client: client}
+	log.Printf("listening at %s", *host)
 	log.Fatal(http.ListenAndServe(*host, Router(s, *staticPath)))
 	return nil
 }
