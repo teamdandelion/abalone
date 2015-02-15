@@ -66,9 +66,13 @@ func Router(s *AgentSupervisor) *mux.Router {
 	WireAPIRoutes(r, s)
 	WireHTMLRoutes(r, s) // after API routes
 
-	// finally, if no other routes match, see if the client-provided path names
-	// a static asset
-	r.NotFoundHandler = http.FileServer(http.Dir(*staticPath))
+	// Finally, if none of the above routes match, delegate to the single-page
+	// app's client-side router. Rewrite the path in order to load the
+	// single-page app's root HTML entrypoint. The app will handle the route.
+	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = "/"
+		http.FileServer(http.Dir(*staticPath)).ServeHTTP(w, r)
+	})
 	return r
 }
 
