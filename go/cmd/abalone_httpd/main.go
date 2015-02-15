@@ -128,6 +128,9 @@ func WireAPIRoutes(r *mux.Router, s *AgentSupervisor) {
 	apiV0.Path("/validate").HandlerFunc(ValidateAgentHandler(s))
 
 	apiV0.Path("/image").HandlerFunc(ShowAgentInfoHandler(s))
+
+	// If no API routes matched, but path had API prefix, return 404.
+	apiV0.Path("/{rest:.*}").HandlerFunc(http.NotFound)
 }
 
 // PullDockerHubAgentHandler pulls the Docker image named |image| from
