@@ -7,6 +7,8 @@ import (
 	"os"
 	"path"
 	"testing"
+
+	"github.com/fsouza/go-dockerclient"
 )
 
 func makeStaticPath(t *testing.T) string {
@@ -46,6 +48,36 @@ func TestRouterAPINotFound(t *testing.T) {
 	router.ServeHTTP(w, r)
 
 	if w.Code != http.StatusNotFound {
-		t.Fatal("expected not found, received", w.Code)
+		t.Fatalf("expected not found, received", w.Code)
+	}
+}
+
+func TestRouterAPINormalMatch(t *testing.T) {
+	path := "/api/v0/agents"
+	dir := makeStaticPath(t)
+
+	// NB: Provided tcp url is not routable. That's okay. We just need to pass
+	// a valid value (any valid value will do). This test is merely to ensure
+	// that we can route to |path|. Doesn't matter whether the request can be
+	// handled by the AgentSupervisor.
+	c, err := docker.NewClient("tcp://0.0.0.0:2376")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := &AgentSupervisor{Client: c}
+	router := Router(s, dir)
+	r, err := http.NewRequest("GET", path, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, r)
+	switch w.Code {
+	case http.StatusNotFound:
+		t.Fatal("should have found route")
+	case http.StatusInternalServerError:
+		// expected
+	default:
+		t.Fatal("expected internal error (because we passed an invalid AgentSupervisor")
 	}
 }
