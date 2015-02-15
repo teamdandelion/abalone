@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/codegangsta/negroni"
 	"github.com/facebookgo/stackerr"
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/gorilla/mux"
@@ -69,11 +70,17 @@ func Router(s *AgentSupervisor, path string) *mux.Router {
 	// Finally, if none of the above routes match, delegate to the single-page
 	// app's client-side router. Rewrite the path in order to load the
 	// single-page app's root HTML entrypoint. The app will handle the route.
-	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = "/"
-		http.FileServer(http.Dir(path)).ServeHTTP(w, r)
-	})
+	r.NotFoundHandler = StaticPathFallback(path)
 	return r
+}
+
+func StaticPathFallback(path string) http.Handler {
+	return negroni.New(
+		negroni.NewStatic(http.Dir(path)),
+		negroni.Wrap(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path = "/"
+			http.FileServer(http.Dir(path)).ServeHTTP(w, r)
+		})))
 }
 
 var templateHome = `
