@@ -123,7 +123,7 @@ var UploadHandler = React.createClass({
               image="static/img/upload-logo-docker.png"
               message="Pull a Docker image from DockerHub"
               >
-              <UploadForm btnMessage="Pull Image" url="api/v0/images" />
+              <UploadForm source="dockerhub" btnMessage="Pull Image" url="api/v0/images" />
             </UploadPanel>
           </div>
           <div className="col-sm-6">
@@ -131,7 +131,7 @@ var UploadHandler = React.createClass({
               image="static/img/upload-logo-github.png"
               message="Build a Docker image from a GitHub Repo"
               >
-              <UploadForm disabled={true} btnMessage="Build Image" url="api/v0/images" />
+              <UploadForm source="github" disabled={true} btnMessage="Build Image" url="api/v0/images" />
             </UploadPanel>
           </div>
         </span>
@@ -167,8 +167,11 @@ var UploadForm = React.createClass({
   handleSubmit: function(e) {
     UIDispatcher.handleAction({
       type: ActionTypes.IMAGES_UPLOAD_SUBMIT_FORM,
-      name: this.refs.image.getDOMNode().value.trim(),
-      url: this.props.url
+      data: {
+        source: this.props.source,
+        image: this.refs.image.getDOMNode().value.trim(),
+        url: this.props.url
+      }
     });
     e.preventDefault();
   },
@@ -237,8 +240,11 @@ ImagesStore.dispatchToken = UIDispatcher.register(function(payload) {
   switch(action.type) {
     case ActionTypes.IMAGES_UPLOAD_SUBMIT_FORM:
       superagent
-        .post(action.url)
-        .send(action)
+        .post(action.data.url)
+        .send({
+          source: action.data.source,
+          image: action.data.image
+        })
         .set('Accept', 'application/json')
         .end(function(err, res) {
           console.log(res.status);
