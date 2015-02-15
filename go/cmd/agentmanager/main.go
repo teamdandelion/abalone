@@ -22,6 +22,7 @@ import (
 var defaultCertPath = os.Getenv("DOCKER_CERT_PATH")
 
 var (
+	staticPath  = flag.String("static", "./static", "serve static files located in this directory")
 	dockerHost  = flag.String("docker", "tcp://192.168.59.103:2376", "address of docker daemon host")
 	tlsCertPath = flag.String("tls-cert-path", defaultCertPath, "path to docker host TLS certificate")
 	host        = flag.String("host", ":8080", "address:port for HTTP listener")
@@ -67,10 +68,7 @@ func Router(s *AgentSupervisor) *mux.Router {
 
 	// finally, if no other routes match, see if the client-provided path names
 	// a static asset
-	r.PathPrefix("/static").Handler(
-		http.StripPrefix("/static",
-			http.FileServer(
-				http.Dir("./static/"))))
+	r.NotFoundHandler = http.FileServer(http.Dir(*staticPath))
 	return r
 }
 
@@ -91,7 +89,7 @@ fxx >>= ai
 
 func WireHTMLRoutes(r *mux.Router, s *AgentSupervisor) {
 
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/html", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.New("name").Parse(templateHome)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
