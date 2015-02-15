@@ -13,6 +13,9 @@ var Button = require('react-bootstrap/Button');
 
 var Flux = require('flux')
 var Dispatcher = Flux.Dispatcher;
+var assign = require('object-assign');
+var keyMirror = require('keymirror');
+var EventEmitter = require('events').EventEmitter;
 
 var Nav = React.createClass({
 
@@ -31,39 +34,39 @@ var App = React.createClass({
 
   render: function() {
     return (
-    <div>
-      <div className="container">
-        <nav className="navbar" role="navigation">
+      <div>
+        <div className="container">
+          <nav className="navbar" role="navigation">
 
-          <div className="navbar-header">
-            <button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
-              <span className="sr-only">Toggle navigation</span>
-              <span className="icon-bar"></span>
-              <span className="icon-bar"></span>
-              <span className="icon-bar"></span>
-            </button>
-          </div>
+            <div className="navbar-header">
+              <button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+                <span className="sr-only">Toggle navigation</span>
+                <span className="icon-bar"></span>
+                <span className="icon-bar"></span>
+                <span className="icon-bar"></span>
+              </button>
+            </div>
 
-          <div className="collapse navbar-collapse" id="navbar-collapse">
-            <ul className="nav navbar-nav navbar-right">
-              <li><a href="https://github.com/danmane/abalone" target="_blank"
-                data-toggle="tooltip" data-placement="bottom"
-                title="Github Repository"><i className="single fa fa-github"></i></a></li>
-              <li><a href="https://github.com/danmane/abalone/issues/new" target="_blank"
-                data-toggle="tooltip" data-placement="bottom"
-                title="Report Bugs"><i className="single fa fa-bug"></i></a></li>
-            </ul>
-          </div>
-        </nav>
+            <div className="collapse navbar-collapse" id="navbar-collapse">
+              <ul className="nav navbar-nav navbar-right">
+                <li><a href="https://github.com/danmane/abalone" target="_blank"
+                    data-toggle="tooltip" data-placement="bottom"
+                    title="Github Repository"><i className="single fa fa-github"></i></a></li>
+                <li><a href="https://github.com/danmane/abalone/issues/new" target="_blank"
+                    data-toggle="tooltip" data-placement="bottom"
+                    title="Report Bugs"><i className="single fa fa-bug"></i></a></li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+
+        {/* underline */}
+        <div className="navhr" style={{margin: "10px 0px 30px"}}></div>
+
+        <div className="container">
+          <RouteHandler/>
+        </div>
       </div>
-
-      {/* underline */}
-      <div className="navhr" style={{margin: "10px 0px 30px"}}></div>
-
-      <div className="container">
-        <RouteHandler/>
-      </div>
-    </div>
     )
   }
 })
@@ -103,6 +106,8 @@ var UploadHandler = React.createClass({
   componentWillUnmount: function() {
     ImagesStore.removeChangeListener(this._onChange);
   },
+  _onChange: function() {
+  },
   render: function() {
     var loading = false;
     if (loading) {
@@ -125,7 +130,7 @@ var UploadHandler = React.createClass({
               image="static/img/upload-logo-github.png"
               message="Build a Docker image from a GitHub Repo"
               >
-              <UploadForm disabled="true" btnMessage="Build Image" url="api/v0/images" />
+              <UploadForm disabled={true} btnMessage="Build Image" url="api/v0/images" />
             </UploadPanel>
           </div>
         </span>
@@ -160,17 +165,6 @@ var UploadPanel = React.createClass({
 var UploadForm = React.createClass({
   handleSubmit: function(e) {
     e.preventDefault();
-
-    $.ajax({
-      url: this.props.url,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(status, err);
-      }.bind(this)
-    });
   },
   render: function() {
     return (
@@ -202,7 +196,52 @@ var Loading = React.createClass({
   }
 })
 
-var ImagesStore = 
+var UIDispatcher = assign(new Dispatcher(), {
+  handleAction: function(action) {
+    var payload = {
+      action: action
+    };
+    this.dispatch(payload);
+  }
+});
+
+var UIConstants = module.exports = {
+  ActionTypes: keyMirror({
+    IMAGES_UPLOAD_SUBMIT_FORM: null,
+  }),
+};
+var ActionTypes = UIConstants.ActionTypes;
+var CHANGE_EVENT = 'change';
+
+var ImagesStore = assign({}, EventEmitter.prototype, {
+
+  emitChange: function() {
+    this.emit(CHANGE_EVENT);
+  },
+  addChangeListener: function(callback) {
+    this.on(CHANGE_EVENT, callback);
+    console.log("added change listener");
+  },
+  removeChangeListener: function(callback) {
+    this.removeListener(CHANGE_EVENT, callback);
+    console.log("removed change listener");
+  },
+
+});
+
+ImagesStore.dispatchToken = UIDispatcher.register(function(payload) {
+  var action = payload.action;
+
+  switch(action.type) {
+
+    case ActionTypes.IMAGES_UPLOAD_SUBMIT_FORM:
+      UIDispatcher.waitFor([ThreadStore.dispatchToken]);
+      ImagesStore.emitChange();
+      break;
+
+    default:
+  }
+});
 
 module.exports = (
   <Route name="app" path="/" handler={App}>
