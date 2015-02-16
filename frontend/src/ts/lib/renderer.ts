@@ -47,8 +47,6 @@ module Abalone {
             var whiteIsNext = g.nextPlayer === Player.White;
             this.whitePieces.classed("faded", !whiteIsNext);
             this.blackPieces.classed("faded", whiteIsNext);
-
-
         }
 
         private drawPieces(b: Board) {
@@ -134,6 +132,17 @@ module Abalone {
                     .attr("points", pointsFn);
 
             update.exit().remove();
+
+            var xf = (d,i) => this.qr2xy(d[0], d[1])[0] - 5;
+            var yf = (d,i) => this.qr2xy(d[0], d[1])[1] - 5;
+
+            var textUpdate = this.grid.selectAll("text").data(hexes);
+            textUpdate
+                .enter()
+                    .append("text")
+                    .attr("x", xf)
+                    .attr("y", yf)
+                    .text((d) => d);
         }
 
         private hoveredHex(): number[] {
