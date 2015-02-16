@@ -340,9 +340,13 @@ func (s *AgentSupervisor) ValidateImage(image string) error {
 		return nil
 	}, backoffConfig)
 
+	// TODO check error in case ping didn't work
+
 	const kStopContainerTimeout = 5 // seconds
 	if err := s.Client.StopContainer(container.ID, kStopContainerTimeout); err != nil {
 		return err
 	}
 	return nil
 }
+
+// TODO check error in case ping didn't work
