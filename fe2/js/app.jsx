@@ -101,6 +101,11 @@ var PlayHandler = React.createClass({
 })
 
 var UploadHandler = React.createClass({
+  getInitialState: function() {
+    return {
+      loading: false
+    }
+  },
   componentDidMount: function() {
     ImagesStore.addChangeListener(this._onChange);
   },
@@ -108,10 +113,10 @@ var UploadHandler = React.createClass({
     ImagesStore.removeChangeListener(this._onChange);
   },
   _onChange: function() {
+    this.setState(ImagesStore.getState());
   },
   render: function() {
-    var loading = false;
-    if (loading) {
+    if (this.state.loading) {
       view = (
         <Loading/>
       );
@@ -221,7 +226,7 @@ var UIConstants = module.exports = {
 };
 var ActionTypes = UIConstants.ActionTypes;
 
-var ImagesStore = assign({}, EventEmitter.prototype, {
+var ImagesStore = assign({loading: false}, EventEmitter.prototype, {
   emitChange: function() {
     this.emit(CHANGE_EVENT);
   },
@@ -231,14 +236,51 @@ var ImagesStore = assign({}, EventEmitter.prototype, {
   removeChangeListener: function(callback) {
     this.removeListener(CHANGE_EVENT, callback);
   },
+  getState: function() {
+    return {
+      loading: this.loading
+    }
+  },
 });
 var CHANGE_EVENT = 'change';
+
+var AuthStore = assign({
+  emailAddress: "",
+  token: "",
+  isLoggedIn: false
+}, EventEmitter.prototype, {
+  emitChange: function() {
+    this.emit(CHANGE_EVENT);
+  },
+  addChangeListener: function(callback) {
+    this.on(CHANGE_EVENT, callback);
+  },
+  removeChangeListener: function(callback) {
+    this.removeListener(CHANGE_EVENT, callback);
+  },
+  getState: function() {
+    return {
+      emailAddress: this.emailAddress,
+      token: this.token,
+      isLoggedIn: this.isLoggedIn
+    }
+  },
+});
+
+AuthStore.dispatchToken = UIDispatcher.register(function(payload) {
+  var action = payload.action;
+  switch(action.type) {
+    default:
+  }
+});
+
 
 ImagesStore.dispatchToken = UIDispatcher.register(function(payload) {
   var action = payload.action;
 
   switch(action.type) {
     case ActionTypes.IMAGES_UPLOAD_SUBMIT_FORM:
+      ImagesStore.loading = true;
       superagent
         .post(action.data.url)
         .send({
@@ -248,6 +290,8 @@ ImagesStore.dispatchToken = UIDispatcher.register(function(payload) {
         .set('Accept', 'application/json')
         .end(function(err, res) {
           console.log(res.status);
+          ImagesStore.loading = false;
+          ImagesStore.emitChange();
         });
       ImagesStore.emitChange();
       break;
