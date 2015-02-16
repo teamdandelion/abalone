@@ -1,0 +1,27 @@
+{
+  "rules": {
+    "class-name": false,
+    "eofline": true,
+    "forin": true,
+    "jsdoc-format": true,
+    "label-position": true,
+    "label-undefined": true,
+    "no-arg": true,
+    "no-bitwise": true,
+    "no-construct": true,
+    "no-duplicate-key": true,
+    "no-duplicate-variable": true,
+    "no-eval": true,
+    "no-trailing-comma": true,
+    "no-unreachable": true,
+    "no-use-before-declare": true,
+    "one-line": [true,
+        "check-catch",
+        "check-else"
+    ],
+    "quotemark": [true, "double"],
+    "radix": true,
+    "triple-equals": [true, "allow-null-check"],
+    "variable-name": false
+  }
+}

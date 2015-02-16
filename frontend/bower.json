@@ -1,0 +1,22 @@
+{
+  "name": "abalone-frontend",
+  "version": "0.0.0",
+  "homepage": "https://github.com/danmane/abalone",
+  "authors": [
+    "Daniel Mané <danmane@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "d3": "~3.5.5",
+    "lodash": "~3.0.1",
+    "chai": "~1.10.0",
+    "mocha": "~2.1.0"
+  }
+}

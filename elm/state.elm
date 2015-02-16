@@ -4,6 +4,7 @@ module State
     , reductions
     , moves
     , updateState
+    , moveState
     , initial
     ) where 
 

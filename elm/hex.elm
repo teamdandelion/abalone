@@ -2,6 +2,7 @@ module Hex where
 import List
 import Dict
 import Misc
+import Maybe
 import Debug
 type Direction = TopRight | MidRight | BotRight | TopLeft | MidLeft | BotLeft
 
@@ -64,6 +65,18 @@ nearbyDirections d =
 
 colinear : Direction -> Direction -> Bool
 colinear d1 d2 = d1 == d2 || d1 == opposite d2
+
+linearPath : Position -> Position -> Maybe (List Position, Maybe Direction)
+linearPath start end = if
+    | start == end -> Just ([start], Nothing)
+    | otherwise -> let maybeDirection    = findDirection start end 
+                       directionToPath d = Misc.iterateWhile (adjacent d) ((/=) end) start ++ [end]
+                       directionToSeg  d = (directionToPath d, Just d)
+                   in  Maybe.map directionToSeg maybeDirection
+
+
+
+-- Misc.iterateWhile (adjacent d) (/= end) start ++ [end]
 
 hexagonalGrid : Int -> List Position
 hexagonalGrid rad = List.concat <| List.map ring [0..rad - 1]

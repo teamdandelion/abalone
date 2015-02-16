@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="google" value="notranslate">
+    <title>Plottable.js Tests</title>
+    <link rel="stylesheet" href="../bower_components/mocha/mocha.css">
+    <link href="../abalone.css" type="text/css" rel="stylesheet" />
+    <style>
+      svg {
+        background-color : #DEF;
+      }
+    </style>
+
+    <script src="../bower_components/d3/d3.min.js"></script>
+    <script src="../bower_components/chai/chai.js"></script>
+    <script src="../bower_components/lodash/lodash.js"></script>
+    <script src="../build/abalone.js"></script>
+
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script src="../bower_components/mocha/mocha.js"></script>
+    <script>
+      mocha.setup({
+        globals: ["LiveReload"],
+        ui: "bdd"
+      });
+    </script>
+    
+    <script src="../build/test.js"></script>
+    <script>
+      mocha.checkLeaks();
+      if (window.mochaPhantomJS) {
+        mochaPhantomJS.run();
+      } else {
+        mocha.run();
+      }
+    </script>
+
+    <script>
+        if (window.PHANTOMJS) {
+            blanket.options("reporter", "../node_modules/grunt-blanket-mocha/support/grunt-reporter.js");
+        }
+    </script>
+  </body>
+</html>
