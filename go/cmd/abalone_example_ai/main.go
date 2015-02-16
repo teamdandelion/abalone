@@ -13,7 +13,7 @@ func main() {
 			"Zombies eat brains. You’re safe.",
 		},
 	}
-	abalone.Play(agent, func(s abalone.GameState) abalone.GameState {
+	abalone.Play(agent, func(s abalone.Game) abalone.Game {
 		return s
 	})
 

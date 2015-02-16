@@ -18,21 +18,21 @@ type AgentInfo struct {
 	Taunts []string
 }
 
-func Play(info AgentInfo, f func(GameState) GameState) {
+func Play(info AgentInfo, f func(Game) Game) {
 	r := mux.NewRouter()
 	r.Path("/ping").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(&info)
 	})
 	r.Path("/move").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var state GameState
-		if err := json.NewDecoder(r.Body).Decode(state); err != nil {
+		var g Game
+		if err := json.NewDecoder(r.Body).Decode(g); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, "error decoding game state from request body")
 			return
 		}
 
-		next := f(state)
+		next := f(g)
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(next)
