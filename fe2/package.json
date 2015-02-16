@@ -1,0 +1,50 @@
+{
+  "name": "fxx-abalone-ui",
+  "version": "0.0.0",
+  "description": "The frontend for FXX's Abalone AI Competition",
+  "main": "index.js",
+  "dependencies": {
+    "flux": "^2.0.1",
+    "jquery": "",
+    "object-assign": "^2.0.0",
+    "react": "0.12.2",
+    "react-bootstrap": "0.14.0",
+    "react-router": "0.12.0",
+    "react-router-bootstrap": "^0.8.3",
+    "superagent": "^0.21.0"
+  },
+  "devDependencies": {
+    "browserify": "^4.1.8",
+    "del": "^0.1.3",
+    "gulp": "^3.8.8",
+    "gulp-concat": "^2.4.1",
+    "gulp-connect": "^2.0.6",
+    "gulp-cssmin": "^0.1.6",
+    "gulp-if": "^1.2.4",
+    "gulp-imagemin": "^1.0.1",
+    "gulp-less": "^1.3.6",
+    "gulp-react": "^1.0.2",
+    "gulp-sourcemaps": "^1.2.2",
+    "gulp-uglify": "^1.0.1",
+    "react-tools": "^0.11.2",
+    "reactify": "^0.14.0",
+    "vinyl-source-stream": "^1.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "BTC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danmane/abalone"
+  },
+  "keywords": [
+    "abalone",
+    "ai"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/danmaneg/abalone/issues"
+  },
+  "homepage": "https://github.com/danmane/abalone"
+}
