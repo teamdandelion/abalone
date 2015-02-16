@@ -1,11 +1,11 @@
 package abalone
 
 type Game struct {
-	board          Board
-	nextPlayer     Player
-	movesRemaining int
-	marblesPerMove int
-	lossThreshold  int
+	board          Board `json:"board"`
+	nextPlayer     Player `json:"nextPlayer"`
+	movesRemaining int `json:"movesRemaining"`
+	marblesPerMove int `json:"marblesPerMove"`
+	lossThreshold  int `json:"lossThreshold"`
 }
 
 var StandardGame Game = Game{
