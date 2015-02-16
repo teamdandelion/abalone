@@ -7,11 +7,11 @@ type Move struct {
 
 func (m *Move) isValid(g *Game) bool {
 	if m.inline() {
-		return m.inlineMoved(g.board) != nil
+		return m.inlineMoved(g.Board) != nil
 	} else {
 		for _, h := range m.segment.segPieces() {
 			dest := h.adjacent(m.direction)
-			if !g.board.free(dest) {
+			if !g.Board.free(dest) {
 				return false
 			}
 		}
