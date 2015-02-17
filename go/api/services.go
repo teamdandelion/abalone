@@ -11,7 +11,7 @@ type Services struct {
 }
 
 type PlayersService interface {
-	List() ([]Player, error)
+	List() ([]Player, error) // TODO(btc) fix signature
 	Create() error
 }
 
