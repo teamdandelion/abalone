@@ -3,7 +3,7 @@ package router
 import "github.com/gorilla/mux"
 
 const (
-	Players    = "players"
+	Players       = "players"
 	PlayersCreate = "players.create"
 
 	Games       = "games"
