@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+// TODO(btc) what happens when frontend disconnects temporarily? can the browser resume the session?
+
 func responseFromFrontend(cGame <-chan io.Reader, cFrontendResponse chan<- io.Reader) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("responding to /frontend")
@@ -38,7 +40,7 @@ func gameFromOperator(cGame chan<- io.Reader, cFrontendResponse <-chan io.Reader
 func main() {
 	cGame := make(chan io.Reader)
 	cFrontendResponse := make(chan io.Reader)
-	http.HandleFunc("/game", gameFromOperator(cGame, cFrontendResponse))
+	http.HandleFunc("/game", gameFromOperator(cGame, cFrontendResponse)) // FIXME(btc) GET /move
 	http.HandleFunc("/frontend", responseFromFrontend(cGame, cFrontendResponse))
 	log.Fatal(http.ListenAndServe(":1337", nil))
 }
