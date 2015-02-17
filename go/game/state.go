@@ -1,6 +1,6 @@
-package abalone
+package game
 
-type Game struct {
+type State struct {
 	Board          Board  `json:"board"`
 	NextPlayer     Player `json:"nextPlayer"`
 	MovesRemaining int    `json:"movesRemaining"`
@@ -8,7 +8,7 @@ type Game struct {
 	LossThreshold  int    `json:"lossThreshold"`
 }
 
-var StandardGame Game = Game{
+var Standard State = State{
 	Board:          standardBoard,
 	NextPlayer:     White,
 	MovesRemaining: 1000,
@@ -16,7 +16,7 @@ var StandardGame Game = Game{
 	LossThreshold:  8,
 }
 
-func (g *Game) segments() []Segment {
+func (g *State) segments() []Segment {
 	pieces := g.Board.pieces(g.NextPlayer)
 	result := make([]Segment, 0, 3*len(pieces))
 	for pos, _ := range pieces {
@@ -46,7 +46,7 @@ func (g *Game) segments() []Segment {
 	return result
 }
 
-func (g *Game) moves() []Move {
+func (g *State) moves() []Move {
 	result := make([]Move, 0)
 	for _, s := range g.segments() {
 		for _, d := range Directions {
@@ -61,7 +61,7 @@ func (g *Game) moves() []Move {
 
 // like all functions in this implementation, this returns a copy
 // if given an invalid move, behavior is undefined
-func (g *Game) Update(m *Move) Game {
+func (g *State) Update(m *Move) State {
 	ownPieces := m.segment.segPieces()
 	var enemyPieces []Hex
 	if m.inline() {
@@ -102,7 +102,7 @@ func (g *Game) Update(m *Move) Game {
 		BlackPositions: newBlack,
 		EdgeLength:     g.Board.EdgeLength,
 	}
-	newGame := Game{
+	newGame := State{
 		Board:          newBoard,
 		NextPlayer:     g.NextPlayer.Next(),
 		MovesRemaining: g.MovesRemaining - 1,
@@ -113,16 +113,16 @@ func (g *Game) Update(m *Move) Game {
 	return newGame
 }
 
-func (g *Game) Futures() []Game {
+func (g *State) Futures() []State {
 	moves := g.moves()
-	result := make([]Game, len(moves))
+	result := make([]State, len(moves))
 	for i := 0; i < len(moves); i++ {
 		result[i] = g.Update(&moves[i])
 	}
 	return result
 }
 
-func (g1 *Game) eq(g2 Game) bool {
+func (g1 *State) eq(g2 State) bool {
 	return g1.Board.eq(g2.Board) &&
 		g1.NextPlayer == g2.NextPlayer &&
 		g1.MovesRemaining == g2.MovesRemaining &&
@@ -131,7 +131,7 @@ func (g1 *Game) eq(g2 Game) bool {
 
 }
 
-func (g1 *Game) Valid(g2 Game) bool {
+func (g1 *State) Valid(g2 State) bool {
 	found := false
 	for _, future := range g1.Futures() {
 		future.eq(g2)
@@ -139,11 +139,11 @@ func (g1 *Game) Valid(g2 Game) bool {
 	return found
 }
 
-func (g *Game) GameOver() bool {
+func (g *State) GameOver() bool {
 	return g.Winner() != NullOutcome
 }
 
-func (g *Game) Winner() Outcome {
+func (g *State) Winner() Outcome {
 	w := len(g.Board.WhitePositions)
 	b := len(g.Board.BlackPositions)
 	if g.MovesRemaining <= 0 || w <= g.LossThreshold || b <= g.LossThreshold {

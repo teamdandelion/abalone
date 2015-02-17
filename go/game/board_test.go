@@ -1,4 +1,4 @@
-package abalone
+package game
 
 import "testing"
 

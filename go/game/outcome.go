@@ -1,4 +1,4 @@
-package abalone
+package game
 
 type Outcome int
 

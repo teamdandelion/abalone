@@ -1,11 +1,11 @@
-package abalone
+package game
 
 type Move struct {
 	segment   Segment
 	direction Direction
 }
 
-func (m *Move) isValid(g *Game) bool {
+func (m *Move) isValid(g *State) bool {
 	if m.inline() {
 		return m.inlineMoved(g.Board) != nil
 	} else {

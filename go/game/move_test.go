@@ -1,10 +1,10 @@
-package abalone
+package game
 
 import "testing"
 
 type isValidTest struct {
 	m Move
-	g Game
+	g State
 	v bool
 }
 
