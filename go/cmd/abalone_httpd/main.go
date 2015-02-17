@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -66,7 +65,6 @@ func run() error {
 func Router(s *AgentSupervisor, path string) *mux.Router {
 	r := mux.NewRouter()
 	WireAPIRoutes(r, s)
-	WireHTMLRoutes(r, s) // after API routes
 
 	// Finally, if none of the above routes match, delegate to the single-page
 	// app's client-side router. Rewrite the path in order to load the
@@ -82,37 +80,6 @@ func StaticPathFallback(path string) http.Handler {
 			r.URL.Path = "/"
 			http.FileServer(http.Dir(path)).ServeHTTP(w, r)
 		})))
-}
-
-var templateHome = `
-<html>
-<body>
-fxx >>= ai
-
-	<form action=/api/v0/validate method=GET>
-	<br>
-	validate your AI... Enter the name of the Docker image:
-		<input type=text name=image>
-		</input>
-	</form>
-</body>
-</html>
-`
-
-func WireHTMLRoutes(r *mux.Router, s *AgentSupervisor) {
-
-	r.HandleFunc("/html", func(w http.ResponseWriter, r *http.Request) {
-		tmpl, err := template.New("name").Parse(templateHome)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		// Error checking elided
-		if err := tmpl.Execute(w, nil); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-	})
 }
 
 func WireAPIRoutes(r *mux.Router, s *AgentSupervisor) {
