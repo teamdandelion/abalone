@@ -35,3 +35,19 @@ func (p Player) String() string {
 func (p Player) MarshalJSON() ([]byte, error) {
 	return json.Marshal(p.String())
 }
+
+func (p *Player) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	switch s {
+	case "white":
+		*p = White
+	case "black":
+		*p = Black
+	default:
+		*p = NullPlayer
+	}
+	return nil
+}
