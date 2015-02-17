@@ -12,12 +12,12 @@ type Author struct {
 	Players []Player
 }
 
-// Player is an AI agent
+// Player is an AI agent running on an HTTP server
 type Player struct {
-	Id        int64
-	Nick      string // represents a series of agents
-	Version   int64  // represents a version within a Series
-	Container string // name of Docker container
+	Id      int64
+	Nick    string // represents a series of agents
+	Version int64  // represents a version within a Series
+	Address string // host:port of the HTTP server
 
 	AuthorId int64
 }
