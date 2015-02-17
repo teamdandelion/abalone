@@ -5,11 +5,7 @@ import "encoding/json"
 type HexSet map[Hex]struct{}
 
 func (s HexSet) MarshalJSON() ([]byte, error) {
-	var out []Hex
-	for h, _ := range s {
-		out = append(out, h)
-	}
-	return json.Marshal(out)
+	return json.Marshal(s.toSlice())
 }
 
 func (s *HexSet) UnmarshalJSON(data []byte) error {
@@ -24,10 +20,10 @@ func (s *HexSet) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (hm *HexSet) hexSet2Slice() []Hex {
-	res := make([]Hex, len(*hm))
+func (set HexSet) toSlice() []Hex {
+	res := make([]Hex, len(set))
 	i := 0
-	for position, _ := range *hm {
+	for position, _ := range set {
 		res[i] = position
 		i++
 	}
