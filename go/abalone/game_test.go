@@ -34,6 +34,14 @@ func TestGameMarshalJSON(t *testing.T) {
 	}
 
 	data := buf.Bytes()
+	actual_encoded := `{"board":{"whitePositions":[{"q":0,"r":2},{"q":-3,"r":4},{"q":-2,"r":2},{"q":-1,"r":3},{"q":0,"r":3},{"q":0,"r":4},{"q":1,"r":3},{"q":-4,"r":4},{"q":-3,"r":3},{"q":-2,"r":3},{"q":-1,"r":2},{"q":-4,"r":3},{"q":-2,"r":4},{"q":-1,"r":4}],"blackPositions":[{"q":3,"r":-3},{"q":1,"r":-2},{"q":2,"r":-4},{"q":2,"r":-3},{"q":4,"r":-3},{"q":0,"r":-4},{"q":3,"r":-4},{"q":4,"r":-4},{"q":-1,"r":-3},{"q":1,"r":-4},{"q":2,"r":-2},{"q":0,"r":-3},{"q":0,"r":-2},{"q":1,"r":-3}],"edgeLength":5},"nextPlayer":"white","movesRemaining":1000,"marblesPerMove":3,"lossThreshold":8}`
+	var actual_decoded Game
+	if err := json.NewDecoder(bytes.NewBufferString(actual_encoded)).Decode(&actual_decoded); err != nil {
+		t.Fatal(err)
+	}
+	if !g.eq(actual_decoded) {
+		t.Error("standard game did not match canonical serialized game")
+	}
 	var gprime Game
 	if err := json.NewDecoder(bytes.NewBuffer(data)).Decode(&gprime); err != nil {
 		t.Fatal(err)
