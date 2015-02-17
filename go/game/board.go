@@ -3,7 +3,7 @@ package game
 type Board struct {
 	WhitePositions HexSet `json:"whitePositions"`
 	BlackPositions HexSet `json:"blackPositions"`
-	EdgeLength     int    `json:"edgeLength"` // omitted. TODO include in JSON when trasitioning to new spec
+	EdgeLength     int    `json:"edgeLength"`
 }
 
 func (b *Board) pieces(p Player) HexSet {
