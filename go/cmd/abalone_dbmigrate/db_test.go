@@ -1,4 +1,4 @@
-package db
+package main
 
 import (
 	"io/ioutil"
@@ -6,6 +6,7 @@ import (
 	"path"
 	"testing"
 
+	"github.com/danmane/abalone/go/api"
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -34,21 +35,21 @@ func TestAuthorHasManyPlayers(t *testing.T) {
 	defer teardownDB()
 
 	// create author with two players
-	sql.Create(&Author{
+	sql.Create(&api.Author{
 		Name: "btc",
-		Players: []Player{
+		Players: []api.Player{
 			{Nick: "basic"},
 			{Nick: "smart"},
 		},
 	})
 	// get the players count. it should be two
-	var players []Player
+	var players []api.Player
 	sql.Find(&players)
 	if len(players) != 2 {
 		t.Fatal("expected two players", players)
 	}
 	player := players[0]
-	var author Author
+	var author api.Author
 	sql.Model(&player).Related(&author)
 
 	if author.Name != "btc" {

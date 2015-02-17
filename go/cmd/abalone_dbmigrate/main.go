@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 
-	"github.com/danmane/abalone/go/db"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
@@ -28,5 +27,5 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	return db.AutoMigrate(&sql).Error
+	return AutoMigrate(&sql).Error
 }

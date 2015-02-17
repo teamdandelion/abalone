@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/danmane/abalone/go/abalone"
-	"github.com/danmane/abalone/go/ai"
+	"github.com/danmane/abalone/go/game"
+	"github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/quickstart"
 )
 
 func main() {
-	agent := ai.AgentInfo{
+	agent := api.AgentInfo{
 		Owner: "btc",
 		Taunts: []string{
 			"U MAD BRO?",
@@ -16,7 +17,11 @@ func main() {
 			"Zombies eat brains. You’re safe.",
 		},
 	}
-	ai.Play(agent, func(s abalone.Game) abalone.Game {
-		return s
+	quickstart.Play(agent, func(s game.State) game.State {
+		f := s.Futures()
+		if len(f) == 0 {
+			panic("Ah! There are no future states. Why'd the server send this to me? =( ")
+		}
+		return f[0]
 	})
 }

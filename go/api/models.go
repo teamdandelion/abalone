@@ -1,6 +1,4 @@
-package db
-
-import "github.com/jinzhu/gorm"
+package api
 
 // TODO enforce 'non-nullable' on relevant fields
 
@@ -49,14 +47,7 @@ type Record struct {
 	Move []byte // 6-byte diff
 }
 
-// AutoMigrate ensures all tables and columns are up to date (non-destructive)
-func AutoMigrate(sql *gorm.DB) *gorm.DB {
-	return sql.AutoMigrate(
-		&Author{},
-		&Player{},
-		&StartState{},
-		&Game{},
-		&Participant{},
-		&Record{},
-	)
+type AgentInfo struct {
+	Owner  string
+	Taunts []string
 }

@@ -7,6 +7,9 @@ import (
 	"os"
 	"path"
 	"testing"
+
+	api "github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/router"
 )
 
 func makeStaticPath(t *testing.T) string {
@@ -22,7 +25,7 @@ func makeStaticPath(t *testing.T) string {
 
 func TestRouteRoot(t *testing.T) {
 	dir := makeStaticPath(t)
-	router := Router(nil, dir)
+	router := ConfigureRouter(nil, dir)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
@@ -36,38 +39,61 @@ func TestRouteRoot(t *testing.T) {
 }
 
 func TestRouterAPINotFound(t *testing.T) {
-	dir := makeStaticPath(t)
-	router := Router(nil, dir)
+	router := ConfigureRouter(nil, makeStaticPath(t))
 	w := httptest.NewRecorder()
-	r, err := http.NewRequest("GET", "/api/v0/foo", nil)
+	r, err := http.NewRequest("GET", "/api/foo", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	router.ServeHTTP(w, r)
 
 	if w.Code != http.StatusNotFound {
-		t.Fatalf("expected not found, received", w.Code)
+		t.Fatalf("expected not found, got %s", http.StatusText(w.Code))
 	}
 }
 
 func TestRouterAPINormalMatch(t *testing.T) {
-	path := "/api/v0/players"
-	dir := makeStaticPath(t)
 
-	s := &Services{}
-	router := Router(s, dir)
-	r, err := http.NewRequest("GET", path, nil)
+	s := MockServices()
+	r := ConfigureRouter(s, makeStaticPath(t))
+	url, err := r.Get(router.Players).URL()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequest("GET", url.Path, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	w := httptest.NewRecorder()
-	router.ServeHTTP(w, r)
+	r.ServeHTTP(w, req)
 	switch w.Code {
 	case http.StatusNotFound:
 		t.Fatal("should have found route")
 	case http.StatusNotImplemented:
 		// expected
 	default:
-		t.Fatal("expected %s, got %s", http.StatusNotImplemented, w.Code)
+		t.Fatalf("expected %s, got %s", http.StatusText(http.StatusNotImplemented), http.StatusText(w.Code))
 	}
+}
+
+func TestCreatePlayersHandler(t *testing.T) {
+	dir := makeStaticPath(t)
+	s := MockServices()
+	r := ConfigureRouter(s, dir)
+	url, err := r.Get(router.PlayersCreate).URL()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequest("POST", url.Path, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+}
+
+func MockServices() *api.Services {
+	return nil // TODO
 }
