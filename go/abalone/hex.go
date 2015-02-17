@@ -1,12 +1,13 @@
 package abalone
 
 type Hex struct {
-	q, r int
+	Q int `json:"q"`
+	R int `json:"r"`
 }
 
 func (p *Hex) adjacent(d Direction) Hex {
-	q := p.q
-	r := p.r
+	q := p.Q
+	r := p.R
 	switch d {
 	case TopRight:
 		q++
@@ -23,7 +24,7 @@ func (p *Hex) adjacent(d Direction) Hex {
 	case TopLeft:
 		r--
 	}
-	return Hex{q: q, r: r}
+	return Hex{Q: q, R: r}
 }
 
 func abs(x int) int {
@@ -36,7 +37,7 @@ func abs(x int) int {
 
 func (x1 *Hex) dist2Origin() int {
 	// twice the distance to the origin (2x so it's always an int)
-	return abs(x1.q) + abs(x1.r) + abs(x1.q+x1.r)
+	return abs(x1.Q) + abs(x1.R) + abs(x1.Q+x1.R)
 }
 
 func hexesEq(h1, h2 []Hex) bool {
