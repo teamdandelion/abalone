@@ -95,11 +95,11 @@ func (g *Game) Update(m *Move) Game {
 		return result
 	}
 
-	newWhite := copyAndMove(g.Board.whitePositions, whiteMoved)
-	newBlack := copyAndMove(g.Board.blackPositions, blackMoved)
+	newWhite := copyAndMove(g.Board.WhitePositions, whiteMoved)
+	newBlack := copyAndMove(g.Board.BlackPositions, blackMoved)
 	newBoard := Board{
-		whitePositions: newWhite,
-		blackPositions: newBlack,
+		WhitePositions: newWhite,
+		BlackPositions: newBlack,
 		edgeLength:     g.Board.edgeLength,
 	}
 	newGame := Game{
@@ -144,8 +144,8 @@ func (g *Game) GameOver() bool {
 }
 
 func (g *Game) Winner() Outcome {
-	w := len(g.Board.whitePositions)
-	b := len(g.Board.blackPositions)
+	w := len(g.Board.WhitePositions)
+	b := len(g.Board.BlackPositions)
 	if g.MovesRemaining <= 0 || w <= g.LossThreshold || b <= g.LossThreshold {
 		if w < b {
 			return BlackWins

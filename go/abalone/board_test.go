@@ -3,14 +3,14 @@ package abalone
 import "testing"
 
 var b1 = Board{
-	whitePositions: makeHexSet(Hex{0, 0}, Hex{0, 1}),
-	blackPositions: makeHexSet(Hex{0, -1}),
+	WhitePositions: makeHexSet(Hex{0, 0}, Hex{0, 1}),
+	BlackPositions: makeHexSet(Hex{0, -1}),
 	edgeLength:     2,
 }
 
 var b1_prime = Board{
-	whitePositions: makeHexSet(Hex{0, 1}, Hex{0, 0}),
-	blackPositions: makeHexSet(Hex{0, -1}),
+	WhitePositions: makeHexSet(Hex{0, 1}, Hex{0, 0}),
+	BlackPositions: makeHexSet(Hex{0, -1}),
 	edgeLength:     2,
 }
 
