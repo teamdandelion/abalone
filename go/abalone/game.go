@@ -100,7 +100,7 @@ func (g *Game) Update(m *Move) Game {
 	newBoard := Board{
 		WhitePositions: newWhite,
 		BlackPositions: newBlack,
-		edgeLength:     g.Board.edgeLength,
+		EdgeLength:     g.Board.EdgeLength,
 	}
 	newGame := Game{
 		Board:          newBoard,

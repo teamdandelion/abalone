@@ -3,7 +3,7 @@ package abalone
 type Board struct {
 	WhitePositions HexSet `json:"whitePositions"`
 	BlackPositions HexSet `json:"blackPositions"`
-	edgeLength     int    `json:"-"` // omitted. TODO include in JSON when trasitioning to new spec
+	EdgeLength     int    `json:"edgeLength"` // omitted. TODO include in JSON when trasitioning to new spec
 }
 
 func (b *Board) pieces(p Player) HexSet {
@@ -21,7 +21,7 @@ func (b *Board) free(x Hex) bool {
 func (b1 *Board) eq(b2 Board) bool {
 	return b1.WhitePositions.eq(b2.WhitePositions) &&
 		b1.BlackPositions.eq(b2.BlackPositions) &&
-		b1.edgeLength == b2.edgeLength
+		b1.EdgeLength == b2.EdgeLength
 }
 
 func (b *Board) owner(x Hex) Player {
@@ -35,11 +35,11 @@ func (b *Board) owner(x Hex) Player {
 }
 
 func (b *Board) onBoard(x Hex) bool {
-	return x.dist2Origin() < b.edgeLength*2
+	return x.dist2Origin() < b.EdgeLength*2
 }
 
 var standardBoard Board = Board{
-	edgeLength: 5,
+	EdgeLength: 5,
 	WhitePositions: slice2HexSet(
 		[]Hex{
 			{-4, 3}, {-4, 4}, {-3, 3}, {-3, 4}, {-2, 2},
