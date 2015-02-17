@@ -5,13 +5,13 @@ module Abalone {
 	}
 
 	export function player2str(p: Player): string {
-		return p === Player.White ? "White" : "Black"
+		return p === Player.White ? "white" : "black"
 	}
 	export function str2player(s: String): Player {
 		switch (s) {
-			case "White":
+			case "white":
 			return Player.White;
-			case "Black": 
+			case "black": 
 			return Player.Black;
 			default:
 			return null;
