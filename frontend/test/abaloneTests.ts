@@ -1,12 +1,11 @@
+/// <reference path="../build/abalone.d.ts" />
 var assert = chai.assert;
 
 module Abalone {
-
-
 function board(white: number[][], black: number[][], rad: number): Board {
 	return {
-		whitePositions: white, 
-		blackPositions: black, 
+		whitePositions: tuplesToHexes(white), 
+		blackPositions: tuplesToHexes(black), 
 		boardRadius: rad
 	};
 }
@@ -45,7 +44,7 @@ function stdGameB(white: number[][], black: number[][], rad: number): Game {
 	return stdGame(board(white, black, rad));
 }
 
-function move(base: number[], orientation: Direction, len: number, player: Player, dir: Direction): Move {
+function move(base: Hex, orientation: Direction, len: number, player: Player, dir: Direction): Move {
 	return {
 		segment: {
 			basePos: base,
@@ -63,7 +62,7 @@ function gameEq(g1: Game, g2: Game) {
 			&& tupleArraySetEq(b1.whitePositions, b2.whitePositions)
 			&& tupleArraySetEq(b1.blackPositions, b2.blackPositions);
 	}
-	function tupleArraySetEq(a1: number[][], a2: number[][]) {
+	function tupleArraySetEq(a1: Hex[], a2: Hex[]) {
 		if (a1.length !== a2.length) return false;
 		var sort1 = a1.slice().sort();
 		var sort2 = a2.slice().sort();
@@ -72,7 +71,7 @@ function gameEq(g1: Game, g2: Game) {
 		}
 		return true;
 	}
-	function tupleEq(t1: number[], t2: number[]) {
+	function tupleEq(t1: Hex, t2: Hex) {
 		return t1[0] === t2[0] && t1[1] === t2[1];
 	}
 	return g1.nextPlayer === g2.nextPlayer 
@@ -109,30 +108,30 @@ describe("Abalone", () => {
 		var canpush = board(whites2, blacks1, 4);
 		var whites3 = [[0,0], [0,1], [0, -2]];
 		var whiteblock = board(whites3, blacks1, 4);
-		var m = move([0,0], Direction.BotRight, 2, Player.White, Direction.TopLeft);
+		var m = move({q: 0,r: 0}, Direction.BotRight, 2, Player.White, Direction.TopLeft);
 		assert.isNull(Abalone.inlineMoved(cantpush, m), "cant push equal # pieces");
-		assert.deepEqual(Abalone.inlineMoved(canpush, m), [[0,-1]], "can push 1 piece");
+		assert.deepEqual(Abalone.inlineMoved(canpush, m), [{q: 0, r:-1}], "can push 1 piece");
 		assert.isNull(Abalone.inlineMoved(whiteblock, m), "push blocked by own piece");
 
 	});
 
 	it("right # of moves from ", () => {
-		assert.lengthOf(possibleMoves(trivialGame), 6, "1 stone game");
-		assert.lengthOf(possibleMoves(twoStoneGame), 16, "2 stone game");
-		assert.lengthOf(possibleMoves(threeStoneGame), 15, "3 stone game");
-		assert.lengthOf(possibleMoves(fourStoneGame), 19, "4 stone game (own piece protection)");
-		assert.lengthOf(possibleMoves(balancedGame), 14, "balanced game (enemy piece protection)");
+		assert.lengthOf(moves(trivialGame), 6, "1 stone game");
+		assert.lengthOf(moves(twoStoneGame), 16, "2 stone game");
+		assert.lengthOf(moves(threeStoneGame), 15, "3 stone game");
+		assert.lengthOf(moves(fourStoneGame), 19, "4 stone game (own piece protection)");
+		assert.lengthOf(moves(balancedGame), 14, "balanced game (enemy piece protection)");
 		
 		var marblesPerMove = stdGameB([[0,1], [0,2], [0,3]], [], 5);
-		assert.lengthOf(possibleMoves(marblesPerMove), 30, "marblesPerMove respected (3)");
+		assert.lengthOf(moves(marblesPerMove), 30, "marblesPerMove respected (3)");
 		marblesPerMove.marblesPerMove = 1;
-		assert.lengthOf(possibleMoves(marblesPerMove), 14, "marblesPerMove respected (1)");
+		assert.lengthOf(moves(marblesPerMove), 14, "marblesPerMove respected (1)");
 	});
 
 	describe("Abalone.update works", () => {
 		it("basic moves update properly", () => {
 			var before = stdGameB([[0,0]], [], 5);
-			var m = move([0,0], null, 0, Player.White, Direction.MidRight);
+			var m = move({q: 0, r: 0}, null, 0, Player.White, Direction.MidRight);
 			var after = Abalone.update(before, m);
 			var expected = continueGame(before, [[1,0]], []);
 			assertGameEq(after, expected, "move updated");
@@ -140,14 +139,14 @@ describe("Abalone", () => {
 
 		it("slightly more complicated case updates", () => {
 			var before = threeStoneGame;
-			var m = move([-1,0], null, 0, Player.White, Direction.TopRight);
+			var m = move({q: -1, r: 0}, null, 0, Player.White, Direction.TopRight);
 			var after = update(before, m);
 			var expected = continueGame(before, [[0,-1], [0,0]], [[1,0]]);
 			assertGameEq(after, expected, "move updated");
 		});
 
 		it("stones can be pushed off the board", () => {
-			var moves = Abalone.possibleMoves(threeStoneGame);
+			var moves = Abalone.moves(threeStoneGame);
 			var futures = Abalone.futures(threeStoneGame);
 			var found = futures.some((g) => gameEq(g, threeStoneGameAfterPush));
 			assert.isTrue(found, "game with stone pushed off board is in futures");
@@ -155,32 +154,32 @@ describe("Abalone", () => {
 	});
 
 	it("getSegment works", () => {
-		var actual1 = getSegment(fourStoneGame, [-2, 0]);
-		var expected1 = {basePos: [-2, 0], segLength: 1, orientation: null, player: Player.White};
+		var actual1 = getSegment(fourStoneGame, {q: -2, r: 0});
+		var expected1 = {basePos: {q: -2, r: 0}, segLength: 1, orientation: null, player: Player.White};
 		assert.deepEqual(actual1, expected1, "getSegment1");
 
-		var actual2 = getSegment(fourStoneGame, [0, 0]);
+		var actual2 = getSegment(fourStoneGame, {q: 0, r: 0});
 		var expected2 = null;
 		assert.deepEqual(actual2, expected2, "getSegment2");
 
-		var actual3 = getSegment(fourStoneGame, [-2, 0], [-1, 0]);
-		var expected3 = {basePos: [-2, 0], segLength: 2, orientation: Direction.MidRight, player: Player.White};
+		var actual3 = getSegment(fourStoneGame, {q: -2, r: 0}, {q: -1, r: 0});
+		var expected3 = {basePos: {q: -2, r: 0}, segLength: 2, orientation: Direction.MidRight, player: Player.White};
 		assert.deepEqual(actual3, expected3, "getSegment3");
 
-		var actual4 = getSegment(fourStoneGame, [-1, 0], [-2, 0]);
-		var expected4 = {basePos: [-1, 0], segLength: 2, orientation: Direction.MidLeft, player: Player.White};
+		var actual4 = getSegment(fourStoneGame, {q: -1, r: 0}, {q: -2, r: 0});
+		var expected4 = {basePos: {q: -1, r: 0}, segLength: 2, orientation: Direction.MidLeft, player: Player.White};
 		assert.deepEqual(actual4, expected4, "getSegment4");
 
-		var actual5 = getSegment(fourStoneGame, [-2, 0], [0, 0]);
+		var actual5 = getSegment(fourStoneGame, {q: -2, r: 0}, {q: 0, r: 0});
 		var expected5 = null;
 		assert.deepEqual(actual5, expected5, "getSegment5");
 
 	});
 
 	it("hexagonal grid seems to work", () => {
-		assert.lengthOf(Hex.hexagonalGrid(1), 1);
-		assert.lengthOf(Hex.hexagonalGrid(2), 7);
-		assert.lengthOf(Hex.hexagonalGrid(5), 61);
+		assert.lengthOf(hexagonalGrid(1), 1);
+		assert.lengthOf(hexagonalGrid(2), 7);
+		assert.lengthOf(hexagonalGrid(5), 61);
 	});
 });
 }

@@ -4,8 +4,8 @@ module.exports = function(grunt) {
   var path = require("path");
   var cwd = process.cwd();
   var tsJSON = {
-    dev: {
-      src: ["src/ts/lib/*.ts", "typings/**/*.d.ts"],
+    abalone: {
+      src: ["src/ts/abalone/*.ts", "typings/**/*.d.ts"],
       out: "build/abalone.js",
       options: {
         declaration: true,
@@ -16,6 +16,7 @@ module.exports = function(grunt) {
       src: ["src/ts/main/*.ts", "build/**/*.d.ts", "typings/**/*.d.ts"],
       out: "build/main.js",
       options: {
+        declaration: true,
         sourceMap: false
       },
     },
@@ -88,9 +89,9 @@ module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
 
   grunt.registerTask("buildts", [
-                                  "ts:dev",
-                                  "ts:test",
+                                  "ts:abalone",
                                   "ts:main",
+                                  "ts:test",
                                   "clean",
                                   "tslint",
                                   "mocha"]);

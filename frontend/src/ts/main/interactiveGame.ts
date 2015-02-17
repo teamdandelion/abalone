@@ -1,20 +1,20 @@
-module Abalone {
+module Main {
     export class InteractiveGame {
         constructor(private renderer: Renderer, 
                     private white: PlayerAgent, 
                     private black: PlayerAgent) {}
 
-        public start(game: Game) {
+        public start(game: Abalone.Game) {
             this.gameLoop(game);
         }
         
-        public gameLoop(game: Game) {
+        public gameLoop(game: Abalone.Game) {
             this.renderer.drawGame(game);
             
-            if (gameOver(game)) {
+            if (Abalone.gameOver(game)) {
                 return;
             }
-            var agent = game.nextPlayer === Player.White ? this.white : this.black;
+            var agent = game.nextPlayer === Abalone.Player.White ? this.white : this.black;
             agent.play(game, this.gameLoop.bind(this));
         }
     }

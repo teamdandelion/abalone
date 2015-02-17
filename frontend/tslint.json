@@ -1,7 +1,6 @@
 {
   "rules": {
     "class-name": false,
-    "eofline": true,
     "forin": true,
     "jsdoc-format": true,
     "label-position": true,

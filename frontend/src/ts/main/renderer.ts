@@ -1,4 +1,4 @@
-module Abalone {
+module Main {
     export class Renderer implements PlayerAgent {
         private svg: D3.Selection;
         private board: D3.Selection;
@@ -35,28 +35,28 @@ module Abalone {
             this.drawBoard();
         }
 
-        private qr2xy(q: number, r: number): [number, number] {
+        private qr2xy(h: Abalone.Hex): [number, number] {
             return [
-                this.hexSize * Math.sqrt(3) * (q + r/2) + this.width/2, 
-                this.hexSize * 3/2 * r + this.height/2
+                this.hexSize * Math.sqrt(3) * (h.q + h.r/2) + this.width/2, 
+                this.hexSize * 3/2 * h.r + this.height/2
                 ];
         }
 
-        public drawGame(g: Game) {
+        public drawGame(g: Abalone.Game) {
             this.drawPieces(g.board);
-            var whiteIsNext = g.nextPlayer === Player.White;
+            var whiteIsNext = g.nextPlayer === Abalone.Player.White;
             this.whitePieces.classed("faded", !whiteIsNext);
             this.blackPieces.classed("faded", whiteIsNext);
         }
 
-        private drawPieces(b: Board) {
+        private drawPieces(b: Abalone.Board) {
             this.addPieces(this.whitePieces, b.whitePositions);
             this.addPieces(this.blackPieces, b.blackPositions);
         }
 
-        private addPieces(selection: D3.Selection, pieces: number[][]) {
-            var xf = (d,i) => this.qr2xy(d[0], d[1])[0];
-            var yf = (d,i) => this.qr2xy(d[0], d[1])[1];
+        private addPieces(selection: D3.Selection, pieces: Abalone.Hex[]) {
+            var xf = (d,i) => this.qr2xy(d)[0];
+            var yf = (d,i) => this.qr2xy(d)[1];
             var update = selection
                 .selectAll("circle")
                 .data(pieces);
@@ -72,7 +72,7 @@ module Abalone {
 
         }
 
-        private hexFromXY(x: number, y: number): number[] {
+        private hexFromXY(x: number, y: number): Abalone.Hex {
             x = x - this.width/2;
             y = y - this.height/2;
             var q = (x * Math.sqrt(3)/3 - y/3) / this.hexSize;
@@ -80,7 +80,7 @@ module Abalone {
             return this.hexRound(q,r);
         }
 
-        private hexRound(q: number, r: number): number[] {
+        private hexRound(q: number, r: number): Abalone.Hex {
             var x = q;
             var z = r;
             var y = -x-z;
@@ -100,11 +100,11 @@ module Abalone {
             } else {
                 rz = -rx-ry;
             }
-            return [rx, rz];
+            return {q: rx, r: rz};
         }
 
-        private drawOverlay(segment: Segment, isDragging: boolean, game: Game) {
-            this.highlightHexes(segPieces(segment), "selected");
+        private drawOverlay(segment: Abalone.Segment, isDragging: boolean, game: Abalone.Game) {
+            this.highlightHexes(Abalone.segPieces(segment), "selected");
             if (segment != null && !isDragging) {
                 this.highlightHexes(moveHexes(segment, game), "moves");
             } else {
@@ -112,17 +112,17 @@ module Abalone {
             }
         }
 
-        private highlightHexes(hexes: number[][], classToApply: string) {
+        private highlightHexes(hexes: Abalone.Hex[], classToApply: string) {
             var hexSet: any = {};
-            hexes.forEach((h) => hexSet[h.toString()]=true);
-            var isHighlighted = (d: any) => hexSet[d.toString()];
+            hexes.forEach((h) => hexSet[JSON.stringify(h)]=true);
+            var isHighlighted = (d: any) => hexSet[JSON.stringify(d)];
             this.grid.selectAll("polygon").classed(classToApply, isHighlighted);
         }
 
         private drawBoard() {
-            var hexes = Hex.hexagonalGrid(this.hexesOnEdge);
+            var hexes = Abalone.hexagonalGrid(this.hexesOnEdge);
             var pointsFn = (d) => {
-                var xy = this.qr2xy(d[0], d[1]);
+                var xy = this.qr2xy(d);
                 return hexPointString(this.hexSize, xy[0], xy[1]);
             }
             var update = this.grid.selectAll("polygon").data(hexes);
@@ -133,8 +133,8 @@ module Abalone {
 
             update.exit().remove();
 
-            var xf = (d,i) => this.qr2xy(d[0], d[1])[0] - 5;
-            var yf = (d,i) => this.qr2xy(d[0], d[1])[1] - 5;
+            var xf = (d,i) => this.qr2xy(d)[0] - 5;
+            var yf = (d,i) => this.qr2xy(d)[1] - 5;
 
             var textUpdate = this.grid.selectAll("text").data(hexes);
             textUpdate
@@ -142,26 +142,26 @@ module Abalone {
                     .append("text")
                     .attr("x", xf)
                     .attr("y", yf)
-                    .text((d) => d);
+                    .text((d) => "(" + d.q.toString() + "," + d.r.toString() + ")");
         }
 
-        private hoveredHex(): number[] {
+        private hoveredHex(): Abalone.Hex {
             var location = d3.mouse(this.eventLayer.node());
             var hex = this.hexFromXY(location[0], location[1]);
             return hex;
         }
 
-        public play(g: Game, cb: (g: Game) => void): void {
-            var selectedPieces: Segment;
+        public play(g: Abalone.Game, cb: (g: Abalone.Game) => void): void {
+            var selectedPieces: Abalone.Segment;
 
             var disabled = false;
             var dragInProgress = false;
             var originHex = null;
 
-            var finish = (m: Move) => {
+            var finish = (m: Abalone.Move) => {
                 this.drawOverlay(null, false, g);
                 disabled = true;
-                cb(update(g, m));
+                cb(Abalone.update(g, m));
             }
 
             var dragstart = () => {
@@ -169,13 +169,13 @@ module Abalone {
                 originHex = this.hoveredHex();
                 if (selectedPieces != null) {
                     var move = generateMove(selectedPieces, originHex);
-                    if (move != null && isValid(g, move)) {
+                    if (move != null && Abalone.validMove(g, move)) {
                         finish(move);
                     } else {
                         selectedPieces = null;
                     }
                 } else {
-                    if ((selectedPieces = getSegment(g, originHex)) != null) {
+                    if ((selectedPieces = Abalone.getSegment(g, originHex)) != null) {
                         dragInProgress = true;
                         this.drawOverlay(selectedPieces, true, g);
                     }
@@ -185,14 +185,14 @@ module Abalone {
             var drag = () => {
                 if (disabled) return;
                 var currentHex = this.hoveredHex();
-                selectedPieces = getSegment(g, originHex, currentHex);
+                selectedPieces = Abalone.getSegment(g, originHex, currentHex);
                 this.drawOverlay(selectedPieces, true, g);
             }
 
             var dragend = () => {
                 if (disabled) return;
                 var currentHex = this.hoveredHex();
-                selectedPieces = getSegment(g, originHex, currentHex);
+                selectedPieces = Abalone.getSegment(g, originHex, currentHex);
                 this.drawOverlay(selectedPieces, false, g);
             }
 
@@ -203,59 +203,57 @@ module Abalone {
                     .on("dragend", dragend)
             )
         }
-
     }
 
-    export function moveHexes(s: Segment, g: Game): number[][] {
-        return adjacentHexDirs(s)
-            .filter((hd) => {
-                var d = hd[1];
-                var move = {segment: s, direction: d};
-                return isValid(g, move);
-            })
-            .map((hd) => hd[0]);
-    }
+export function moveHexes(s: Abalone.Segment, g: Abalone.Game): Abalone.Hex[] {
+    return adjacentHexDirs(s)
+        .filter((hd) => {
+            var d = hd[1];
+            var move = {segment: s, direction: d};
+            return Abalone.validMove(g, move);
+        })
+        .map((hd) => hd[0]);
+}
 
-    export function generateMove(s: Segment, target: number[]): Move {
-        var possibilities = adjacentHexDirs(s);
-        var foundDir: Direction;
-        possibilities.forEach((hd) => {
-            var hex = hd[0];
-            var dir = hd[1];
-            if (hex.toString() === target.toString()) {
-                foundDir = dir;
-            }
-        });
-        var move = foundDir != null ? {segment: s, direction: foundDir} : null;
-        return move;
-    }
-
-    function vanguard(pos: number[], d: Direction): [number[], Direction][] {
-        return <any> Hex.nearbyDirections(d).map((dir) => [Hex.adjacent(pos, dir), dir]);
-    }
-
-    function adjacentHexDirs(s: Segment): [number[], Direction][] {
-        if (s.orientation == null) {
-            return <any> Hex.directions.map((d) => [Hex.adjacent(s.basePos, d), d]);
-        } else {
-            var front = vanguard(s.basePos, Hex.opposite(s.orientation));
-            var back = vanguard(_.last(segPieces(s)), s.orientation);
-            if (back[0][0] === undefined) debugger;
-            return front.concat(back);
+export function generateMove(s: Abalone.Segment, target: Abalone.Hex): Abalone.Move {
+    var possibilities = adjacentHexDirs(s);
+    var foundDir: Abalone.Direction;
+    possibilities.forEach((hd) => {
+        var hex = hd[0];
+        var dir = hd[1];
+        if (JSON.stringify(hex) === JSON.stringify(target)) {
+            foundDir = dir;
         }
-    }
+    });
+    var move = foundDir != null ? {segment: s, direction: foundDir} : null;
+    return move;
+}
 
-    function hexPointString(size, x, y) {
-        var s = "";
-        for (var i = 0; i<6; i++) {
-            s += hexCorner(x, y, size, i);
-            s += " ";
-        }
-        return s;
-    }
+function vanguard(pos: Abalone.Hex, d: Abalone.Direction): [Abalone.Hex, Abalone.Direction][] {
+    return <any> Abalone.nearbyDirections(d).map((dir) => [Abalone.adjacent(pos, dir), dir]);
+}
 
-    function hexCorner(x, y, size, i) {
-        var angle = 2 * Math.PI / 6 * (i + 0.5);
-        return [x + size * Math.cos(angle), y + size * Math.sin(angle)];
+function adjacentHexDirs(s: Abalone.Segment): [Abalone.Hex, Abalone.Direction][] {
+    if (s.orientation == null) {
+        return <any> Abalone.directions.map((d) => [Abalone.adjacent(s.basePos, d), d]);
+    } else {
+        var front = vanguard(s.basePos, Abalone.opposite(s.orientation));
+        var back = vanguard(_.last(Abalone.segPieces(s)), s.orientation);
+        return front.concat(back);
     }
+}
+
+function hexPointString(size, x, y) {
+    var s = "";
+    for (var i = 0; i<6; i++) {
+        s += hexCorner(x, y, size, i);
+        s += " ";
+    }
+    return s;
+}
+
+function hexCorner(x, y, size, i) {
+    var angle = 2 * Math.PI / 6 * (i + 0.5);
+    return [x + size * Math.cos(angle), y + size * Math.sin(angle)];
+}
 }
