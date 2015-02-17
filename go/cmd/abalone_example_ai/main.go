@@ -1,9 +1,12 @@
 package main
 
-import "github.com/danmane/abalone/go/abalone"
+import (
+	"github.com/danmane/abalone/go/abalone"
+	"github.com/danmane/abalone/go/ai"
+)
 
 func main() {
-	agent := abalone.AgentInfo{
+	agent := ai.AgentInfo{
 		Owner: "btc",
 		Taunts: []string{
 			"U MAD BRO?",
@@ -13,8 +16,7 @@ func main() {
 			"Zombies eat brains. You’re safe.",
 		},
 	}
-	abalone.Play(agent, func(s abalone.Game) abalone.Game {
+	ai.Play(agent, func(s abalone.Game) abalone.Game {
 		return s
 	})
-
 }
