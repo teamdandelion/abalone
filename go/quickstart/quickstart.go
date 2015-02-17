@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/danmane/abalone/go/game"
 	"github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/game"
 	"github.com/gorilla/mux"
 )
 
@@ -15,7 +15,9 @@ const (
 	host = ":3423"
 )
 
-func Play(info api.AgentInfo, f func(game.State) game.State) {
+type AgentInfo api.AgentInfo
+
+func Play(info AgentInfo, f func(game.State) game.State) {
 	r := mux.NewRouter()
 	r.Path("/ping").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

@@ -2,12 +2,11 @@ package main
 
 import (
 	"github.com/danmane/abalone/go/game"
-	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/quickstart"
 )
 
 func main() {
-	agent := api.AgentInfo{
+	agent := quickstart.AgentInfo{
 		Owner: "btc",
 		Taunts: []string{
 			"U MAD BRO?",
