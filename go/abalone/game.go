@@ -1,41 +1,41 @@
 package abalone
 
 type Game struct {
-	board          Board
-	nextPlayer     Player
-	movesRemaining int
-	marblesPerMove int
-	lossThreshold  int
+	Board          Board  `json:"board"`
+	NextPlayer     Player `json:"nextPlayer"`
+	MovesRemaining int    `json:"movesRemaining"`
+	MarblesPerMove int    `json:"marblesPerMove"`
+	LossThreshold  int    `json:"lossThreshold"`
 }
 
 var StandardGame Game = Game{
-	board:          standardBoard,
-	nextPlayer:     White,
-	movesRemaining: 1000,
-	marblesPerMove: 3,
-	lossThreshold:  8,
+	Board:          standardBoard,
+	NextPlayer:     White,
+	MovesRemaining: 1000,
+	MarblesPerMove: 3,
+	LossThreshold:  8,
 }
 
 func (g *Game) segments() []Segment {
-	pieces := g.board.pieces(g.nextPlayer)
+	pieces := g.Board.pieces(g.NextPlayer)
 	result := make([]Segment, 0, 3*len(pieces))
 	for pos, _ := range pieces {
 		s := Segment{
 			base:        pos,
 			length:      1,
-			player:      g.nextPlayer,
+			player:      g.NextPlayer,
 			orientation: NullDirection,
 		}
 		result = append(result, s)
 		for d := TopRight; d <= BotRight; d++ {
 			next := pos.adjacent(d)
 			length := 2
-			for length <= g.marblesPerMove && pieces.has(next) {
+			for length <= g.MarblesPerMove && pieces.has(next) {
 				s = Segment{
 					base:        pos,
 					orientation: d,
 					length:      length,
-					player:      g.nextPlayer,
+					player:      g.NextPlayer,
 				}
 				next = next.adjacent(d)
 				length++
@@ -65,12 +65,12 @@ func (g *Game) Update(m *Move) Game {
 	ownPieces := m.segment.segPieces()
 	var enemyPieces []Hex
 	if m.inline() {
-		enemyPieces = m.inlineMoved(g.board)
+		enemyPieces = m.inlineMoved(g.Board)
 	} else {
 		enemyPieces = make([]Hex, 0)
 	}
 	var whiteMoved, blackMoved []Hex
-	if g.nextPlayer == White {
+	if g.NextPlayer == White {
 		whiteMoved = ownPieces
 		blackMoved = enemyPieces
 	} else {
@@ -88,26 +88,26 @@ func (g *Game) Update(m *Move) Game {
 		}
 		for _, hex := range hexesToMove {
 			adj := hex.adjacent(m.direction)
-			if g.board.onBoard(adj) {
+			if g.Board.onBoard(adj) {
 				result[adj] = struct{}{}
 			}
 		}
 		return result
 	}
 
-	newWhite := copyAndMove(g.board.whitePositions, whiteMoved)
-	newBlack := copyAndMove(g.board.blackPositions, blackMoved)
+	newWhite := copyAndMove(g.Board.WhitePositions, whiteMoved)
+	newBlack := copyAndMove(g.Board.BlackPositions, blackMoved)
 	newBoard := Board{
-		whitePositions: newWhite,
-		blackPositions: newBlack,
-		edgeLength:     g.board.edgeLength,
+		WhitePositions: newWhite,
+		BlackPositions: newBlack,
+		EdgeLength:     g.Board.EdgeLength,
 	}
 	newGame := Game{
-		board:          newBoard,
-		nextPlayer:     g.nextPlayer.Next(),
-		movesRemaining: g.movesRemaining - 1,
-		marblesPerMove: g.marblesPerMove,
-		lossThreshold:  g.lossThreshold,
+		Board:          newBoard,
+		NextPlayer:     g.NextPlayer.Next(),
+		MovesRemaining: g.MovesRemaining - 1,
+		MarblesPerMove: g.MarblesPerMove,
+		LossThreshold:  g.LossThreshold,
 	}
 
 	return newGame
@@ -123,11 +123,11 @@ func (g *Game) Futures() []Game {
 }
 
 func (g1 *Game) eq(g2 Game) bool {
-	return g1.board.eq(g2.board) &&
-		g1.nextPlayer == g2.nextPlayer &&
-		g1.movesRemaining == g2.movesRemaining &&
-		g1.lossThreshold == g2.lossThreshold &&
-		g1.marblesPerMove == g2.marblesPerMove
+	return g1.Board.eq(g2.Board) &&
+		g1.NextPlayer == g2.NextPlayer &&
+		g1.MovesRemaining == g2.MovesRemaining &&
+		g1.LossThreshold == g2.LossThreshold &&
+		g1.MarblesPerMove == g2.MarblesPerMove
 
 }
 
@@ -144,9 +144,9 @@ func (g *Game) GameOver() bool {
 }
 
 func (g *Game) Winner() Outcome {
-	w := len(g.board.whitePositions)
-	b := len(g.board.blackPositions)
-	if g.movesRemaining <= 0 || w <= g.lossThreshold || b <= g.lossThreshold {
+	w := len(g.Board.WhitePositions)
+	b := len(g.Board.BlackPositions)
+	if g.MovesRemaining <= 0 || w <= g.LossThreshold || b <= g.LossThreshold {
 		if w < b {
 			return BlackWins
 		} else if b < w {

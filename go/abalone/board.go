@@ -1,16 +1,16 @@
 package abalone
 
 type Board struct {
-	whitePositions HexSet
-	blackPositions HexSet
-	edgeLength     int
+	WhitePositions HexSet `json:"whitePositions"`
+	BlackPositions HexSet `json:"blackPositions"`
+	EdgeLength     int    `json:"edgeLength"` // omitted. TODO include in JSON when trasitioning to new spec
 }
 
 func (b *Board) pieces(p Player) HexSet {
 	if p == White {
-		return b.whitePositions
+		return b.WhitePositions
 	} else {
-		return b.blackPositions
+		return b.BlackPositions
 	}
 }
 
@@ -19,15 +19,15 @@ func (b *Board) free(x Hex) bool {
 }
 
 func (b1 *Board) eq(b2 Board) bool {
-	return b1.whitePositions.eq(b2.whitePositions) &&
-		b1.blackPositions.eq(b2.blackPositions) &&
-		b1.edgeLength == b2.edgeLength
+	return b1.WhitePositions.eq(b2.WhitePositions) &&
+		b1.BlackPositions.eq(b2.BlackPositions) &&
+		b1.EdgeLength == b2.EdgeLength
 }
 
 func (b *Board) owner(x Hex) Player {
-	if b.whitePositions.has(x) {
+	if b.WhitePositions.has(x) {
 		return White
-	} else if b.blackPositions.has(x) {
+	} else if b.BlackPositions.has(x) {
 		return Black
 	} else {
 		return NullPlayer
@@ -35,19 +35,19 @@ func (b *Board) owner(x Hex) Player {
 }
 
 func (b *Board) onBoard(x Hex) bool {
-	return x.dist2Origin() < b.edgeLength*2
+	return x.dist2Origin() < b.EdgeLength*2
 }
 
 var standardBoard Board = Board{
-	edgeLength: 5,
-	whitePositions: slice2HexSet(
+	EdgeLength: 5,
+	WhitePositions: slice2HexSet(
 		[]Hex{
 			{-4, 3}, {-4, 4}, {-3, 3}, {-3, 4}, {-2, 2},
 			{-2, 3}, {-2, 4}, {-1, 2}, {-1, 3}, {-1, 4},
 			{0, 2}, {0, 3}, {0, 4}, {1, 3},
 		},
 	),
-	blackPositions: slice2HexSet(
+	BlackPositions: slice2HexSet(
 		[]Hex{
 			{-1, -3}, {0, -4}, {0, -3}, {0, -2}, {1, -4},
 			{1, -3}, {1, -2}, {2, -4}, {2, -3}, {2, -2},
