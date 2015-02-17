@@ -20,6 +20,7 @@ func responseFromFrontend(cGame <-chan io.Reader, cFrontendResponse chan<- io.Re
 
 		resultantGame := <-cGame
 		log.Println("sending game back to /frontend")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		io.Copy(w, resultantGame)
 	}
 }
@@ -39,7 +40,7 @@ func main() {
 	cFrontendResponse := make(chan io.Reader)
 	http.HandleFunc("/game", gameFromOperator(cGame, cFrontendResponse))
 	http.HandleFunc("/frontend", responseFromFrontend(cGame, cFrontendResponse))
-	log.Fatal(http.ListenAndServe(":8999", nil))
+	log.Fatal(http.ListenAndServe(":1337", nil))
 }
 
 /* Sequence:

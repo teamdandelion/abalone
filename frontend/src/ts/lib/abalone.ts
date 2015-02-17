@@ -1,6 +1,7 @@
 
 module Abalone {
 	export enum Player {White, Black}
+
 	export function next(p: Player) {
 		return (p === Player.White) ? Player.Black : Player.White;
 	}

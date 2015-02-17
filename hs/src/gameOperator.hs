@@ -23,7 +23,7 @@ type Agent = Game -> IO (Maybe Game)
 main :: IO ()
 main = do
 	let white = remotePlayer 8001
-	let black = remotePlayer 8002 
+	let black = remotePlayer 1337 
 	outcome <- playStandardGame white black 
 	print outcome 
 
