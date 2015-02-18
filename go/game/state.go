@@ -132,11 +132,12 @@ func (g1 *State) eq(g2 *State) bool {
 }
 
 func (g1 *State) ValidFuture(g2 *State) bool {
-	found := false
 	for _, future := range g1.Futures() {
-		future.eq(g2)
+		if future.eq(g2) {
+			return true
+		}
 	}
-	return found
+	return false
 }
 
 func (g *State) GameOver() bool {

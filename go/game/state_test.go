@@ -26,6 +26,15 @@ func Benchmark_futures(b *testing.B) {
 	}
 }
 
+func TestFuturesAreValid(t *testing.T) {
+	futures := Standard.Futures()
+	for _, f := range futures {
+		if !Standard.ValidFuture(&f) {
+			t.Error("expected future ", f, "to be a valid future for game", Standard)
+		}
+	}
+}
+
 func TestGameMarshalJSON(t *testing.T) {
 	g := Standard
 	var buf bytes.Buffer
