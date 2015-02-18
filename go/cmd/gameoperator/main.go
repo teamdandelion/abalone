@@ -12,9 +12,6 @@ import (
 	"github.com/danmane/abalone/go/game"
 )
 
-var mem = flag.Bool("mem", false, "run with an in-memory backed")
-var host = flag.String("host", ":8080", "set the http host addr:port")
-
 var (
 	playAgainstHuman = flag.Bool("playAgainstHuman", false, "play against human on frontend rather than AI vs AI")
 	humanPort        = flag.String("humanPort", "1337", "port for javascript frontend")
@@ -79,6 +76,7 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 		}
 		err, futureGame := gameFromAI(nextAI.Port, currentGame)
 		if err != nil {
+			fmt.Println(err)
 			victory = api.InvalidResponse
 			outcome = currentGame.NextPlayer.Loses()
 			return api.GameResult{
@@ -97,8 +95,10 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 	if currentGame.MovesRemaining == 0 {
 		// TODO win on last move = stones depleted
 		victory = api.MovesDepleted
+		fmt.Println("someone won by move depletion")
 	} else {
 		victory = api.StonesDepleted
+		fmt.Println("someone won by stone depletion")
 	}
 	return api.GameResult{
 		White:         whiteAgent.Player,

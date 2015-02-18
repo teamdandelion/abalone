@@ -12,6 +12,7 @@ var (
 )
 
 func main() {
+	flag.Parse()
 	player := api.Player{Address: ":" + *port}
 	// agent := quickstart.AgentInfo{
 	// 	Owner: "btc",
