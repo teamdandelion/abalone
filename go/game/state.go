@@ -141,10 +141,14 @@ func (g1 *State) ValidFuture(g2 *State) bool {
 }
 
 func (g *State) GameOver() bool {
-	return g.Winner() != NullOutcome
+	return g.Outcome() != NullOutcome
 }
 
-func (g *State) Winner() Outcome {
+func (g *State) NumPieces(p Player) int {
+	return len(g.Board.pieces(p))
+}
+
+func (g *State) Outcome() Outcome {
 	w := len(g.Board.WhitePositions)
 	b := len(g.Board.BlackPositions)
 	if g.MovesRemaining <= 0 || w <= g.LossThreshold || b <= g.LossThreshold {

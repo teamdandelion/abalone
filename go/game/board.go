@@ -9,8 +9,10 @@ type Board struct {
 func (b *Board) pieces(p Player) HexSet {
 	if p == White {
 		return b.WhitePositions
-	} else {
+	} else if p == Black {
 		return b.BlackPositions
+	} else {
+		return make(HexSet)
 	}
 }
 

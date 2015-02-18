@@ -42,7 +42,7 @@ type PlayerInstance struct {
 	Port   string
 }
 
-func gameFromAI(state *game.State, port string) (*game.State, error) {
+func gameFromAI(port string, state *game.State) (*game.State, error) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(state); err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func gameFromAI(state *game.State, port string) (*game.State, error) {
 	}
 	resp.Body.Close()
 	if !state.ValidFuture(responseGame) {
-		return fmt.Errorf("game parsed correctly, but isn't a valid future"), nil
+		return nil, fmt.Errorf("game parsed correctly, but isn't a valid future")
 	}
 	return responseGame, nil
 }
@@ -91,14 +91,12 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 		states = append(states, *currentGame)
 	}
 
-	outcome = currentGame.Winner()
-	if currentGame.MovesRemaining == 0 {
-		// TODO win on last move = stones depleted
-		victory = api.MovesDepleted
-		fmt.Println("someone won by move depletion")
-	} else {
+	outcome = currentGame.Outcome()
+	loser := outcome.Loser()
+	if loser != game.NullPlayer && currentGame.NumPieces(loser) <= currentGame.LossThreshold {
 		victory = api.StonesDepleted
-		fmt.Println("someone won by stone depletion")
+	} else {
+		victory = api.MovesDepleted
 	}
 	return api.GameResult{
 		White:         whiteAgent.Player,
