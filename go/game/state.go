@@ -122,7 +122,7 @@ func (g *State) Futures() []State {
 	return result
 }
 
-func (g1 *State) eq(g2 State) bool {
+func (g1 *State) eq(g2 *State) bool {
 	return g1.Board.eq(g2.Board) &&
 		g1.NextPlayer == g2.NextPlayer &&
 		g1.MovesRemaining == g2.MovesRemaining &&
@@ -131,7 +131,7 @@ func (g1 *State) eq(g2 State) bool {
 
 }
 
-func (g1 *State) Valid(g2 State) bool {
+func (g1 *State) ValidFuture(g2 *State) bool {
 	found := false
 	for _, future := range g1.Futures() {
 		future.eq(g2)

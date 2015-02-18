@@ -32,6 +32,21 @@ func (p Player) String() string {
 	}
 }
 
+func (p Player) Wins() Outcome {
+	switch p {
+	case White:
+		return WhiteWins
+	case Black:
+		return BlackWins
+	default:
+		return NullOutcome
+	}
+}
+
+func (p Player) Loses() Outcome {
+	return p.Next().Wins()
+}
+
 func (p Player) MarshalJSON() ([]byte, error) {
 	return json.Marshal(p.String())
 }
