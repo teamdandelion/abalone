@@ -42,24 +42,24 @@ type PlayerInstance struct {
 	Port   string
 }
 
-func gameFromAI(port string, state *game.State) (error, *game.State) { // TODO reverse args
+func gameFromAI(state *game.State, port string) (*game.State, error) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(state); err != nil {
-		return err, nil
+		return nil, err
 	}
 	resp, err := http.Post("http://localhost:"+port+"/move", "application/json", &buf)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	responseGame := &game.State{}
 	if err := json.NewDecoder(resp.Body).Decode(responseGame); err != nil {
-		return err, nil
+		return nil, err
 	}
 	resp.Body.Close()
 	if !state.ValidFuture(responseGame) {
 		return fmt.Errorf("game parsed correctly, but isn't a valid future"), nil
 	}
-	return nil, responseGame
+	return responseGame, nil
 }
 
 func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) api.GameResult {
@@ -74,7 +74,7 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 		} else {
 			nextAI = blackAgent
 		}
-		err, futureGame := gameFromAI(nextAI.Port, currentGame)
+		futureGame, err := gameFromAI(nextAI.Port, currentGame)
 		if err != nil {
 			fmt.Println(err)
 			victory = api.InvalidResponse
