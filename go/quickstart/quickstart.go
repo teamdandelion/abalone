@@ -11,17 +11,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-	host = ":3423"
-)
-
-type AgentInfo api.AgentInfo
-
-func Play(info AgentInfo, f func(game.State) game.State) {
+func Play(player api.Player, f func(game.State) game.State) { // TODO pointers not copies
 	r := mux.NewRouter()
 	r.Path("/ping").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(&info)
+		json.NewEncoder(w).Encode(&player)
 	})
 	r.Path("/move").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var s game.State
@@ -36,5 +30,5 @@ func Play(info AgentInfo, f func(game.State) game.State) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(next)
 	})
-	log.Fatal(http.ListenAndServe(host, r))
+	log.Fatal(http.ListenAndServe(player.Address, r))
 }
