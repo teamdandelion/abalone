@@ -74,7 +74,7 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 		} else {
 			nextAI = blackAgent
 		}
-		futureGame, err := gameFromAI(nextAI.Port, currentGame)
+		futureGame, err := gameFromAI(currentGame, nextAI.Port)
 		if err != nil {
 			fmt.Println(err)
 			victory = api.InvalidResponse
