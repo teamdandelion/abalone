@@ -44,12 +44,16 @@ type PlayerInstance struct {
 	Port   string
 }
 
+const (
+	MovePath = "/move"
+)
+
 func gameFromAI(port string, state *game.State) (*game.State, error) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(state); err != nil {
 		return nil, err
 	}
-	resp, err := http.Post("http://localhost:"+port+"/move", "application/json", &buf)
+	resp, err := http.Post("http://localhost:"+port+MovePath, "application/json", &buf)
 	if err != nil {
 		return nil, err
 	}
