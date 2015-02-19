@@ -16,6 +16,12 @@ cabal.config
 elm/elm_stuff/
 elm/elm.js
 
+go/cmd/abalone_relayd/abalone_relayd
+go/cmd/abalone_example_ai/abalone_example_ai
+go/cmd/abalone_gameoperator/abalone_gameoperator
+
+
+
 frontend/bower_components
 frontend/node_modules
 frontend/build
