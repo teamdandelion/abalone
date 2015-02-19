@@ -54,7 +54,7 @@ func gameFromAI(port string, state *game.State) (*game.State, error) {
 		LimitMilli: toMillisecondCount(api.DefaultMoveLimit),
 	}
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(mr); err != nil {
+	if err := json.NewEncoder(&buf).Encode(&mr); err != nil {
 		return nil, err
 	}
 	resp, err := http.Post("http://localhost:"+port+api.MovePath, "application/json", &buf)
