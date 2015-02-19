@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
@@ -17,6 +18,7 @@ var (
 	humanPort        = flag.String("humanPort", "1337", "port for javascript frontend")
 	aiPort1          = flag.String("aiPort1", "3423", "port for first ai")
 	aiPort2          = flag.String("aiPort2", "3424", "port for second ai (if present)")
+	timelimit        = flag.Duration("timelimit", time.Second*2, "per-move time limit")
 )
 
 func main() {
