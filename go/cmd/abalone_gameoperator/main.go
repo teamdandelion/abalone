@@ -94,6 +94,7 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 			fmt.Println(err)
 			victory = api.InvalidResponse
 			outcome = currentGame.NextPlayer.Loses()
+			fmt.Println("%v", outcome)
 			return api.GameResult{
 				White:         whiteAgent.Player,
 				Black:         blackAgent.Player,
