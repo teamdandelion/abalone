@@ -2,12 +2,15 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"log"
 	"net/http"
 
 	"github.com/codegangsta/negroni"
 	api "github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/game"
+	"github.com/danmane/abalone/go/operator"
 	"github.com/danmane/abalone/go/router"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -55,6 +58,7 @@ func ConfigureRouter(s *api.Services, staticpath string) *mux.Router {
 }
 
 func MountHandlers(r *mux.Router, ds *api.Services) *mux.Router {
+	r.Get(router.GamesRun).HandlerFunc(RunGamesHandler(ds))
 	r.Get(router.Players).HandlerFunc(ListPlayersHandler(ds))
 	r.Get(router.PlayersCreate).HandlerFunc(CreatePlayersHandler(ds))
 	r.Get(router.APIBaseRoute).Path("/{rest:.*}").HandlerFunc(http.NotFound)
@@ -68,6 +72,38 @@ func StaticPathFallback(path string) http.Handler {
 			r.URL.Path = "/"
 			http.FileServer(http.Dir(path)).ServeHTTP(w, r)
 		})))
+}
+
+// RunGamesHandler runs a game between two remote player instances
+func RunGamesHandler(ds *api.Services) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := struct {
+			BlackPort string
+			WhitePort string
+		}{}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		whiteAgent := operator.RemotePlayerInstance{
+			APIPlayer: api.Player{},
+			Port:      req.WhitePort,
+		}
+		blackAgent := operator.RemotePlayerInstance{
+			APIPlayer: api.Player{},
+			Port:      req.BlackPort,
+		}
+		result := operator.ExecuteGame(&whiteAgent, &blackAgent, operator.Config{
+			Start: game.Standard,
+			Limit: api.DefaultMoveLimit,
+		})
+		log.Println(result.Outcome)
+		log.Println(result.VictoryReason)
+		if err := json.NewEncoder(w).Encode(result); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
 }
 
 // CreatePlayersHandler creates a new AI player running on a remote host
