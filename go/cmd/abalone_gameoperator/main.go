@@ -26,11 +26,11 @@ func main() {
 }
 
 func run() error {
-	whiteAgent := RemotePlayerInstance{
+	whiteAgent := operator.RemotePlayerInstance{
 		APIPlayer: api.Player{},
 		Port:      *aiPort1,
 	}
-	blackAgent := RemotePlayerInstance{
+	blackAgent := operator.RemotePlayerInstance{
 		APIPlayer: api.Player{},
 		Port:      *aiPort2,
 	}
@@ -40,17 +40,13 @@ func run() error {
 	})
 
 	switch result.VictoryReason {
-	case api.InvalidResponse:
-		fmt.Println("player submitted an invalid response")
-	case api.Timeout:
-		fmt.Println("player exceeded", *timelimit, "time limit")
-	case api.MovesDepleted:
-		fmt.Println("moves depleted")
-	case api.StonesDepleted:
-		fmt.Println("stones depleted")
+	case api.TimelimitExceeded:
+		fmt.Println(result.VictoryReason, fmt.Sprintln("(limit: %s)", *timelimit))
+	default:
+		fmt.Println(result.VictoryReason)
 	}
 
-	var winner RemotePlayerInstance
+	var winner operator.RemotePlayerInstance
 	switch result.Outcome {
 	case game.WhiteWins:
 		winner = whiteAgent
@@ -65,8 +61,4 @@ func run() error {
 	}
 
 	return nil
-}
-
-func toMillisecondCount(d time.Duration) int64 {
-	return int64(d / 1e6)
 }

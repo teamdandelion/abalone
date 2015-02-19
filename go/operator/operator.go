@@ -49,7 +49,7 @@ func ExecuteGame(whiteAgent, blackAgent PlayerInstance, config Config) api.GameR
 		}
 		if enforceLimit(currentGame, moves) && time.Now().Sub(then) > config.Limit {
 			return api.GameResult{
-				VictoryReason: api.Timeout,
+				VictoryReason: api.TimelimitExceeded,
 
 				White:   whiteAgent.Player(),
 				Black:   blackAgent.Player(),

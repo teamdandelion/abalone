@@ -1,4 +1,4 @@
-package main
+package operator
 
 import (
 	"bytes"
@@ -73,4 +73,8 @@ func withRetries(f func() error) error {
 	}
 	err := backoff.RetryNotify(f, backoffConfig, notifyFunc)
 	return err
+}
+
+func toMillisecondCount(d time.Duration) int64 {
+	return int64(d / 1e6)
 }
