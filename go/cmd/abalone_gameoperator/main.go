@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
 )
@@ -28,19 +30,61 @@ func main() {
 }
 
 func run() error {
-	whiteAI := api.Player{}
-	blackAI := api.Player{}
-	whiteAgent := PlayerInstance{Player: whiteAI, Port: *aiPort1}
-	blackAgent := PlayerInstance{Player: blackAI, Port: *aiPort2}
+	whiteAgent := RemotePlayerInstance{
+		APIPlayer: api.Player{},
+		Port:      *aiPort1,
+	}
+	blackAgent := RemotePlayerInstance{
+		APIPlayer: api.Player{},
+		Port:      *aiPort2,
+	}
 	start := game.Standard
-	playAIGame(whiteAgent, blackAgent, start)
-	// fmt.Println(result)
+	result := playAIGame(&whiteAgent, &blackAgent, start)
+
+	switch result.VictoryReason {
+	case api.InvalidResponse:
+		fmt.Println("player submitted an invalid response")
+	case api.Timeout:
+		fmt.Println("player exceeded", *timelimit, "time limit")
+	case api.MovesDepleted:
+		fmt.Println("moves depleted")
+	case api.StonesDepleted:
+		fmt.Println("stones depleted")
+	}
+
+	var winner RemotePlayerInstance
+	switch result.Outcome {
+	case game.WhiteWins:
+		winner = whiteAgent
+	case game.BlackWins:
+		winner = blackAgent
+	}
+	switch result.Outcome {
+	case game.WhiteWins, game.BlackWins:
+		fmt.Printf("%s (port %s) wins in %d move(s)", result.Outcome.Winner(), winner.Port, len(result.States))
+	default:
+		fmt.Println("tie game!")
+	}
+
 	return nil
 }
 
-type PlayerInstance struct {
-	Player api.Player
-	Port   string
+type PlayerInstance interface {
+	Play(s *game.State, limit time.Duration) (*game.State, error)
+	Player() api.Player
+}
+
+type RemotePlayerInstance struct {
+	APIPlayer api.Player
+	Port      string
+}
+
+func (i *RemotePlayerInstance) Player() api.Player {
+	return i.APIPlayer
+}
+
+func (i *RemotePlayerInstance) Play(s *game.State, limit time.Duration) (*game.State, error) {
+	return gameFromAI(i.Port, s)
 }
 
 func toMillisecondCount(d time.Duration) int64 {
@@ -56,13 +100,24 @@ func gameFromAI(port string, state *game.State) (*game.State, error) {
 	if err := json.NewEncoder(&buf).Encode(&mr); err != nil {
 		return nil, err
 	}
-	resp, err := http.Post("http://localhost:"+port+api.MovePath, "application/json", &buf)
-	if err != nil {
+
+	var rawResponse bytes.Buffer // will contain response if HTTP request is successful
+	f := func() error {
+		resp, err := http.Post("http://localhost:"+port+api.MovePath, "application/json", bytes.NewBuffer(buf.Bytes()))
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		io.Copy(&rawResponse, resp.Body)
+		return nil
+	}
+
+	if err := withRetries(f); err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+
 	responseGame := &game.State{}
-	if err := json.NewDecoder(resp.Body).Decode(responseGame); err != nil {
+	if err := json.NewDecoder(&rawResponse).Decode(responseGame); err != nil {
 		return nil, err
 	}
 	if !state.ValidFuture(responseGame) {
@@ -86,47 +141,69 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 		} else {
 			nextAI = blackAgent
 		}
-		futureGame, err := gameFromAI(nextAI.Port, currentGame)
+		then := time.Now()
+		futureGame, err := nextAI.Play(currentGame, *timelimit)
 		if err != nil {
-			fmt.Println("Game is terminating due to an invalid response!")
 			fmt.Println(err)
 			victory = api.InvalidResponse
 			outcome = currentGame.NextPlayer.Loses()
-			fmt.Println("%v", outcome)
 			return api.GameResult{
-				White:         whiteAgent.Player,
-				Black:         blackAgent.Player,
+				White:         whiteAgent.Player(),
+				Black:         blackAgent.Player(),
 				Outcome:       outcome,
 				VictoryReason: victory,
 				States:        states,
 			}
 		}
+		if enforceLimit(currentGame, moves) && time.Now().Sub(then) > *timelimit {
+			return api.GameResult{
+				VictoryReason: api.Timeout,
+
+				White:   whiteAgent.Player(),
+				Black:   blackAgent.Player(),
+				Outcome: currentGame.NextPlayer.Loses(),
+				States:  states,
+			}
+		}
 		currentGame = futureGame
 		states = append(states, *currentGame)
 	}
-	fmt.Println(states)
+
 	outcome = currentGame.Outcome()
-	if outcome == game.WhiteWins {
-		fmt.Printf("white wins (on port %v)\n", *aiPort1)
-	} else if outcome == game.BlackWins {
-		fmt.Printf("black wins (on port %v)\n", *aiPort2)
-	} else {
-		fmt.Println("tie game!")
-	}
 	loser := outcome.Loser()
 	if loser != game.NullPlayer && currentGame.NumPieces(loser) <= currentGame.LossThreshold {
-		fmt.Println("stones depeleted")
 		victory = api.StonesDepleted
 	} else {
-		fmt.Println("moves depeleted")
 		victory = api.MovesDepleted
 	}
 	return api.GameResult{
-		White:         whiteAgent.Player,
-		Black:         blackAgent.Player,
+		White:         whiteAgent.Player(),
+		Black:         blackAgent.Player(),
 		Outcome:       outcome,
 		VictoryReason: victory,
 		States:        states,
 	}
 
+}
+
+// first mover is given a bye. maybe we want to give a bye to both players on
+// their first moves?
+func enforceLimit(_ *game.State, moves int) bool {
+	if moves == 1 {
+		return false
+	}
+	return true
+}
+
+func withRetries(f func() error) error {
+	backoffConfig := backoff.NewExponentialBackOff()
+	backoffConfig.InitialInterval = time.Second
+	backoffConfig.MaxInterval = 10 * time.Second
+	backoffConfig.MaxElapsedTime = 60 * time.Second
+
+	notifyFunc := func(err error, dur time.Duration) {
+		log.Printf("waiting %v, failed to get move from player: %s", dur, err)
+	}
+	err := backoff.RetryNotify(f, backoffConfig, notifyFunc)
+	return err
 }
