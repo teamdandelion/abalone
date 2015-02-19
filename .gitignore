@@ -13,8 +13,11 @@ cabal.config
 *.prof
 *.hp
 *.aux
-elm/elm_stuff/
-elm/elm.js
+unsupported/elm/elm-stuff
+unsupported/elm/elm.js
+unsupported/elm/*temp*
+unsupported/hs/docsets
+
 
 go/cmd/abalone_relayd/abalone_relayd
 go/cmd/abalone_example_ai/abalone_example_ai
