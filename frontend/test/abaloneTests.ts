@@ -6,7 +6,7 @@ function board(white: number[][], black: number[][], rad: number): Board {
 	return {
 		whitePositions: tuplesToHexes(white), 
 		blackPositions: tuplesToHexes(black), 
-		boardRadius: rad
+		edgeLength: rad
 	};
 }
 
@@ -22,7 +22,7 @@ function game(b: Board, np: Player, mr: number, lt: number, mpm: number): Game {
 
 function continueGame(g: Game, white: number[][], black: number[][]): Game {
 	return {
-		board: board(white, black, g.board.boardRadius),
+		board: board(white, black, g.board.edgeLength),
 		nextPlayer: next(g.nextPlayer),
 		movesRemaining: g.movesRemaining-1,
 		lossThreshold: g.lossThreshold,
@@ -58,7 +58,7 @@ function move(base: Hex, orientation: Direction, len: number, player: Player, di
 
 function gameEq(g1: Game, g2: Game) {
 	function boardEq(b1: Board, b2: Board) {
-		return b1.boardRadius === b2.boardRadius 
+		return b1.edgeLength === b2.edgeLength 
 			&& tupleArraySetEq(b1.whitePositions, b2.whitePositions)
 			&& tupleArraySetEq(b1.blackPositions, b2.blackPositions);
 	}

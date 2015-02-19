@@ -9,6 +9,7 @@ module Main {
         }
         
         public gameLoop(game: Abalone.Game) {
+            console.log("gameLoop:", game);
             this.renderer.drawGame(game);
             
             if (Abalone.gameOver(game)) {

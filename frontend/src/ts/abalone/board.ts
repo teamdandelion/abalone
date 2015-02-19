@@ -5,7 +5,7 @@ module Abalone {
 	export interface Board {
 		whitePositions: Hex[];
 		blackPositions: Hex[];
-		boardRadius: number;
+		edgeLength: number;
 	}
 
 	export function free(b: Board, x: Hex): boolean {
@@ -34,7 +34,7 @@ module Abalone {
 
 	export function standardBoard() {
 		return <Board> <any> {
-			boardRadius   : 5, 
+			edgeLength   : 5, 
 			whitePositions: tuplesToHexes([
 				[-4,3],[-4,4],[-3,3],[-3,4],[-2,2],
 				[-2,3],[-2,4],[-1,2],[-1,3],[-1,4],

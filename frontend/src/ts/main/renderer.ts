@@ -161,7 +161,9 @@ module Main {
             var finish = (m: Abalone.Move) => {
                 this.drawOverlay(null, false, g);
                 disabled = true;
-                cb(Abalone.update(g, m));
+                var result = Abalone.update(g, m);
+                console.log("renderer/play/finish:", result);
+                cb(result);
             }
 
             var dragstart = () => {

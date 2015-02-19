@@ -65,7 +65,7 @@ module Abalone {
 	}
 
 	export function onBoard(b: Board, p: Hex): boolean {
-		return dist2(p, {q: 0, r: 0}) < b.boardRadius * 2;
+		return dist2(p, {q: 0, r: 0}) < b.edgeLength * 2;
 	}
 
 	export function opposite(d: Direction): Direction {

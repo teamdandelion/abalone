@@ -36,6 +36,9 @@ module Abalone {
 
 	export function deserializeGame(s: string): Game {
 		var g = JSON.parse(s);
+		if (g.state != null) {
+			g = g.state;
+		}
 		g.nextPlayer = str2player(g.nextPlayer);
 		return <Game> g;
 	}
@@ -155,7 +158,7 @@ module Abalone {
 		var newBoard = {
 			whitePositions: newWhite,
 			blackPositions: newBlack,
-			boardRadius: g.board.boardRadius
+			edgeLength: g.board.edgeLength
 		}
 
 		return {

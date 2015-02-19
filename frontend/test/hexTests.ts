@@ -10,9 +10,9 @@ describe("Hex", () => {
 	});
 
 	it("onboard works", () => {
-		var b1 = {whitePositions: [], blackPositions: [], boardRadius: 1};
-		var b2 = {whitePositions: [], blackPositions: [], boardRadius: 2};
-		var b3 = {whitePositions: [], blackPositions: [], boardRadius: 3};
+		var b1 = {whitePositions: [], blackPositions: [], edgeLength: 1};
+		var b2 = {whitePositions: [], blackPositions: [], edgeLength: 2};
+		var b3 = {whitePositions: [], blackPositions: [], edgeLength: 3};
 		assert.isTrue (onBoard(b1, {q: 0, r: 0}), "b1, 00");
 		assert.isFalse(onBoard(b1, {q: 0, r: 1}), "b1, 01");
 		assert.isTrue (onBoard(b2, {q: 0, r: 1}), "b2, 01");
@@ -20,7 +20,7 @@ describe("Hex", () => {
 		assert.isTrue (onBoard(b3, {q: 0, r: 2}), "b3, 02");
 		assert.isFalse(onBoard(b3, {q: 0, r: 3}), "b3, 03");
 
-		var b5 = {whitePositions: [], blackPositions: [], boardRadius: 5};
+		var b5 = {whitePositions: [], blackPositions: [], edgeLength: 5};
 		hexagonalGrid(5).forEach((h) => assert.isTrue(onBoard(b5, h), JSON.stringify(h)));
 		ring(6).forEach((h) => assert.isFalse(onBoard(b5, h), JSON.stringify(h)));
 	});
