@@ -60,11 +60,11 @@ func gameFromAI(port string, state *game.State) (*game.State, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	responseGame := &game.State{}
 	if err := json.NewDecoder(resp.Body).Decode(responseGame); err != nil {
 		return nil, err
 	}
-	resp.Body.Close()
 	if !state.ValidFuture(responseGame) {
 		return nil, fmt.Errorf("game parsed correctly, but isn't a valid future")
 	}
