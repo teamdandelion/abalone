@@ -105,7 +105,7 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 		currentGame = futureGame
 		states = append(states, *currentGame)
 	}
-
+	fmt.Println(states)
 	outcome = currentGame.Outcome()
 	if outcome == game.WhiteWins {
 		fmt.Printf("white wins (on port %v)\n", *aiPort1)
