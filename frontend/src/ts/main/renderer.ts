@@ -4,6 +4,8 @@ module Main {
         private board: D3.Selection;
         private whitePieces: D3.Selection;
         private blackPieces: D3.Selection;
+        private whiteNumPieces: D3.Selection;
+        private blackNumPieces: D3.Selection;
         private overlay: D3.Selection;
         private eventLayer: D3.Selection;
         private grid: D3.Selection;
@@ -20,6 +22,12 @@ module Main {
             this.grid = this.board.append("g").classed("grid", true);
             this.whitePieces = this.board.append("g").classed("white", true);
             this.blackPieces = this.board.append("g").classed("black", true);
+            this.whiteNumPieces = this.board.append("text")
+                .attr("x", 50).attr("y", height-100)
+                .classed("score-display", true).classed("white", true);
+            this.blackNumPieces = this.board.append("text")
+                .attr("x", 50).attr("y", 200)
+                .classed("score-display", true).classed("black", true);
             this.eventLayer = this.svg.append("rect")
                                     .attr({width: width, height: height})
                                     .style({fill: "black", opacity: 0})
@@ -52,6 +60,8 @@ module Main {
         private drawPieces(b: Abalone.Board) {
             this.addPieces(this.whitePieces, b.whitePositions);
             this.addPieces(this.blackPieces, b.blackPositions);
+            this.whiteNumPieces.text(b.whitePositions.length);
+            this.blackNumPieces.text(b.blackPositions.length);
         }
 
         private addPieces(selection: D3.Selection, pieces: Abalone.Hex[]) {

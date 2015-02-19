@@ -13,14 +13,18 @@
 }
 
 
-.board .white circle {
+.board .white {
 	fill: #ff7f0e;
 }
 
-.board .black circle {
+.board .black {
 	fill: #1f77b4;
 }
 
 .board .faded circle {
 	opacity: 0.5;
+}
+
+.score-display {
+	font-size: 30px;
 }
