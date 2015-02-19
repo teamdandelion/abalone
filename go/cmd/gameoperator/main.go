@@ -57,7 +57,7 @@ func gameFromAI(state *game.State, port string) (*game.State, error) {
 	}
 	resp.Body.Close()
 	if !state.ValidFuture(responseGame) {
-		return fmt.Errorf("game parsed correctly, but isn't a valid future"), nil
+		return nil, fmt.Errorf("game parsed correctly, but isn't a valid future")
 	}
 	return responseGame, nil
 }
@@ -74,7 +74,7 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 		} else {
 			nextAI = blackAgent
 		}
-		futureGame, err := gameFromAI(nextAI.Port, currentGame)
+		futureGame, err := gameFromAI(currentGame, nextAI.Port)
 		if err != nil {
 			fmt.Println(err)
 			victory = api.InvalidResponse
