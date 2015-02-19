@@ -13,9 +13,15 @@
     <script src="bower_components/lodash/lodash.js"></script>
     <script src="build/abalone.js"></script>
     <script src="build/main.js"></script>
-
+    <script>
+    window.onload = function() {
+      Main.playLocalGame(d3.select("svg"));
+    }</script>
 
   </head>
   <body>
+  <a href="local.html">Play locally (against a human)</a>
+  <br>
+  <a href="remote.html">Play remotely (against an AI via port 1337 using abalone_relayd, gameoperator, and an AI)</a>
   </body>
 </html>

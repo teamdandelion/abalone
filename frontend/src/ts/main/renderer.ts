@@ -14,8 +14,9 @@ module Main {
         private width: number;
         private hexSize: number;
 
-        constructor(svg: D3.Selection, width: number, height: number, hexesOnEdge=5) {
+        constructor(svg: D3.Selection, hexesOnEdge=5) {
             this.svg = svg;
+            this.autoGetWidthHeight();
             this.hexesOnEdge = hexesOnEdge;
             this.overlay = this.svg.append("g").classed("overlay", true);
             this.board = this.svg.append("g").classed("board", true);
@@ -23,17 +24,59 @@ module Main {
             this.whitePieces = this.board.append("g").classed("white", true);
             this.blackPieces = this.board.append("g").classed("black", true);
             this.whiteNumPieces = this.board.append("text")
-                .attr("x", 50).attr("y", height-100)
+                .attr("x", 50).attr("y", this.height-100)
                 .classed("score-display", true).classed("white", true);
             this.blackNumPieces = this.board.append("text")
                 .attr("x", 50).attr("y", 200)
                 .classed("score-display", true).classed("black", true);
             this.eventLayer = this.svg.append("rect")
-                                    .attr({width: width, height: height})
+                                    .attr({width: this.width, height: this.height})
                                     .style({fill: "black", opacity: 0})
                                     .classed("hitbox", true);
 
-            this.resize(width, height);
+            this.resize(this.width, this.height);
+        }
+
+        private autoGetWidthHeight() {
+            // this fn taken from Plottable (component.ts). Almost certainly more 
+            // complex than is needed since Plottable cares about browser compat
+            // and we don't, but why not
+            if (this.svg.attr("width") == null) {
+              this.svg.attr("width", "100%");
+            }
+            if (this.svg.attr("height") == null) {
+              this.svg.attr("height", "100%");
+            }
+
+            function _getParsedStyleValue(style: CSSStyleDeclaration, prop: string): number {
+              var value: any = style.getPropertyValue(prop);
+              if (value == null){
+                return 0;
+              }
+              return parseFloat(value);
+            }
+
+            function getElementWidth(elem: HTMLScriptElement): number{
+              var style: CSSStyleDeclaration = window.getComputedStyle(elem);
+              return _getParsedStyleValue(style, "width")
+                + _getParsedStyleValue(style, "padding-left")
+                + _getParsedStyleValue(style, "padding-right")
+                + _getParsedStyleValue(style, "border-left-width")
+                + _getParsedStyleValue(style, "border-right-width");
+            }
+
+            function getElementHeight(elem: HTMLScriptElement): number{
+              var style: CSSStyleDeclaration = window.getComputedStyle(elem);
+              return _getParsedStyleValue(style, "height")
+                + _getParsedStyleValue(style, "padding-top")
+                + _getParsedStyleValue(style, "padding-bottom")
+                + _getParsedStyleValue(style, "border-top-width")
+                + _getParsedStyleValue(style, "border-bottom-width");
+            }
+
+            var elem: HTMLScriptElement = (<HTMLScriptElement> this.svg.node());
+            this.width  = getElementWidth(elem);
+            this.height = getElementHeight(elem);
         }
 
         public resize(width, height) {
@@ -72,11 +115,13 @@ module Main {
                 .data(pieces);
             update
                 .enter()
-                    .append("circle");
-            update
+                    .append("circle")
+                        .attr("r",  this.hexSize/2)
+                        .attr("cx", xf)
+                        .attr("cy", yf);
+            update.transition()
                 .attr("cx", xf)
                 .attr("cy", yf)
-                .attr("r",  this.hexSize/2);
             update
                 .exit().remove();
 
