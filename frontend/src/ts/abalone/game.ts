@@ -24,19 +24,81 @@ module Abalone {
 		}
 	}	
 
+	export function smallGame(): Game {
+		return {
+			lossThreshold : 1,
+			marblesPerMove: 3,
+			movesRemaining: 200,
+			nextPlayer    : Player.White,
+			board         : smallBoard()
+		}
+	}	
+
+	export function findGeneratingMove(initial: Game, future: Game): Move {
+		var ms = moves(initial);
+		for (var i=0; i<ms.length; i++) {
+			var f = update(initial, ms[i]);
+			if (gameEq(f, future)) {
+				return ms[i]
+			}
+		}	
+		return null;	
+	}
+
+	export function validFuture(initial: Game, future: Game): boolean {
+		var theFutures = futures(initial);
+		for (var i = 0; i < theFutures.length; i++) {
+			if (gameEq(future, theFutures[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	export function gameEq(g1: Game, g2: Game) {
+		function boardEq(b1: Board, b2: Board) {
+			return b1.edgeLength === b2.edgeLength 
+				&& arrayIsPermutation(b1.whitePositions, b2.whitePositions)
+				&& arrayIsPermutation(b1.blackPositions, b2.blackPositions);
+		}
+		function arrayIsPermutation(a1: Hex[], a2: Hex[]) {
+			if (a1.length !== a2.length) return false;
+            var present: any = {}
+            var i: number;
+            var k: string;
+            for (i = 0; i < a1.length; i++) {
+                k = JSON.stringify(a1[i])
+                present[k] = true;
+            }
+            for (i = 0; i < a2.length; i++) {
+                k = JSON.stringify(a2[i])
+                if (!present[k]) {
+                    return false;
+                }
+            }
+            return true;
+		}
+		return g1.nextPlayer === g2.nextPlayer 
+			&& g1.movesRemaining === g2.movesRemaining
+			&& g1.lossThreshold === g2.lossThreshold
+			&& g1.marblesPerMove === g2.marblesPerMove
+			&& boardEq(g1.board, g2.board);
+	}
+
 	function copyJSON(a: any): any {
 		return JSON.parse(JSON.stringify(a));
 	}
 
 	export function serializeGame(g: Game): string {
-		var anyg = copyJSON(g);
-		anyg.nextPlayer = player2str(g.nextPlayer)
-		return JSON.stringify(anyg);
+		var copiedState = copyJSON(g);
+		copiedState.nextPlayer = player2str(g.nextPlayer)
+		return JSON.stringify(copiedState);
 	}
 
 	export function deserializeGame(s: string): Game {
 		var g = JSON.parse(s);
 		if (g.state != null) {
+			// HACKHACK brian changed format so a moverequest contains a game state
 			g = g.state;
 		}
 		g.nextPlayer = str2player(g.nextPlayer);

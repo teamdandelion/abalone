@@ -56,31 +56,6 @@ function move(base: Hex, orientation: Direction, len: number, player: Player, di
 	}
 }
 
-function gameEq(g1: Game, g2: Game) {
-	function boardEq(b1: Board, b2: Board) {
-		return b1.edgeLength === b2.edgeLength 
-			&& tupleArraySetEq(b1.whitePositions, b2.whitePositions)
-			&& tupleArraySetEq(b1.blackPositions, b2.blackPositions);
-	}
-	function tupleArraySetEq(a1: Hex[], a2: Hex[]) {
-		if (a1.length !== a2.length) return false;
-		var sort1 = a1.slice().sort();
-		var sort2 = a2.slice().sort();
-		for (var i=0; i<a1.length; i++) {
-			if (!tupleEq(sort1[i], sort2[i])) return false;
-		}
-		return true;
-	}
-	function tupleEq(t1: Hex, t2: Hex) {
-		return t1[0] === t2[0] && t1[1] === t2[1];
-	}
-	return g1.nextPlayer === g2.nextPlayer 
-		&& g1.movesRemaining === g2.movesRemaining
-		&& g1.lossThreshold === g2.lossThreshold
-		&& g1.marblesPerMove === g2.marblesPerMove
-		&& boardEq(g1.board, g2.board);
-}
-
 function assertGameEq(g1: Game, g2: Game, message: string) {
 	assert.isTrue(gameEq(g1, g2), message);
 }

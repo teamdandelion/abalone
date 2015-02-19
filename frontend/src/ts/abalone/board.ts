@@ -47,4 +47,16 @@ module Abalone {
 				])
 		}
 	}
+
+	export function smallBoard() {
+		return <Board> <any> {
+			edgeLength: 2,
+			whitePositions: tuplesToHexes([
+				[-1, 1], [0,1], [0,0]
+				]),
+			blackPositions: tuplesToHexes([
+				[0,-1], [1,-1]
+				])
+		}
+	}
 }

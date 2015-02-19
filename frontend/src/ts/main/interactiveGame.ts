@@ -1,6 +1,7 @@
 module Main {
     var port = "1337"
     export class InteractiveGame {
+        private lastState: Abalone.Game;
         constructor(private renderer: Renderer, 
                     private white: PlayerAgent, 
                     private black: PlayerAgent) {}
@@ -10,7 +11,10 @@ module Main {
         }
         
         public gameLoop(game: Abalone.Game) {
-            console.log("gameLoop:", game);
+            if (this.lastState != null && !Abalone.validFuture(this.lastState, game)) {
+                debugger;
+            }
+            this.lastState = game;
             this.renderer.drawGame(game);
             
             if (Abalone.gameOver(game)) {
@@ -21,11 +25,13 @@ module Main {
         }
     }
 
-    export function playLocalGame(svg: D3.Selection): void {
-        var renderer = new Renderer(svg);
-        var game = Abalone.standardGame();
+    export function playLocalGame(svg: D3.Selection, state?: Abalone.Game): void {
+        if (state == null) {
+            state = Abalone.standardGame();
+        }
+        var renderer = new Renderer(svg, state.board.edgeLength);
         var interactiveGame = new InteractiveGame(renderer, renderer, renderer);
-        interactiveGame.start(game);
+        interactiveGame.start(state);
     }
 
     export function playRemoteGame(svg: D3.Selection): void {

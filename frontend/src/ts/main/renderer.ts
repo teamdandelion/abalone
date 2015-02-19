@@ -8,14 +8,17 @@ module Main {
         private blackNumPieces: D3.Selection;
         private overlay: D3.Selection;
         private eventLayer: D3.Selection;
+        private coordinateLayer: D3.Selection;
         private grid: D3.Selection;
         private hexesOnEdge: number;
         private height: number;
         private width: number;
         private hexSize: number;
+        private marbleTracker: MarbleTracker;
 
         constructor(svg: D3.Selection, hexesOnEdge=5) {
             this.svg = svg;
+            this.marbleTracker = new MarbleTracker();
             this.autoGetWidthHeight();
             this.hexesOnEdge = hexesOnEdge;
             this.overlay = this.svg.append("g").classed("overlay", true);
@@ -23,6 +26,7 @@ module Main {
             this.grid = this.board.append("g").classed("grid", true);
             this.whitePieces = this.board.append("g").classed("white", true);
             this.blackPieces = this.board.append("g").classed("black", true);
+            this.coordinateLayer = this.board.append("g").classed("coordinate-layer", true);
             this.whiteNumPieces = this.board.append("text")
                 .attr("x", 50).attr("y", this.height-100)
                 .classed("score-display", true).classed("white", true);
@@ -94,6 +98,7 @@ module Main {
         }
 
         public drawGame(g: Abalone.Game) {
+            this.marbleTracker.update(g);
             this.drawPieces(g.board);
             var whiteIsNext = g.nextPlayer === Abalone.Player.White;
             this.whitePieces.classed("faded", !whiteIsNext);
@@ -110,9 +115,10 @@ module Main {
         private addPieces(selection: D3.Selection, pieces: Abalone.Hex[]) {
             var xf = (d,i) => this.qr2xy(d)[0];
             var yf = (d,i) => this.qr2xy(d)[1];
+            var keyedPieces = this.marbleTracker.getKeyedPieces(pieces);
             var update = selection
                 .selectAll("circle")
-                .data(pieces);
+                .data(keyedPieces, (kp) => kp.id);
             update
                 .enter()
                     .append("circle")
@@ -191,7 +197,7 @@ module Main {
             var xf = (d,i) => this.qr2xy(d)[0] - 5;
             var yf = (d,i) => this.qr2xy(d)[1] - 5;
 
-            var textUpdate = this.grid.selectAll("text").data(hexes);
+            var textUpdate = this.coordinateLayer.selectAll("text").data(hexes);
             textUpdate
                 .enter()
                     .append("text")
