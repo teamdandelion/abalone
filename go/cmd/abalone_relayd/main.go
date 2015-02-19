@@ -10,8 +10,7 @@ import (
 )
 
 var (
-	operatorPort = flag.String("operatorPort", "3424", "port the operator pings at")
-	lastGame     bytes.Buffer
+	port = flag.String("port", "3424", "port the operator pings at")
 )
 
 func handleClientPost(clientPost chan<- []byte) http.HandlerFunc {
@@ -76,7 +75,7 @@ func main() {
 	}()
 
 	go func() {
-		http.ListenAndServe(":"+*operatorPort, r)
+		http.ListenAndServe(":"+*port, r)
 	}()
 	http.ListenAndServe(":1337", r)
 }
