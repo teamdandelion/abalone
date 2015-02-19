@@ -22,3 +22,13 @@ func (o Outcome) Winner() Player {
 func (o Outcome) Loser() Player {
 	return o.Winner().Next()
 }
+
+func (o Outcome) String() string {
+	if o == WhiteWins {
+		return "white wins"
+	} else if o == BlackWins {
+		return "black wins"
+	} else {
+		return "null outcome"
+	}
+}

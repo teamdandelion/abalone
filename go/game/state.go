@@ -113,11 +113,12 @@ func (g *State) Update(m *Move) State {
 	return newGame
 }
 
-func (g *State) Futures() []State {
+func (g *State) Futures() []*State {
 	moves := g.moves()
-	result := make([]State, len(moves))
+	result := make([]*State, len(moves))
 	for i := 0; i < len(moves); i++ {
-		result[i] = g.Update(&moves[i])
+		s := g.Update(&moves[i])
+		result[i] = &s
 	}
 	return result
 }

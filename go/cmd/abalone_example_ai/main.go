@@ -31,6 +31,6 @@ func main() {
 		if len(f) == 0 {
 			panic("Ah! There are no future states. Why'd the server send this to me? =( ")
 		}
-		return f[0]
+		return *f[0]
 	})
 }
