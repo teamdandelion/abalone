@@ -44,16 +44,20 @@ type PlayerInstance struct {
 	Port   string
 }
 
-const (
-	MovePath = "/move"
-)
+func toMillisecondCount(d time.Duration) int64 {
+	return int64(d / 1e6)
+}
 
 func gameFromAI(port string, state *game.State) (*game.State, error) {
+	mr := api.MoveRequest{
+		State:      *state,
+		LimitMilli: toMillisecondCount(api.DefaultMoveLimit),
+	}
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(state); err != nil {
+	if err := json.NewEncoder(&buf).Encode(mr); err != nil {
 		return nil, err
 	}
-	resp, err := http.Post("http://localhost:"+port+MovePath, "application/json", &buf)
+	resp, err := http.Post("http://localhost:"+port+api.MovePath, "application/json", &buf)
 	if err != nil {
 		return nil, err
 	}

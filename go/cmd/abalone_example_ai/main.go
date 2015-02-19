@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"time"
+
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
 	"github.com/danmane/abalone/go/quickstart"
@@ -24,7 +26,7 @@ func main() {
 	// 		"Zombies eat brains. You’re safe.",
 	// 	},
 	// }
-	quickstart.Play(player, func(s game.State) game.State {
+	quickstart.Play(player, func(s game.State, limit time.Duration) game.State {
 		f := s.Futures()
 		if len(f) == 0 {
 			panic("Ah! There are no future states. Why'd the server send this to me? =( ")
