@@ -23,6 +23,7 @@ var (
 
 func main() {
 	flag.Parse()
+	fmt.Println("game operater operating!")
 	if err := run(); err != nil {
 		log.Fatal(err)
 	}
@@ -34,8 +35,8 @@ func run() error {
 	whiteAgent := PlayerInstance{Player: whiteAI, Port: *aiPort1}
 	blackAgent := PlayerInstance{Player: blackAI, Port: *aiPort2}
 	start := game.Standard
-	result := playAIGame(whiteAgent, blackAgent, start)
-	fmt.Println(result)
+	playAIGame(whiteAgent, blackAgent, start)
+	// fmt.Println(result)
 	return nil
 }
 
@@ -77,8 +78,11 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 	currentGame := &startState
 	victory := api.NoVictory
 	outcome := game.NullOutcome
+	var moves int = 0
 	for !currentGame.GameOver() {
 		var nextAI PlayerInstance
+		fmt.Printf("move %v (%v)\n", moves, currentGame.NextPlayer.String())
+		moves++
 		if currentGame.NextPlayer == game.White {
 			nextAI = whiteAgent
 		} else {
@@ -86,6 +90,7 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 		}
 		futureGame, err := gameFromAI(nextAI.Port, currentGame)
 		if err != nil {
+			fmt.Println("Game is terminating due to an invalid response!")
 			fmt.Println(err)
 			victory = api.InvalidResponse
 			outcome = currentGame.NextPlayer.Loses()
@@ -102,10 +107,19 @@ func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) ap
 	}
 
 	outcome = currentGame.Outcome()
+	if outcome == game.WhiteWins {
+		fmt.Printf("white wins (on port %v)\n", *aiPort1)
+	} else if outcome == game.BlackWins {
+		fmt.Printf("black wins (on port %v)\n", *aiPort2)
+	} else {
+		fmt.Println("tie game!")
+	}
 	loser := outcome.Loser()
 	if loser != game.NullPlayer && currentGame.NumPieces(loser) <= currentGame.LossThreshold {
+		fmt.Println("stones depeleted")
 		victory = api.StonesDepleted
 	} else {
+		fmt.Println("moves depeleted")
 		victory = api.MovesDepleted
 	}
 	return api.GameResult{
