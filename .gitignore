@@ -19,5 +19,6 @@ elm/elm.js
 frontend/bower_components
 frontend/node_modules
 frontend/build
+frontend/.tscache
 .DS_Store
 .cabal_sandbox
