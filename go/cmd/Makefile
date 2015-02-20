@@ -1,6 +1,9 @@
+DIRS = abalone_ctl \
+	   abalone_dbmigrate \
+	   abalone_example_ai \
+	   abalone_gameoperator \
+	   abalone_httpd \
+	   abalone_relayd \
+
 install:
-	cd abalone_dbmigrate/ && go install
-	cd abalone_example_ai/ && go install
-	cd abalone_httpd/ && go install
-	cd abalone_relayd/ && go install 
-	cd abalone_gameoperator/ && go install
+	$(foreach dir, $(DIRS), cd $(PWD)/$(dir) && go install; )
