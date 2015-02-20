@@ -32,7 +32,7 @@ func Benchmark_Equal(b *testing.B) {
 	fs := Standard.Futures()
 	b.ResetTimer()
 	for n := 0; n <= b.N; n++ {
-		Standard.eq(fs[1])
+		Standard.Equal(fs[1])
 	}
 }
 
@@ -58,14 +58,14 @@ func TestGameMarshalJSON(t *testing.T) {
 	if err := json.NewDecoder(bytes.NewBufferString(canonical_encoded)).Decode(&canonical_decoded); err != nil {
 		t.Fatal(err)
 	}
-	if !g.eq(&canonical_decoded) {
+	if !g.Equal(&canonical_decoded) {
 		t.Error("standard game did not match canonical serialized game")
 	}
 	var gprime State
 	if err := json.NewDecoder(bytes.NewBuffer(data)).Decode(&gprime); err != nil {
 		t.Fatal(err)
 	}
-	if !g.eq(&gprime) {
+	if !g.Equal(&gprime) {
 		t.Error("game changed by serialization operation")
 		t.Log("before", g)
 		t.Log("serialized", buf.String())
