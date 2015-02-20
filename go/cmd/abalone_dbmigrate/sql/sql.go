@@ -12,9 +12,8 @@ import (
 )
 
 var (
-	dbOption = flag.String("db", "sqlite3", "")
-	dbAddr   = flag.String("addr", "sqlite.db", "")
-	dialect  = flag.String("dialect", "sqlite3", "")
+	dbAddr  = flag.String("addr", "sqlite.db", "")
+	dialect = flag.String("dialect", "sqlite3", "")
 )
 
 func main() {
@@ -25,7 +24,7 @@ func main() {
 }
 
 func run() error {
-	sql, err := gorm.Open(*dbOption, *dbAddr)
+	sql, err := gorm.Open(*dialect, *dbAddr)
 	if err != nil {
 		return err
 	}
