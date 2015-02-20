@@ -26,6 +26,16 @@ func Benchmark_futures(b *testing.B) {
 	}
 }
 
+func Benchmark_Equal(b *testing.B) {
+	b.ReportAllocs()
+
+	fs := Standard.Futures()
+	b.ResetTimer()
+	for n := 0; n <= b.N; n++ {
+		Standard.eq(fs[1])
+	}
+}
+
 func TestFuturesAreValid(t *testing.T) {
 	futures := Standard.Futures()
 	for _, f := range futures {
