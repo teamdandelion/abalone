@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
@@ -11,8 +12,9 @@ import (
 )
 
 var (
-	dbOption = flag.String("db", "sqlite3", "serve static files located in this directory")
-	dbAddr   = flag.String("addr", "sqlite.db", "serve static files located in this directory")
+	dbOption = flag.String("db", "sqlite3", "")
+	dbAddr   = flag.String("addr", "sqlite.db", "")
+	dialect  = flag.String("dialect", "sqlite3", "")
 )
 
 func main() {
@@ -22,7 +24,16 @@ func main() {
 	}
 }
 
-func translate(dialect string) string {
+func run() error {
+	sql, err := gorm.Open(*dbOption, *dbAddr)
+	if err != nil {
+		return err
+	}
+
+	return sql.Exec(constructMigration(*dialect)).Error
+}
+
+func constructMigration(dialect string) string {
 	q := `
 	CREATE TABLE authors (
 		AUTOINCREMENTING_PRIMARYKEY_INTEGER_ID,
@@ -46,7 +57,7 @@ func translate(dialect string) string {
 		AUTOINCREMENTING_PRIMARYKEY_INTEGER_ID,
 		first_player INT NOT NULL,
 		second_player INT NOT NULL,
-		outcome INT NULL,
+		outcome_id INT NULL,
 		winner INT NULL,
 		match_id INT NOT NULL,
 		FOREIGN KEY (first_player) REFERENCES players (id),
@@ -71,7 +82,7 @@ func translate(dialect string) string {
 	`
 
 	var statement string
-	switch (dialect){
+	switch dialect {
 	case "postgres":
 		statement = "id SERIAL PRIMARY KEY"
 	case "sqlite3":
@@ -80,15 +91,5 @@ func translate(dialect string) string {
 		statement = `id INTEGER NOT NULL AUTO_INCREMENT,
 		PRIMARY KEY (id)`
 	}
-	return strings.Replace(q,"AUTOINCREMENTING_PRIMARYKEY_INTEGER_ID", statement, -1)
-}
-
-func run() error {
-	sql, err := gorm.Open(*dbOption, *dbAddr)
-	if err != nil {
-		return err
-	}
-
-
-	return sql.Exec(constructed_q).Error
+	return strings.Replace(q, "AUTOINCREMENTING_PRIMARYKEY_INTEGER_ID", statement, -1)
 }
