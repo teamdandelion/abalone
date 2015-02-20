@@ -53,6 +53,11 @@ func constructMigration(dialect string) string {
 		name VARCHAR(25) NOT NULL
 	);
 
+	CREATE TABLE matches (
+		AUTOINCREMENTING_PRIMARYKEY_INTEGER_ID,
+		players INT[] NOT NULL
+	);
+
 	CREATE TABLE games (
 		AUTOINCREMENTING_PRIMARYKEY_INTEGER_ID,
 		first_player INT NOT NULL,
@@ -73,11 +78,6 @@ func constructMigration(dialect string) string {
 		state JSON NOT NULL,
 		FOREIGN KEY (game_id) REFERENCES games (id),
 		PRIMARY KEY (game_id, turn_num)
-	);
-
-	CREATE TABLE matches (
-		AUTOINCREMENTING_PRIMARYKEY_INTEGER_ID,
-		players[] INT[] NOT NULL
 	);
 	`
 
