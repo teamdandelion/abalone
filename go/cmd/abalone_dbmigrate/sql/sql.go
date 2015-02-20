@@ -51,7 +51,7 @@ func translate(dialect string) string {
 		match_id INT NOT NULL,
 		FOREIGN KEY (first_player) REFERENCES players (id),
 		FOREIGN KEY (second_player) REFERENCES players (id),
-		FOREIGN KEY (outcome_id) REFERENCES ref_outcome (id)
+		FOREIGN KEY (outcome_id) REFERENCES ref_outcome (id),
 		FOREIGN KEY (winner) REFERENCES players (id),
 		FOREIGN KEY (match_id) REFERENCES matches (id)
 	);
@@ -59,7 +59,7 @@ func translate(dialect string) string {
 	CREATE TABLE records (
 		game_id INT NOT NULL,
 		turn_num INT NOT NULL,
-		state JSON NOT NULL
+		state JSON NOT NULL,
 		FOREIGN KEY (game_id) REFERENCES games (id),
 		PRIMARY KEY (game_id, turn_num)
 	);
@@ -67,7 +67,6 @@ func translate(dialect string) string {
 	CREATE TABLE matches (
 		AUTOINCREMENTING_PRIMARYKEY_INTEGER_ID,
 		players[] INT[] NOT NULL
-		CHECK (ALL PLAYERS IN players.id)
 	);
 	`
 
