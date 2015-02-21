@@ -3,14 +3,17 @@ package router
 import "github.com/gorilla/mux"
 
 const (
+	UsersCreate = "users.create"
+
 	Players       = "players"
 	PlayersCreate = "players.create"
 
 	Games       = "games"
 	GamesCreate = "games.create"
-	GamesRun    = "games.run"
 	Game        = "game"
 	GameUpdate  = "game.update"
+
+	MatchesRun = "matches.run"
 
 	APIBaseRoute = "api"
 )
