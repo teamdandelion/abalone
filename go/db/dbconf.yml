@@ -1,0 +1,7 @@
+development:
+    driver: sqlite3
+    open: sqlite.db
+
+production:
+    driver: postgres
+    open: postgres://postgres:$ABDB_PASSWORD@localhost/abdb?sslmode=disable
