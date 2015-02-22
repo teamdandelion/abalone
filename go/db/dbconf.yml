@@ -4,4 +4,4 @@ development:
 
 production:
     driver: postgres
-    open: postgres://postgres:$ABDB_PASSWORD@localhost/abdb?sslmode=disable
+    open: postgres://postgres:$ABDB_PASSWORD@localhost/abalone?sslmode=disable
