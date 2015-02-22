@@ -28,7 +28,7 @@ var UsersCmd = cli.Command{
 		{
 			Name:      "create",
 			ShortName: "c",
-			Usage:     "creates a user",
+			Usage:     "create a user",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "name, n",
@@ -48,7 +48,7 @@ var UsersCmd = cli.Command{
 		{
 			Name:      "list",
 			ShortName: "l",
-			Usage:     "lists users",
+			Usage:     "list users",
 			Action: func(c *cli.Context) {
 				if err := ListUsersHandler(c); err != nil {
 					log.Fatal(err)
