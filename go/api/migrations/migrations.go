@@ -13,7 +13,6 @@ var Migrations = []migration.Migrator{
 
 			created_at timestamp with time zone,
 			updated_at timestamp with time zone,
-			deleted_at timestamp with time zone,
 
 			CONSTRAINT users_pkey PRIMARY KEY (id)
 		);
@@ -28,11 +27,10 @@ var Migrations = []migration.Migrator{
 
 			created_at timestamp with time zone,
 			updated_at timestamp with time zone,
-			deleted_at timestamp with time zone,
 
 			author_id bigint,
 
-			FOREIGN KEY (author_id) REFERENCES users (id) ON DELETE CASCADE,
+			FOREIGN KEY (author_id) REFERENCES users (id) ON DELETE RESTRICT,
 			CONSTRAINT players_pkey PRIMARY KEY (id)
 		);
 		`
