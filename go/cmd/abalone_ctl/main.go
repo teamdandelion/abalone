@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -9,6 +10,10 @@ import (
 
 const (
 	DefaultHTTPDHost = "localhost:8080" // TODO extract
+)
+
+const (
+	TimeSimpleFmt = "Mon Jan 2 15:04:05"
 )
 
 func main() {
@@ -33,4 +38,12 @@ func run() error {
 		UsersCmd,
 	}
 	return app.Run(os.Args)
+}
+
+func ErrArgRequired(arg string) error {
+	return fmt.Errorf("%s is required", arg)
+}
+
+func APIURL(c *cli.Context, path string) string {
+	return fmt.Sprintf("http://%s%s", c.GlobalString("httpd"), path)
 }
