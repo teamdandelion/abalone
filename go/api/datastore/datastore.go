@@ -18,6 +18,7 @@ func Open(dialect string, addr string) (*api.Services, error) {
 	}
 
 	return &api.Services{
+		Matches: &matchesStore{&db},
 		Players: &playersStore{&db},
 		Users:   &usersStore{&db},
 		DB:      &db,

@@ -34,6 +34,7 @@ func run() error {
 		},
 	}
 	app.Commands = []cli.Command{
+		MatchesCmd,
 		PlayersCmd,
 		UsersCmd,
 	}

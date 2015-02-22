@@ -141,13 +141,14 @@ func DeletePlayersHandler(c *cli.Context) error {
 
 func printPlayers(w io.Writer, players []api.Player) error {
 	table := tablewriter.NewWriter(w)
-	table.SetHeader([]string{"ID", "Name", "Version", "Author", "Created", "Updated"})
+	table.SetHeader([]string{"ID", "Name", "V", "Author", "Host", "Created", "Updated"})
 	for _, p := range players {
 		row := []string{
 			strconv.FormatInt(p.ID, 10),
 			p.Name,
 			strconv.FormatInt(p.Version, 10),
 			strconv.FormatInt(p.AuthorId, 10),
+			p.Host,
 			p.CreatedAt.Format(TimeSimpleFmt),
 			p.UpdatedAt.Format(TimeSimpleFmt),
 		}

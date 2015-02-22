@@ -16,7 +16,7 @@ import (
 
 type RemotePlayerInstance struct {
 	APIPlayer api.Player
-	Port      string
+	Host      string
 }
 
 func (i *RemotePlayerInstance) Player() api.Player {
@@ -24,10 +24,10 @@ func (i *RemotePlayerInstance) Player() api.Player {
 }
 
 func (i *RemotePlayerInstance) Play(s *game.State, limit time.Duration) (*game.State, error) {
-	return gameFromAI(i.Port, s)
+	return gameFromAI(i.Host, s)
 }
 
-func gameFromAI(port string, state *game.State) (*game.State, error) {
+func gameFromAI(host string, state *game.State) (*game.State, error) {
 	mr := api.MoveRequest{
 		State:      *state,
 		LimitMilli: toMillisecondCount(api.DefaultMoveLimit),
@@ -39,7 +39,7 @@ func gameFromAI(port string, state *game.State) (*game.State, error) {
 
 	var rawResponse bytes.Buffer // will contain response if HTTP request is successful
 	f := func() error {
-		resp, err := http.Post("http://localhost:"+port+api.MovePath, "application/json", bytes.NewBuffer(buf.Bytes()))
+		resp, err := http.Post("http://"+host+api.MovePath, "application/json", bytes.NewBuffer(buf.Bytes()))
 		if err != nil {
 			return err
 		}

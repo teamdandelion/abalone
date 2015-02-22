@@ -10,7 +10,7 @@ import (
 )
 
 func MountHandlers(r *mux.Router, ds *api.Services) {
-	r.Get(routes.GamesRun).HandlerFunc(RunGamesHandler(ds))
+	r.Get(routes.MatchesRun).HandlerFunc(RunMatchesHandler(ds))
 
 	r.Get(routes.Players).HandlerFunc(ListPlayersHandler(ds))
 	r.Get(routes.PlayersCreate).HandlerFunc(CreatePlayersHandler(ds))

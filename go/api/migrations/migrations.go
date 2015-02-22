@@ -39,4 +39,26 @@ var Migrations = []migration.Migrator{
 		}
 		return nil
 	},
+	func(txn migration.LimitedTx) error {
+		q := `
+		CREATE TABLE matches
+		(
+			id bigserial NOT NULL,
+
+			created_at timestamp with time zone,
+			updated_at timestamp with time zone,
+
+			player_1_id bigint,
+			player_2_id bigint,
+
+			FOREIGN KEY (player_1_id) REFERENCES players (id) ON DELETE RESTRICT,
+			FOREIGN KEY (player_2_id) REFERENCES players (id) ON DELETE RESTRICT,
+			CONSTRAINT matches_pkey PRIMARY KEY (id)
+		);
+		`
+		if _, err := txn.Exec(q); err != nil {
+			return err
+		}
+		return nil
+	},
 }

@@ -2,16 +2,6 @@ package api
 
 import "github.com/danmane/abalone/go/game"
 
-// TODO enforce 'non-nullable' on relevant fields
-
-// Author represents a human player
-type Author struct {
-	Id   int64
-	Name string
-
-	Players []Player
-}
-
 type Game struct {
 	Winner  Player
 	States  []*game.State
@@ -21,10 +11,6 @@ type Game struct {
 	Second Player
 }
 
-type Match struct {
-	Players []Player
-	Games   []Game
-}
 type GameResult struct {
 	White         Player
 	Black         Player

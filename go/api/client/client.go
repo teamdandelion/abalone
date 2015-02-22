@@ -33,6 +33,7 @@ func NewClient(opts ...Option) *api.Services {
 		o(client)
 	}
 	return &api.Services{
+		Matches: &matchesClient{client},
 		Players: &playersClient{client},
 		Users:   &usersClient{client},
 	}

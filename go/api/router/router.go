@@ -12,7 +12,6 @@ const (
 	PlayersDelete = "players.delete"
 
 	Games       = "games"
-	GamesRun    = "games.run"
 	GamesCreate = "games.create"
 	Game        = "game"
 	GameUpdate  = "game.update"
@@ -26,6 +25,8 @@ func NewAPIRouter() *mux.Router {
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api").Subrouter()
 
+	api.Path("/matches/run").Methods("POST").Name(MatchesRun)
+
 	api.Path("/users").Methods("GET").Name(Users)
 	api.Path("/users").Methods("POST").Name(UsersCreate)
 	api.Path("/users/{id:[0-9]+}").Methods("DELETE").Name(UsersDelete)
@@ -35,7 +36,6 @@ func NewAPIRouter() *mux.Router {
 	api.Path("/players/{id:[0-9]+}").Methods("DELETE").Name(PlayersDelete)
 
 	api.Path("/games").Methods("GET").Name(Games)
-	api.Path("/games/run").Methods("POST").Name(GamesRun)
 	api.Path("/games").Methods("POST").Name(GamesCreate)
 	game := api.PathPrefix("/games/{id:[0-9]+}").Subrouter()
 	game.Methods("GET").Name(Game)
