@@ -19,6 +19,11 @@ var UsersCmd = cli.Command{
 	Name:      "users",
 	ShortName: "u",
 	Usage:     "manage abalone users",
+	Action: func(c *cli.Context) {
+		if err := ListUsersHandler(c); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Subcommands: []cli.Command{
 		{
 			Name:      "create",
