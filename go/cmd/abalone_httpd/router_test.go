@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,7 @@ import (
 
 	api "github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/api/router"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func makeStaticPath(t *testing.T) string {
@@ -54,7 +56,8 @@ func TestRouterAPINotFound(t *testing.T) {
 
 func TestRouterAPINormalMatch(t *testing.T) {
 
-	s := MockServices()
+	s, teardown := setup(t)
+	defer teardown()
 	r := ConfigureRouter(s, makeStaticPath(t))
 	url, err := r.Get(router.Players).URL()
 	if err != nil {
@@ -67,19 +70,21 @@ func TestRouterAPINormalMatch(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
+	expected := http.StatusOK
 	switch w.Code {
 	case http.StatusNotFound:
 		t.Fatal("should have found route")
-	case http.StatusNotImplemented:
+	case expected:
 		// expected
 	default:
-		t.Fatalf("expected %s, got %s", http.StatusText(http.StatusNotImplemented), http.StatusText(w.Code))
+		t.Fatalf("expected %s, got %s", http.StatusText(expected), http.StatusText(w.Code))
 	}
 }
 
 func TestCreatePlayersHandler(t *testing.T) {
+	s, teardown := setup(t)
+	defer teardown()
 	dir := makeStaticPath(t)
-	s := MockServices()
 	r := ConfigureRouter(s, dir)
 	url, err := r.Get(router.PlayersCreate).URL()
 	if err != nil {
@@ -94,6 +99,26 @@ func TestCreatePlayersHandler(t *testing.T) {
 	r.ServeHTTP(w, req)
 }
 
-func MockServices() *api.Services {
-	return nil // TODO
+// setup creates a SQLite DB in a temporary directory. Call the teardown to
+// delete the database.
+func setup(t *testing.T) (services *api.Services, teardown func()) {
+	name, err := ioutil.TempDir("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	conn, err := sql.Open("sqlite3", path.Join(name, "sqlite.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ds, err := NewDatastore(conn, "sqlite3")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := AutoMigrate(ds.DB); err != nil {
+		t.Fatal(err)
+	}
+	return ds, func() {
+		conn.Close()
+		os.RemoveAll(name)
+	}
 }

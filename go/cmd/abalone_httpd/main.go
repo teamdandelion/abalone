@@ -14,6 +14,7 @@ import (
 	"github.com/danmane/abalone/go/game"
 	"github.com/danmane/abalone/go/operator"
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -29,6 +30,13 @@ func main() {
 	}
 }
 
+func AutoMigrate(db *gorm.DB) error {
+	return db.AutoMigrate(
+		new(api.User),
+		new(api.Player),
+	).Error
+}
+
 func run() error {
 
 	conn, err := sql.Open("sqlite3", "sqlite.db")
@@ -40,13 +48,9 @@ func run() error {
 		return err
 	}
 
-	if err := ds.DB.AutoMigrate(
-		new(api.User),
-		new(api.Player),
-	).Error; err != nil {
+	if err := AutoMigrate(ds.DB); err != nil {
 		return err
 	}
-
 	r := ConfigureRouter(ds, *staticPath)
 
 	log.Printf("listening at %s", *host)
