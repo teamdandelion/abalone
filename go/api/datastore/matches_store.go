@@ -2,7 +2,6 @@ package datastore
 
 import (
 	"fmt"
-	"log"
 
 	api "github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
@@ -40,11 +39,12 @@ func (s *matchesStore) Run(playerID1, playerID2 int64) (*api.Match, error) {
 			APIPlayer: b,
 			Host:      b.Host,
 		}
-		result := operator.ExecuteGame(&whiteAgent, &blackAgent, operator.Config{
+		_ = operator.ExecuteGame(&whiteAgent, &blackAgent, operator.Config{
 			Start: game.Standard,
 			Limit: api.DefaultMoveLimit,
+			GameHadState: func(*game.State) {
+			},
 		})
-		log.Println(result)
 
 		// TODO handle game creation
 	}()

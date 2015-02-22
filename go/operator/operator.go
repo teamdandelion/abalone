@@ -16,10 +16,15 @@ type PlayerInstance interface {
 type Config struct {
 	Start game.State
 	Limit time.Duration
+
+	// GameHadState is called after every state transition. It allows clients
+	// to subscribe to updates while the game is in progress.
+	GameHadState func(*game.State)
 }
 
 func ExecuteGame(whiteAgent, blackAgent PlayerInstance, config Config) api.GameResult {
 	states := []game.State{config.Start}
+	config.GameHadState(&config.Start)
 	currentGame := &config.Start
 	victory := api.NoVictory
 	outcome := game.NullOutcome
@@ -59,6 +64,7 @@ func ExecuteGame(whiteAgent, blackAgent PlayerInstance, config Config) api.GameR
 		}
 		currentGame = futureGame
 		states = append(states, *currentGame)
+		config.GameHadState(currentGame)
 	}
 
 	outcome = currentGame.Outcome()
