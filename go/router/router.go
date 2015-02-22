@@ -3,7 +3,9 @@ package router
 import "github.com/gorilla/mux"
 
 const (
+	Users       = "users"
 	UsersCreate = "users.create"
+	UsersDelete = "users.delete"
 
 	Players       = "players"
 	PlayersCreate = "players.create"
@@ -21,6 +23,10 @@ const (
 func NewAPIRouter() *mux.Router {
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api").Subrouter()
+
+	api.Path("/users").Methods("GET").Name(Users)
+	api.Path("/users").Methods("POST").Name(UsersCreate)
+	api.Path("/users/{id:[0-9]+}").Methods("DELETE").Name(UsersDelete)
 
 	api.Path("/players").Methods("GET").Name(Players)
 	api.Path("/players").Methods("POST").Name(PlayersCreate)
