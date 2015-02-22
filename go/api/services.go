@@ -1,27 +1,31 @@
 package api
 
-import (
-	"github.com/danmane/abalone/go/game"
-)
+import "github.com/jinzhu/gorm"
 
 type Services struct {
+	Matches MatchesService
 	Players PlayersService
-	Games   GamesService
-	States  GameStateService
+	Users   UsersService
+
+	DB *gorm.DB
 }
 
 type PlayersService interface {
-	List() ([]Player, error) // TODO(btc) fix signature
-	Create() error
+	Create(userID int64, p Player) (*Player, error)
+	List() ([]Player, error)
+	Delete(id int64) error
 }
 
-type GamesService interface {
-	Create(initial game.State) (*game.State, error)
-	Find(gameID int) (*game.State, error)
-	List(offset, limit int) []game.State
+type UsersService interface {
+	Create(User) (*User, error)
+	List() ([]User, error)
+	Delete(id int64) error
 }
 
-type GameStateService interface {
-	List(gameID, offset, limit int) ([]game.Board, error)
-	Create(gameID int, state game.Board, n int) error
+type MatchesService interface {
+	// Run creates a match and schedules it for execution.
+	Run(playerID1, playerID2 int64) (*Match, error)
+
+	// Create creates a match.
+	// TODO Create(playerID1, playerID2 int64) (*Match, error)
 }

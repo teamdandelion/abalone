@@ -15,7 +15,7 @@ var (
 
 func main() {
 	flag.Parse()
-	player := api.Player{Address: ":" + *port}
+	player := api.Player{Host: ":" + *port}
 	// agent := quickstart.AgentInfo{
 	// 	Owner: "btc",
 	// 	Taunts: []string{

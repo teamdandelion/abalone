@@ -12,3 +12,6 @@ test:
 
 install:
 	godep go install ./...
+
+goose:
+	go get bitbucket.org/liamstask/goose/cmd/goose

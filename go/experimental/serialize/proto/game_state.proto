@@ -1,0 +1,25 @@
+package game.state.pb;
+
+message Hex {
+    optional sint32 q = 1;  
+    optional sint32 r = 2;  
+}
+
+message Board {
+    optional uint32 edge_length = 1;
+    repeated Hex black_positions = 2;
+    repeated Hex white_positions = 3;
+}
+
+message State {
+    optional Board board = 1;
+    optional Player next_player = 2;
+    optional uint32 moves_remaining = 3;
+    optional uint32 marbles_per_move = 4;
+    optional uint32 loss_threshold = 5;
+}
+
+enum Player {
+    WHITE = 0;
+    BLACK = 1;
+}

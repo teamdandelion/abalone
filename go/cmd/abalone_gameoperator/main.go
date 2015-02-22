@@ -1,21 +1,19 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
+	"github.com/danmane/abalone/go/operator"
 )
 
 var (
-	aiPort1   = flag.String("aiPort1", "3423", "port for first ai")
-	aiPort2   = flag.String("aiPort2", "3424", "port for second ai (if present)")
+	aiHost1   = flag.String("aiHost1", "localhost:3423", "port for first ai")
+	aiHost2   = flag.String("aiHost2", "localhost:3424", "port for second ai (if present)")
 	timelimit = flag.Duration("timelimit", time.Second*2, "per-move time limit")
 )
 
@@ -28,105 +26,39 @@ func main() {
 }
 
 func run() error {
-	whiteAI := api.Player{}
-	blackAI := api.Player{}
-	whiteAgent := PlayerInstance{Player: whiteAI, Port: *aiPort1}
-	blackAgent := PlayerInstance{Player: blackAI, Port: *aiPort2}
-	start := game.Standard
-	playAIGame(whiteAgent, blackAgent, start)
-	// fmt.Println(result)
-	return nil
-}
+	whiteAgent := operator.RemotePlayerInstance{
+		APIPlayer: api.Player{},
+		Host:      *aiHost1,
+	}
+	blackAgent := operator.RemotePlayerInstance{
+		APIPlayer: api.Player{},
+		Host:      *aiHost2,
+	}
+	result := operator.ExecuteGame(&whiteAgent, &blackAgent, operator.Config{
+		Start: game.Standard,
+		Limit: *timelimit,
+	})
 
-type PlayerInstance struct {
-	Player api.Player
-	Port   string
-}
+	switch result.VictoryReason {
+	case api.TimelimitExceeded:
+		fmt.Println(result.VictoryReason, fmt.Sprintln("(limit: %s)", *timelimit))
+	default:
+		fmt.Println(result.VictoryReason)
+	}
 
-func toMillisecondCount(d time.Duration) int64 {
-	return int64(d / 1e6)
-}
-
-func gameFromAI(port string, state *game.State) (*game.State, error) {
-	mr := api.MoveRequest{
-		State:      *state,
-		LimitMilli: toMillisecondCount(api.DefaultMoveLimit),
+	var winner operator.RemotePlayerInstance
+	switch result.Outcome {
+	case game.WhiteWins:
+		winner = whiteAgent
+	case game.BlackWins:
+		winner = blackAgent
 	}
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(&mr); err != nil {
-		return nil, err
-	}
-	resp, err := http.Post("http://localhost:"+port+api.MovePath, "application/json", &buf)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	responseGame := &game.State{}
-	if err := json.NewDecoder(resp.Body).Decode(responseGame); err != nil {
-		return nil, err
-	}
-	if !state.ValidFuture(responseGame) {
-		return nil, fmt.Errorf("game parsed correctly, but isn't a valid future")
-	}
-	return responseGame, nil
-}
-
-func playAIGame(whiteAgent, blackAgent PlayerInstance, startState game.State) api.GameResult {
-	states := []game.State{startState}
-	currentGame := &startState
-	victory := api.NoVictory
-	outcome := game.NullOutcome
-	var moves int = 0
-	for !currentGame.GameOver() {
-		var nextAI PlayerInstance
-		fmt.Printf("move %v (%v)\n", moves, currentGame.NextPlayer.String())
-		moves++
-		if currentGame.NextPlayer == game.White {
-			nextAI = whiteAgent
-		} else {
-			nextAI = blackAgent
-		}
-		futureGame, err := gameFromAI(nextAI.Port, currentGame)
-		if err != nil {
-			fmt.Println("Game is terminating due to an invalid response!")
-			fmt.Println(err)
-			victory = api.InvalidResponse
-			outcome = currentGame.NextPlayer.Loses()
-			fmt.Println("%v", outcome)
-			return api.GameResult{
-				White:         whiteAgent.Player,
-				Black:         blackAgent.Player,
-				Outcome:       outcome,
-				VictoryReason: victory,
-				States:        states,
-			}
-		}
-		currentGame = futureGame
-		states = append(states, *currentGame)
-	}
-	fmt.Println(states)
-	outcome = currentGame.Outcome()
-	if outcome == game.WhiteWins {
-		fmt.Printf("white wins (on port %v)\n", *aiPort1)
-	} else if outcome == game.BlackWins {
-		fmt.Printf("black wins (on port %v)\n", *aiPort2)
-	} else {
+	switch result.Outcome {
+	case game.WhiteWins, game.BlackWins:
+		fmt.Printf("%s (port %s) wins in %d move(s)", result.Outcome.Winner(), winner.Host, len(result.States))
+	default:
 		fmt.Println("tie game!")
 	}
-	loser := outcome.Loser()
-	if loser != game.NullPlayer && currentGame.NumPieces(loser) <= currentGame.LossThreshold {
-		fmt.Println("stones depeleted")
-		victory = api.StonesDepleted
-	} else {
-		fmt.Println("moves depeleted")
-		victory = api.MovesDepleted
-	}
-	return api.GameResult{
-		White:         whiteAgent.Player,
-		Black:         blackAgent.Player,
-		Outcome:       outcome,
-		VictoryReason: victory,
-		States:        states,
-	}
 
+	return nil
 }
