@@ -2,12 +2,15 @@ package api
 
 import (
 	"github.com/danmane/abalone/go/game"
+	"github.com/jinzhu/gorm"
 )
 
 type Services struct {
 	Players PlayersService
 	Games   GamesService
 	States  GameStateService
+
+	DB *gorm.DB
 }
 
 type PlayersService interface {
