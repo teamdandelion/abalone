@@ -1,56 +1,42 @@
 package main
 
 import (
-	"database/sql"
-	"encoding/json"
 	"flag"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/codegangsta/negroni"
 	api "github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/api/datastore"
+	"github.com/danmane/abalone/go/api/handlers"
 	"github.com/danmane/abalone/go/api/router"
-	"github.com/danmane/abalone/go/game"
-	"github.com/danmane/abalone/go/operator"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var (
-	staticPath = flag.String("static", "./static", "serve static files located in this directory")
-	host       = flag.String("host", ":8080", "address:port for HTTP listener")
-)
-
 func main() {
-	flag.Parse()
 	if err := run(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func AutoMigrate(db *gorm.DB) error {
-	return db.AutoMigrate(
-		new(api.User),
-		new(api.Player),
-	).Error
-}
-
 func run() error {
+	var (
+		debug      = flag.Bool("debug", false, "")
+		staticPath = flag.String("static", "./static", "serve static files located in this directory")
+		host       = flag.String("host", ":8080", "address:port for HTTP listener")
+		dialect    = flag.String("dialect", "postgres", "")
+		dbaddr     = flag.String("db", "postgres://postgres:password@localhost/abalone?sslmode=disable", "")
+	)
+	flag.Parse()
 
-	conn, err := sql.Open("sqlite3", "sqlite.db")
+	ds, err := datastore.Open(*dialect, *dbaddr)
 	if err != nil {
 		return err
 	}
-	ds, err := NewDatastore(conn, "sqlite3")
-	if err != nil {
-		return err
-	}
+	ds.DB.LogMode(*debug)
 
-	if err := AutoMigrate(ds.DB); err != nil {
-		return err
-	}
 	r := ConfigureRouter(ds, *staticPath)
 
 	log.Printf("listening at %s", *host)
@@ -60,25 +46,12 @@ func run() error {
 
 func ConfigureRouter(s *api.Services, staticpath string) *mux.Router {
 	r := router.NewAPIRouter()
-	MountHandlers(r, s)
+	handlers.MountHandlers(r, s)
 
 	// Finally, if none of the above routes match, delegate to the single-page
 	// app's client-side router. Rewrite the path in order to load the
 	// single-page app's root HTML entrypoint. The app will handle the route.
 	r.NotFoundHandler = StaticPathFallback(staticpath)
-	return r
-}
-
-func MountHandlers(r *mux.Router, ds *api.Services) *mux.Router {
-	r.Get(router.GamesRun).HandlerFunc(RunGamesHandler(ds))
-	r.Get(router.Players).HandlerFunc(ListPlayersHandler(ds))
-	r.Get(router.PlayersCreate).HandlerFunc(CreatePlayersHandler(ds))
-
-	r.Get(router.Users).HandlerFunc(ListUsersHandler(ds))
-	r.Get(router.UsersCreate).HandlerFunc(CreateUsersHandler(ds))
-	r.Get(router.UsersDelete).HandlerFunc(DeleteUsersHandler(ds))
-
-	r.Get(router.APIBaseRoute).Path("/{rest:.*}").HandlerFunc(http.NotFound)
 	return r
 }
 
@@ -89,117 +62,4 @@ func StaticPathFallback(path string) http.Handler {
 			r.URL.Path = "/"
 			http.FileServer(http.Dir(path)).ServeHTTP(w, r)
 		})))
-}
-
-// RunGamesHandler runs a game between two remote player instances
-func RunGamesHandler(ds *api.Services) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		req := struct {
-			BlackPort string
-			WhitePort string
-		}{}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		whiteAgent := operator.RemotePlayerInstance{
-			APIPlayer: api.Player{},
-			Port:      req.WhitePort,
-		}
-		blackAgent := operator.RemotePlayerInstance{
-			APIPlayer: api.Player{},
-			Port:      req.BlackPort,
-		}
-		result := operator.ExecuteGame(&whiteAgent, &blackAgent, operator.Config{
-			Start: game.Standard,
-			Limit: api.DefaultMoveLimit,
-		})
-		log.Println(result.Outcome)
-		log.Println(result.VictoryReason)
-		if err := json.NewEncoder(w).Encode(result); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-// CreatePlayersHandler creates a new AI player running on a remote host
-func CreatePlayersHandler(ds *api.Services) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// schema := struct {
-		// 	Nick    string
-		// 	Version string
-		// 	Address string
-		// }{}
-		// if err := json.NewDecoder(r.Body).Decode(&schema); err != nil {
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	fmt.Fprintf(w, "error decoding request: %s", err)
-		// 	return
-		// }
-	}
-}
-
-// ListPlayersHandler returns a list of AI players
-func ListPlayersHandler(ds *api.Services) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var players []api.Player
-		if err := ds.DB.Find(&players).Error; err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if err := json.NewEncoder(w).Encode(&players); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-// CreateUsersHandler creates a new AI player running on a remote host
-func CreateUsersHandler(ds *api.Services) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var u api.User
-		if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		if err := ds.DB.Create(&u).Error; err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		if err := json.NewEncoder(w).Encode(&u); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-// ListUsersHandler creates a new AI player running on a remote host
-func ListUsersHandler(ds *api.Services) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var users []api.User
-		if err := ds.DB.Find(&users).Error; err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if err := json.NewEncoder(w).Encode(&users); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-// DeleteUsersHandler creates a new AI player running on a remote host
-func DeleteUsersHandler(ds *api.Services) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		if err := ds.DB.Delete(api.User{ID: id}).Error; err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
 }

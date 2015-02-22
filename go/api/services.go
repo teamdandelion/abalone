@@ -1,30 +1,22 @@
 package api
 
-import (
-	"github.com/danmane/abalone/go/game"
-	"github.com/jinzhu/gorm"
-)
+import "github.com/jinzhu/gorm"
 
 type Services struct {
 	Players PlayersService
-	Games   GamesService
-	States  GameStateService
+	Users   UsersService
 
 	DB *gorm.DB
 }
 
 type PlayersService interface {
-	List() ([]Player, error) // TODO(btc) fix signature
-	Create() error
+	Create(userID int64, p Player) (*Player, error)
+	List() ([]Player, error)
+	Delete(id int64) error
 }
 
-type GamesService interface {
-	Create(initial game.State) (*game.State, error)
-	Find(gameID int) (*game.State, error)
-	List(offset, limit int) []game.State
-}
-
-type GameStateService interface {
-	List(gameID, offset, limit int) ([]game.Board, error)
-	Create(gameID int, state game.Board, n int) error
+type UsersService interface {
+	Create(User) (*User, error)
+	List() ([]User, error)
+	Delete(id int64) error
 }

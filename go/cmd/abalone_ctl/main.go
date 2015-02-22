@@ -6,10 +6,7 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
-)
-
-const (
-	DefaultHTTPDHost = "localhost:8080" // TODO extract
+	"github.com/danmane/abalone/go/api/client"
 )
 
 const (
@@ -25,16 +22,19 @@ func main() {
 // TODO execute game on http daemon
 func run() error {
 	app := cli.NewApp()
+	app.Author = "fxx"
+	app.Email = ""
 	app.Name = "abalone_ctl"
 	app.Usage = "abalone management util"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "httpd",
-			Value: DefaultHTTPDHost,
+			Value: client.DefaultBaseURL,
 			Usage: "abalone_httpd listening addr:port",
 		},
 	}
 	app.Commands = []cli.Command{
+		PlayersCmd,
 		UsersCmd,
 	}
 	return app.Run(os.Args)
@@ -42,8 +42,4 @@ func run() error {
 
 func ErrArgRequired(arg string) error {
 	return fmt.Errorf("%s is required", arg)
-}
-
-func APIURL(c *cli.Context, path string) string {
-	return fmt.Sprintf("http://%s%s", c.GlobalString("httpd"), path)
 }
