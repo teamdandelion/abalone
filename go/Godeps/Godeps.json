@@ -18,6 +18,11 @@
 			"Rev": "c45b897f13350786ccaf2b7403b92b1c7ad85844"
 		},
 		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Comment": "v0.1.0-18-g443a628",
+			"Rev": "443a628bc233f634a75bcbdd71fe5350789f1afa"
+		},
+		{
 			"ImportPath": "github.com/Sirupsen/logrus",
 			"Comment": "v0.6.4-4-g844911c",
 			"Rev": "844911ce078544c0d950b86ef09e6d19270ed33a"
