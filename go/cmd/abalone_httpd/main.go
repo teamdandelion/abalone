@@ -6,6 +6,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/codegangsta/negroni"
 	api "github.com/danmane/abalone/go/api"
@@ -39,6 +40,12 @@ func run() error {
 		return err
 	}
 
+	if err := ds.DB.AutoMigrate(
+		&api.User{},
+	).Error; err != nil {
+		return err
+	}
+
 	r := ConfigureRouter(ds, *staticPath)
 
 	log.Printf("listening at %s", *host)
@@ -61,6 +68,11 @@ func MountHandlers(r *mux.Router, ds *api.Services) *mux.Router {
 	r.Get(router.GamesRun).HandlerFunc(RunGamesHandler(ds))
 	r.Get(router.Players).HandlerFunc(ListPlayersHandler(ds))
 	r.Get(router.PlayersCreate).HandlerFunc(CreatePlayersHandler(ds))
+
+	r.Get(router.Users).HandlerFunc(ListUsersHandler(ds))
+	r.Get(router.UsersCreate).HandlerFunc(CreateUsersHandler(ds))
+	r.Get(router.UsersDelete).HandlerFunc(DeleteUsersHandler(ds))
+
 	r.Get(router.APIBaseRoute).Path("/{rest:.*}").HandlerFunc(http.NotFound)
 	return r
 }
@@ -126,5 +138,55 @@ func CreatePlayersHandler(ds *api.Services) http.HandlerFunc {
 func ListPlayersHandler(ds *api.Services) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotImplemented)
+	}
+}
+
+// CreateUsersHandler creates a new AI player running on a remote host
+func CreateUsersHandler(ds *api.Services) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var u api.User
+		if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err := ds.DB.Create(&u).Error; err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err := json.NewEncoder(w).Encode(&u); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+// ListUsersHandler creates a new AI player running on a remote host
+func ListUsersHandler(ds *api.Services) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var users []api.User
+		if err := ds.DB.Find(&users).Error; err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if err := json.NewEncoder(w).Encode(&users); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+// DeleteUsersHandler creates a new AI player running on a remote host
+func DeleteUsersHandler(ds *api.Services) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err := ds.DB.Delete(api.User{ID: id}).Error; err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }
