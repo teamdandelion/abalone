@@ -41,7 +41,8 @@ func run() error {
 	}
 
 	if err := ds.DB.AutoMigrate(
-		&api.User{},
+		new(api.User),
+		new(api.Player),
 	).Error; err != nil {
 		return err
 	}
@@ -137,7 +138,15 @@ func CreatePlayersHandler(ds *api.Services) http.HandlerFunc {
 // ListPlayersHandler returns a list of AI players
 func ListPlayersHandler(ds *api.Services) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotImplemented)
+		var players []api.Player
+		if err := ds.DB.Find(&players).Error; err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if err := json.NewEncoder(w).Encode(&players); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
