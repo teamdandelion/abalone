@@ -16,8 +16,9 @@ import (
 )
 
 var UsersCmd = cli.Command{
-	Name:  "users",
-	Usage: "manage abalone users",
+	Name:      "users",
+	ShortName: "u",
+	Usage:     "manage abalone users",
 	Subcommands: []cli.Command{
 		{
 			Name:      "create",
