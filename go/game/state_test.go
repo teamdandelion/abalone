@@ -26,6 +26,15 @@ func Benchmark_futures(b *testing.B) {
 	}
 }
 
+func Benchmark_State_Update(b *testing.B) {
+	ms := Standard.moves()
+	for n := 0; n <= b.N; n++ {
+		for _, m := range ms {
+			Standard.Update(&m)
+		}
+	}
+}
+
 func TestFuturesAreValid(t *testing.T) {
 	futures := Standard.Futures()
 	for _, f := range futures {
