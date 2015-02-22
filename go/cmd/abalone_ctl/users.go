@@ -130,8 +130,8 @@ func ListUsersHandler(c *cli.Context) error {
 			strconv.FormatInt(u.ID, 10),
 			u.Name,
 			u.Email,
-			u.CreatedAt.Format("Mon Jan 2 15:04:05"),
-			u.UpdatedAt.Format("Mon Jan 2 15:04:05"),
+			u.CreatedAt.Format(TimeSimpleFmt),
+			u.UpdatedAt.Format(TimeSimpleFmt),
 		}
 		table.Append(row)
 	}
