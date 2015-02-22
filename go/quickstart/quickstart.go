@@ -33,5 +33,5 @@ func Play(player api.Player, f func(game.State, time.Duration) game.State) { // 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(next)
 	})
-	log.Fatal(http.ListenAndServe(player.Address, r))
+	log.Fatal(http.ListenAndServe(player.Host, r))
 }

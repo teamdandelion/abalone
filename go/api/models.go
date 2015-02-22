@@ -14,17 +14,13 @@ type Author struct {
 
 // Player is an AI agent running on an HTTP server
 type Player struct {
-	Id      int64
-	Nick    string // represents a series of agents
-	Version int64  // represents a version within a Series
-	Address string // host:port of the HTTP server
+	Name    string
+	Version int64
+	Host    string
 
 	AuthorId int64
-}
-
-type StartState struct {
-	Id   int64
-	JSON string // json
+	Author Author
+	Games  []Game
 }
 
 type Game struct {

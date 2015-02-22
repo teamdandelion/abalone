@@ -38,8 +38,8 @@ func TestAuthorHasManyPlayers(t *testing.T) {
 	sql.Create(&api.Author{
 		Name: "btc",
 		Players: []api.Player{
-			{Nick: "basic"},
-			{Nick: "smart"},
+			{Name: "basic"},
+			{Name: "smart"},
 		},
 	})
 	// get the players count. it should be two
