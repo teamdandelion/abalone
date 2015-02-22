@@ -11,6 +11,7 @@ const (
 	PlayersCreate = "players.create"
 
 	Games       = "games"
+	GamesRun    = "games.run"
 	GamesCreate = "games.create"
 	Game        = "game"
 	GameUpdate  = "game.update"
@@ -32,8 +33,8 @@ func NewAPIRouter() *mux.Router {
 	api.Path("/players").Methods("POST").Name(PlayersCreate)
 
 	api.Path("/games").Methods("GET").Name(Games)
-	api.Path("/games").Methods("POST").Name(GamesCreate)
 	api.Path("/games/run").Methods("POST").Name(GamesRun)
+	api.Path("/games").Methods("POST").Name(GamesCreate)
 	game := api.PathPrefix("/games/{id:[0-9]+}").Subrouter()
 	game.Methods("GET").Name(Game)
 	game.Methods("PATCH").Name(GameUpdate) // e.g. PATCH /api/games/{GAME_ID}?state=n
