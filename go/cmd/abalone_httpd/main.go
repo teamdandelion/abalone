@@ -10,9 +10,9 @@ import (
 
 	"github.com/codegangsta/negroni"
 	api "github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/api/router"
 	"github.com/danmane/abalone/go/game"
 	"github.com/danmane/abalone/go/operator"
-	"github.com/danmane/abalone/go/router"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 )

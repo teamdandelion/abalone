@@ -11,7 +11,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/danmane/abalone/go/api"
-	"github.com/danmane/abalone/go/router"
+	"github.com/danmane/abalone/go/api/router"
 	"github.com/olekukonko/tablewriter"
 )
 

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	api "github.com/danmane/abalone/go/api"
-	"github.com/danmane/abalone/go/router"
+	"github.com/danmane/abalone/go/api/router"
 )
 
 func makeStaticPath(t *testing.T) string {

@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	api "github.com/danmane/abalone/go/api"
-	"github.com/danmane/abalone/go/router"
+	"github.com/danmane/abalone/go/api/router"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 )
