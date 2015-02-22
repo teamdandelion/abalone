@@ -10,9 +10,6 @@ func AutoMigrate(sql *gorm.DB) *gorm.DB {
 	return sql.AutoMigrate(
 		&api.Author{},
 		&api.Player{},
-		&api.StartState{},
 		&api.Game{},
-		&api.Participant{},
-		&api.Record{},
 	)
 }

@@ -24,34 +24,22 @@ type Player struct {
 }
 
 type Game struct {
-	Id int64
+	Winner  Player
+	States  []*game.State
+	Outcome Victory
+
+	First  Player
+	Second Player
 }
 
+type Match struct {
+	Players []Player
+	Games   []Game
+}
 type GameResult struct {
-	Id            int64
 	White         Player
 	Black         Player
 	Outcome       game.Outcome
 	VictoryReason Victory
 	States        []game.State
-}
-
-type Participant struct {
-
-	// TODO primary key is game_id, order
-
-	Game   Game
-	Player Player
-	Order  int64 // eg. first to play
-}
-
-type Record struct {
-	Game Game
-	Turn int64
-	Move []byte // 6-byte diff
-}
-
-type AgentInfo struct {
-	Owner  string
-	Taunts []string
 }
