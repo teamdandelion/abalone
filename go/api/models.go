@@ -12,17 +12,6 @@ type Author struct {
 	Players []Player
 }
 
-// Player is an AI agent running on an HTTP server
-type Player struct {
-	Name    string
-	Version int64
-	Host    string
-
-	AuthorId int64
-	Author Author
-	Games  []Game
-}
-
 type Game struct {
 	Winner  Player
 	States  []*game.State
