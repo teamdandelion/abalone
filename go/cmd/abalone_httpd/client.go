@@ -21,6 +21,7 @@ func NewDatastore(sqldb *sql.DB, drivername string) (*api.Services, error) {
 
 	return &api.Services{
 		Players: &playersStore{&db},
+		DB:      &db,
 	}, nil
 }
 
