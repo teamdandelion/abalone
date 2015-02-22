@@ -1,0 +1,112 @@
+{
+	"ImportPath": "github.com/danmane/abalone/go",
+	"GoVersion": "go1.4.1",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/gogoprotobuf/io",
+			"Rev": "6c980277330804e94257ac7ef70a3adbe1641059"
+		},
+		{
+			"ImportPath": "code.google.com/p/gogoprotobuf/proto",
+			"Rev": "6c980277330804e94257ac7ef70a3adbe1641059"
+		},
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.6.4-4-g844911c",
+			"Rev": "844911ce078544c0d950b86ef09e6d19270ed33a"
+		},
+		{
+			"ImportPath": "github.com/briantigerchow/gamecenter",
+			"Rev": "faded444af8306c71263f068c936106d75e1cb44"
+		},
+		{
+			"ImportPath": "github.com/cenkalti/backoff",
+			"Rev": "9831e1e25c874e0a0601b6dc43641071414eec7a"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-64-ge1712f3",
+			"Rev": "e1712f381785e32046927f64a7c86fe569203196"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/negroni",
+			"Comment": "v0.1-55-g1dd3ab0",
+			"Rev": "1dd3ab0ff59e13f5b73dcbf70703710aebe50d2f"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/archive",
+			"Comment": "v1.4.1-666-g54ddb9b",
+			"Rev": "54ddb9b41d550fea021efb9f77b7993acf3d6f75"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/fileutils",
+			"Comment": "v1.4.1-666-g54ddb9b",
+			"Rev": "54ddb9b41d550fea021efb9f77b7993acf3d6f75"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/ioutils",
+			"Comment": "v1.4.1-666-g54ddb9b",
+			"Rev": "54ddb9b41d550fea021efb9f77b7993acf3d6f75"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/pools",
+			"Comment": "v1.4.1-666-g54ddb9b",
+			"Rev": "54ddb9b41d550fea021efb9f77b7993acf3d6f75"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/promise",
+			"Comment": "v1.4.1-666-g54ddb9b",
+			"Rev": "54ddb9b41d550fea021efb9f77b7993acf3d6f75"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/system",
+			"Comment": "v1.4.1-666-g54ddb9b",
+			"Rev": "54ddb9b41d550fea021efb9f77b7993acf3d6f75"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar",
+			"Comment": "v1.4.1-666-g54ddb9b",
+			"Rev": "54ddb9b41d550fea021efb9f77b7993acf3d6f75"
+		},
+		{
+			"ImportPath": "github.com/facebookgo/stack",
+			"Rev": "4da6d991fc3c389efa512151354d643eb5fae4e2"
+		},
+		{
+			"ImportPath": "github.com/facebookgo/stackerr",
+			"Rev": "060fbf9364c89acd41bf710e9e92915a90e7a5b5"
+		},
+		{
+			"ImportPath": "github.com/fsouza/go-dockerclient",
+			"Rev": "d19717788084716e4adff0515be6289aa04bec46"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "14f550f51af52180c2eefed15e5fd18d63c0a64a"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "4b8fbc56f3b2400a7c7ea3dba9b3539787c486b6"
+		},
+		{
+			"ImportPath": "github.com/jinzhu/gorm",
+			"Rev": "8aef60054028a63e89e78f3e1f813226e8d274e6"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-23-g835d5eb",
+			"Rev": "835d5eb08da4541f26181e6958d7400da769e44b"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Rev": "25d045f12a64283630fdedec899655cc5710b683"
+		},
+		{
+			"ImportPath": "github.com/olekukonko/tablewriter",
+			"Rev": "4e184f20e97aea44cba52eff5ceeb8d4664c3f34"
+		}
+	]
+}
