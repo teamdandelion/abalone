@@ -20,8 +20,9 @@ var UsersCmd = cli.Command{
 	Usage: "manage abalone users",
 	Subcommands: []cli.Command{
 		{
-			Name:  "create",
-			Usage: "creates a user",
+			Name:      "create",
+			ShortName: "c",
+			Usage:     "creates a user",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "name, n",
@@ -39,10 +40,21 @@ var UsersCmd = cli.Command{
 			},
 		},
 		{
-			Name:  "list",
-			Usage: "lists users",
+			Name:      "list",
+			ShortName: "l",
+			Usage:     "lists users",
 			Action: func(c *cli.Context) {
 				if err := ListUsersHandler(c); err != nil {
+					log.Fatal(err)
+				}
+			},
+		},
+		{
+			Name:      "delete",
+			ShortName: "d",
+			Usage:     "delete user by id",
+			Action: func(c *cli.Context) {
+				if err := DeleteUsersHandler(c); err != nil {
 					log.Fatal(err)
 				}
 			},
@@ -112,11 +124,33 @@ func ListUsersHandler(c *cli.Context) error {
 			strconv.FormatInt(u.ID, 10),
 			u.Name,
 			u.Email,
-			u.CreatedAt.String(),
-			u.UpdatedAt.String(),
+			u.CreatedAt.Format("Mon Jan 2 15:04:05"),
+			u.UpdatedAt.Format("Mon Jan 2 15:04:05"),
 		}
 		table.Append(row)
 	}
 	table.Render() // Send output
+	return nil
+}
+
+func DeleteUsersHandler(c *cli.Context) error {
+	r := router.NewAPIRouter()
+	path, err := r.Get(router.UsersDelete).URL("id", c.Args().First())
+	if err != nil {
+		return fmt.Errorf("error parsing user id: %s", err)
+	}
+	url := fmt.Sprintf("http://%s%s", c.GlobalString("httpd"), path.String())
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error: %s", resp.Status)
+	}
 	return nil
 }
