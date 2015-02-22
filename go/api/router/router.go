@@ -32,6 +32,7 @@ func NewAPIRouter() *mux.Router {
 
 	api.Path("/players").Methods("GET").Name(Players)
 	api.Path("/players").Methods("POST").Name(PlayersCreate)
+	api.Path("/players/{id:[0-9]+}").Methods("DELETE").Name(PlayersDelete)
 
 	api.Path("/games").Methods("GET").Name(Games)
 	api.Path("/games/run").Methods("POST").Name(GamesRun)
