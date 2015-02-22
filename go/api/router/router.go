@@ -9,6 +9,7 @@ const (
 
 	Players       = "players"
 	PlayersCreate = "players.create"
+	PlayersDelete = "players.delete"
 
 	Games       = "games"
 	GamesRun    = "games.run"
