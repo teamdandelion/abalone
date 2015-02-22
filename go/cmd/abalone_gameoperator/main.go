@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	aiPort1   = flag.String("aiPort1", "3423", "port for first ai")
-	aiPort2   = flag.String("aiPort2", "3424", "port for second ai (if present)")
+	aiHost1   = flag.String("aiHost1", "localhost:3423", "port for first ai")
+	aiHost2   = flag.String("aiHost2", "localhost:3424", "port for second ai (if present)")
 	timelimit = flag.Duration("timelimit", time.Second*2, "per-move time limit")
 )
 
@@ -28,11 +28,11 @@ func main() {
 func run() error {
 	whiteAgent := operator.RemotePlayerInstance{
 		APIPlayer: api.Player{},
-		Port:      *aiPort1,
+		Host:      *aiHost1,
 	}
 	blackAgent := operator.RemotePlayerInstance{
 		APIPlayer: api.Player{},
-		Port:      *aiPort2,
+		Host:      *aiHost2,
 	}
 	result := operator.ExecuteGame(&whiteAgent, &blackAgent, operator.Config{
 		Start: game.Standard,
@@ -55,7 +55,7 @@ func run() error {
 	}
 	switch result.Outcome {
 	case game.WhiteWins, game.BlackWins:
-		fmt.Printf("%s (port %s) wins in %d move(s)", result.Outcome.Winner(), winner.Port, len(result.States))
+		fmt.Printf("%s (port %s) wins in %d move(s)", result.Outcome.Winner(), winner.Host, len(result.States))
 	default:
 		fmt.Println("tie game!")
 	}
