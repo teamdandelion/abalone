@@ -14,6 +14,10 @@
 			"Rev": "6c980277330804e94257ac7ef70a3adbe1641059"
 		},
 		{
+			"ImportPath": "github.com/BurntSushi/migration",
+			"Rev": "c45b897f13350786ccaf2b7403b92b1c7ad85844"
+		},
+		{
 			"ImportPath": "github.com/Sirupsen/logrus",
 			"Comment": "v0.6.4-4-g844911c",
 			"Rev": "844911ce078544c0d950b86ef09e6d19270ed33a"
@@ -93,12 +97,12 @@
 		},
 		{
 			"ImportPath": "github.com/jinzhu/gorm",
-			"Rev": "8aef60054028a63e89e78f3e1f813226e8d274e6"
+			"Rev": "38938f299f4fb73686cbdf78cc7587adae84c9d4"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-23-g835d5eb",
-			"Rev": "835d5eb08da4541f26181e6958d7400da769e44b"
+			"Comment": "go1.0-cutoff-28-g72d960f",
+			"Rev": "72d960fe96ac86dfd376b0de7ca81c0334838d0b"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
