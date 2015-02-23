@@ -173,7 +173,7 @@ func run(db *gorm.DB, g api.Game) error {
 		return fmt.Errorf("unhandled case. TODO %s", result.Outcome)
 	}
 
-	if err := db.Where(api.Game{ID: g.ID}).Update("status", status.String()).Error; err != nil {
+	if err := db.First(new(api.Game), g.ID).Update("status", status.String()).Error; err != nil {
 		return err
 	}
 	return nil
