@@ -23,9 +23,9 @@ const (
 	EnvTest        Environment = "test"
 )
 
-func DBConfig(env Environment) (*DB, error) {
+func DBConfig(env Environment, path string) (*DB, error) {
 
-	bytes, err := ioutil.ReadFile("config.toml")
+	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

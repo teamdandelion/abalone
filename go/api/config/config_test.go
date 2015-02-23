@@ -3,7 +3,7 @@ package config
 import "testing"
 
 func TestConfigDB(t *testing.T) {
-	c, err := DBConfig(EnvProduction)
+	c, err := DBConfig(EnvProduction, "config.toml")
 	if err != nil {
 		t.Fatal(err)
 	}
