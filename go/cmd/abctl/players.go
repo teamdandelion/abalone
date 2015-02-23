@@ -15,7 +15,7 @@ import (
 const (
 	argName   = "name"
 	argVer    = "version"
-	argHost   = "host"
+	argPath   = "path"
 	argAuthor = "author"
 )
 
@@ -43,8 +43,8 @@ var PlayersCmd = cli.Command{
 					Value: 1,
 				},
 				cli.StringFlag{
-					Name:  "host",
-					Usage: "ip:port where player can be reached (e.g. localhost:3423 or api.player.ai:80)",
+					Name:  "path",
+					Usage: "path where binary executable for player is found",
 				},
 				cli.IntFlag{
 					Name:  "author, a",
@@ -92,10 +92,10 @@ func CreatePlayersHandler(c *cli.Context) error {
 	}
 	v := c.Int(argVer)
 
-	if !c.IsSet(argHost) {
-		return ErrArgRequired(argHost)
+	if !c.IsSet(argPath) {
+		return ErrArgRequired(argPath)
 	}
-	h := c.String(argHost)
+	h := c.String(argPath)
 
 	if !c.IsSet(argAuthor) {
 		return ErrArgRequired(argAuthor)
@@ -105,7 +105,7 @@ func CreatePlayersHandler(c *cli.Context) error {
 	req := api.Player{
 		Name:     n,
 		Version:  int64(v),
-		Host:     h,
+		Path:     h,
 		AuthorId: int64(a),
 	}
 
@@ -141,14 +141,14 @@ func DeletePlayersHandler(c *cli.Context) error {
 
 func printPlayers(w io.Writer, players []api.Player) error {
 	table := tablewriter.NewWriter(w)
-	table.SetHeader([]string{"ID", "Name", "V", "Author", "Host", "Created", "Updated"})
+	table.SetHeader([]string{"ID", "Name", "V", "Author", "Path", "Created", "Updated"})
 	for _, p := range players {
 		row := []string{
 			strconv.FormatInt(p.ID, 10),
 			p.Name,
 			strconv.FormatInt(p.Version, 10),
 			strconv.FormatInt(p.AuthorId, 10),
-			p.Host,
+			p.Path,
 			p.CreatedAt.Format(TimeSimpleFmt),
 			p.UpdatedAt.Format(TimeSimpleFmt),
 		}

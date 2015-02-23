@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
+	"os"
 	"os/exec"
 	"time"
 )
@@ -37,10 +38,12 @@ func (i *PlayerProcessInstance) Close() error {
 func Validate(path string, scheduler PortScheduler) error {
 	var player api.Player
 	player.Path = path
-	_, err := NewPlayerProcessInstance(player, scheduler)
+	ppi, err := NewPlayerProcessInstance(player, scheduler)
 	if err != nil {
+		fmt.Printf("ai at path %v\n failed validating", path)
 		return err
 	}
+	defer ppi.Close()
 	return nil
 }
 
@@ -51,13 +54,16 @@ func NewPlayerProcessInstance(player api.Player, scheduler PortScheduler) (*Play
 	}
 	host := fmt.Sprintf("localhost:%v", port)
 	aiCmd := exec.Command(player.Path, fmt.Sprintf("-port=%v", port))
+	aiCmd.Stdout = os.Stdout
+	aiCmd.Stderr = os.Stderr
 
-	if err = aiCmd.Start(); err != nil {
+	if err := aiCmd.Start(); err != nil {
 		return nil, err
 	}
 
 	rpi := RemotePlayerInstance{APIPlayer: player, Host: host}
-	if err = rpi.Ping(); err != nil {
+	if err := rpi.Ping(); err != nil {
+		fmt.Println("ping failure")
 		return nil, err
 	}
 

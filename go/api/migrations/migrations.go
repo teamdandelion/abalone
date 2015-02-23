@@ -25,7 +25,7 @@ var Migrations = []migration.Migrator{
 
 			name character varying(255),
 			version bigint,
-			host character varying(255),
+			path character varying(255),
 
 			created_at timestamp with time zone,
 			updated_at timestamp with time zone,

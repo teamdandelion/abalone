@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	api "github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/api"
 )
 
 // CreatePlayersHandler creates a new AI player running on a remote host

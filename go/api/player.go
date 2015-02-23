@@ -4,7 +4,6 @@ package api
 type Player struct {
 	Name    string
 	Version int64
-	Host    string
 	Path    string
 
 	ID int64 `gorm:"column:id"`

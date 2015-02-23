@@ -28,13 +28,25 @@ func (i *RemotePlayerInstance) Play(s *game.State, limit time.Duration) (*game.S
 }
 
 func (i *RemotePlayerInstance) Ping() error {
-	resp, err := http.Get("http://" + i.Host + api.PingPath)
-	if err != nil {
+	target := "http://" + i.Host + api.PingPath
+	fmt.Println("the target:", target)
+
+	f := func() error {
+		resp, err := http.Get("http://" + i.Host + api.PingPath)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("got status other than StatusOK: %v", resp.StatusCode)
+		}
+		defer resp.Body.Close()
+		return nil
+	}
+
+	if err := withRetries(f); err != nil {
 		return err
 	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("expected /ping to return 200 but got %v", resp.StatusCode)
-	}
+
 	return nil
 }
 

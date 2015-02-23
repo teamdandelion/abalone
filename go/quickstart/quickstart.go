@@ -12,11 +12,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Play(player api.Player, f func(game.State, time.Duration) game.State) { // TODO pointers not copies
+func Run(port string, f func(game.State, time.Duration) game.State) { // TODO pointers not copies
 	r := mux.NewRouter()
 	r.Path(api.PingPath).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(&player)
 	})
 	r.Path(api.MovePath).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var mr api.MoveRequest
@@ -33,5 +32,5 @@ func Play(player api.Player, f func(game.State, time.Duration) game.State) { // 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(next)
 	})
-	log.Fatal(http.ListenAndServe(player.Host, r))
+	log.Fatal(http.ListenAndServe("localhost:"+port, r))
 }

@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"log"
 
-	api "github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
 	"github.com/danmane/abalone/go/operator"
 	"github.com/jinzhu/gorm"
 )
 
 type matchesDB struct {
-	db *gorm.DB
+	db        *gorm.DB
+	scheduler operator.PortScheduler
 }
 
 func (s *matchesDB) Run(playerID1, playerID2 int64) (*api.Match, error) {
@@ -22,7 +23,7 @@ func (s *matchesDB) Run(playerID1, playerID2 int64) (*api.Match, error) {
 	if err := s.db.Create(&matchrequest).Error; err != nil {
 		return nil, err
 	}
-	if err := ExecuteMatch(s.db, matchrequest); err != nil {
+	if err := ExecuteMatch(s, matchrequest); err != nil {
 		return nil, err
 	}
 	return &matchrequest, nil
@@ -50,14 +51,14 @@ type MatchConfig struct {
 	Start game.State
 }
 
-func ExecuteMatch(db *gorm.DB, m api.Match) error {
+func ExecuteMatch(mdb *matchesDB, m api.Match) error {
 
 	const (
 		policyNumGames = 2
 	)
 
 	var games []api.Game
-	if err := db.Where(api.Match{ID: m.ID}).Find(&games).Error; err != nil {
+	if err := mdb.db.Where(api.Match{ID: m.ID}).Find(&games).Error; err != nil {
 		return err
 	}
 
@@ -100,11 +101,11 @@ func ExecuteMatch(db *gorm.DB, m api.Match) error {
 			BlackId: m.PID2,
 			MatchId: m.ID,
 		}
-		if err := db.Create(&g).Error; err != nil {
+		if err := mdb.db.Create(&g).Error; err != nil {
 			return err
 		}
 		go func() {
-			if err := run(db, g); err != nil {
+			if err := run(mdb, g); err != nil {
 				log.Println(err)
 			}
 		}()
@@ -118,11 +119,11 @@ func ExecuteMatch(db *gorm.DB, m api.Match) error {
 			BlackId: m.PID1,
 			MatchId: m.ID,
 		}
-		if err := db.Create(&g).Error; err != nil {
+		if err := mdb.db.Create(&g).Error; err != nil {
 			return err
 		}
 		go func() {
-			if err := run(db, g); err != nil {
+			if err := run(mdb, g); err != nil {
 				log.Println(err)
 			}
 		}()
@@ -135,26 +136,25 @@ func ExecuteMatch(db *gorm.DB, m api.Match) error {
 	return nil
 }
 
-func run(db *gorm.DB, g api.Game) error {
+func run(matches *matchesDB, g api.Game) error {
 
 	var white api.Player
-	if err := db.First(&white, g.WhiteId).Error; err != nil {
+	if err := matches.db.First(&white, g.WhiteId).Error; err != nil {
 		return err
 	}
 	var black api.Player
-	if err := db.First(&black, g.BlackId).Error; err != nil {
+	if err := matches.db.First(&black, g.BlackId).Error; err != nil {
 		return err
 	}
-
-	whiteAgent := operator.RemotePlayerInstance{
-		APIPlayer: white,
-		Host:      white.Host,
+	whiteAgent, err := operator.NewPlayerProcessInstance(white, matches.scheduler)
+	if err != nil {
+		return err
 	}
-	blackAgent := operator.RemotePlayerInstance{
-		APIPlayer: black,
-		Host:      black.Host,
+	blackAgent, err := operator.NewPlayerProcessInstance(black, matches.scheduler)
+	if err != nil {
+		return err
 	}
-	result := operator.ExecuteGame(&whiteAgent, &blackAgent, operator.Config{
+	result := operator.ExecuteGame(whiteAgent, blackAgent, operator.Config{
 		Start: game.Standard,
 		Limit: api.DefaultMoveLimit,
 		GameHadState: func(*game.State) {
@@ -173,7 +173,7 @@ func run(db *gorm.DB, g api.Game) error {
 		return fmt.Errorf("unhandled case. TODO %s", result.Outcome)
 	}
 
-	if err := db.First(new(api.Game), g.ID).Update("status", status.String()).Error; err != nil {
+	if err := matches.db.First(new(api.Game), g.ID).Update("status", status.String()).Error; err != nil {
 		return err
 	}
 	return nil
