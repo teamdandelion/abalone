@@ -1,0 +1,10 @@
+[database]
+    [database.development]
+    driver = "postgres"
+    open = "postgres://postgres:password@localhost/abdb_dev?sslmode=disable"
+    [database.test]
+    driver = "postgres"
+    open = "postgres://postgres:password@localhost/abdb_test?sslmode=disable"
+    [database.production]
+    driver = "postgres"
+    open = "postgres://postgres:$ABDB_PASSWORD@localhost/abdb?sslmode=disable"
