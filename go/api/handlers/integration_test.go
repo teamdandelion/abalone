@@ -1,23 +1,29 @@
 package handlers
 
 import (
+	"flag"
 	"net/http/httptest"
 
 	"testing"
 
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/api/client"
-	"github.com/danmane/abalone/go/api/datastore"
+	db "github.com/danmane/abalone/go/api/db"
 	"github.com/danmane/abalone/go/api/router"
 	_ "github.com/lib/pq"
 )
 
+const (
+	dialect = "postgres"
+)
+
+var pgaddr = flag.String("pgaddr", "", "postgres db address spec")
+
 func NewTestServer(t *testing.T) *httptest.Server {
-	const (
-		dialect = "postgres"
-		addr    = "postgres://postgres:password@localhost/abalonetest?sslmode=disable"
-	)
-	ds, err := datastore.Open(dialect, addr)
+	if *pgaddr == "" {
+		t.SkipNow()
+	}
+	ds, err := db.Open(dialect, *pgaddr)
 	if err != nil {
 		t.Fatal(err)
 	}
