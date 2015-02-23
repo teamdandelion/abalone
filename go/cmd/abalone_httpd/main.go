@@ -7,6 +7,7 @@ import (
 
 	"github.com/codegangsta/negroni"
 	api "github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/api/config"
 	"github.com/danmane/abalone/go/api/datastore"
 	"github.com/danmane/abalone/go/api/handlers"
 	"github.com/danmane/abalone/go/api/router"
@@ -26,12 +27,16 @@ func run() error {
 		debug      = flag.Bool("debug", false, "")
 		staticPath = flag.String("static", "./static", "serve static files located in this directory")
 		host       = flag.String("host", ":8080", "address:port for HTTP listener")
-		dialect    = flag.String("dialect", "postgres", "")
-		dbaddr     = flag.String("db", "postgres://postgres:password@localhost/abalone?sslmode=disable", "")
 	)
 	flag.Parse()
 
-	ds, err := datastore.Open(*dialect, *dbaddr)
+	dbconf, err := config.DBConfig(config.EnvDevelopment)
+	if err != nil {
+		return err
+	}
+	log.Printf("using database %s with config %s", dbconf.Driver, dbconf.Open)
+
+	ds, err := datastore.Open(dbconf.Driver, dbconf.Open)
 	if err != nil {
 		return err
 	}
