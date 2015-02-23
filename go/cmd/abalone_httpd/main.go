@@ -8,7 +8,7 @@ import (
 	"github.com/codegangsta/negroni"
 	api "github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/api/config"
-	"github.com/danmane/abalone/go/api/datastore"
+	db "github.com/danmane/abalone/go/api/db"
 	"github.com/danmane/abalone/go/api/handlers"
 	"github.com/danmane/abalone/go/api/router"
 	"github.com/gorilla/mux"
@@ -36,7 +36,7 @@ func run() error {
 	}
 	log.Printf("using database %s with config %s", dbconf.Driver, dbconf.Open)
 
-	ds, err := datastore.Open(dbconf.Driver, dbconf.Open)
+	ds, err := db.Open(dbconf.Driver, dbconf.Open)
 	if err != nil {
 		return err
 	}

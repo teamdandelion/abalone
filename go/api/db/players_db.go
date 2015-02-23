@@ -1,15 +1,15 @@
-package datastore
+package db
 
 import (
 	api "github.com/danmane/abalone/go/api"
 	"github.com/jinzhu/gorm"
 )
 
-type playersStore struct {
+type playersDB struct {
 	db *gorm.DB
 }
 
-func (s *playersStore) Create(userID int64, p api.Player) (*api.Player, error) {
+func (s *playersDB) Create(userID int64, p api.Player) (*api.Player, error) {
 	p.AuthorId = userID
 	if err := s.db.Create(&p).Error; err != nil {
 		return nil, err
@@ -17,7 +17,7 @@ func (s *playersStore) Create(userID int64, p api.Player) (*api.Player, error) {
 	return &p, nil
 }
 
-func (s *playersStore) List() ([]api.Player, error) {
+func (s *playersDB) List() ([]api.Player, error) {
 	var players []api.Player
 	if err := s.db.Find(&players).Error; err != nil {
 		return nil, err
@@ -25,8 +25,8 @@ func (s *playersStore) List() ([]api.Player, error) {
 	return players, nil
 }
 
-func (s *playersStore) Delete(id int64) error {
+func (s *playersDB) Delete(id int64) error {
 	return s.db.Delete(api.Player{ID: id}).Error
 }
 
-var _ api.PlayersService = &playersStore{}
+var _ api.PlayersService = &playersDB{}

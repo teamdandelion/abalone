@@ -1,4 +1,4 @@
-package datastore
+package db
 
 import (
 	"fmt"
@@ -10,11 +10,11 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type matchesStore struct {
+type matchesDB struct {
 	db *gorm.DB
 }
 
-func (s *matchesStore) Run(playerID1, playerID2 int64) (*api.Match, error) {
+func (s *matchesDB) Run(playerID1, playerID2 int64) (*api.Match, error) {
 	matchrequest := api.Match{
 		PID1: playerID1,
 		PID2: playerID2,
@@ -28,7 +28,7 @@ func (s *matchesStore) Run(playerID1, playerID2 int64) (*api.Match, error) {
 	return &matchrequest, nil
 }
 
-func (s *matchesStore) List() ([]api.Player, error) {
+func (s *matchesDB) List() ([]api.Player, error) {
 	var players []api.Player
 	if err := s.db.Find(&players).Error; err != nil {
 		return nil, err
@@ -36,11 +36,11 @@ func (s *matchesStore) List() ([]api.Player, error) {
 	return players, nil
 }
 
-func (s *matchesStore) Delete(id int64) error {
+func (s *matchesDB) Delete(id int64) error {
 	return s.db.Delete(api.Player{ID: id}).Error
 }
 
-var _ api.MatchesService = &matchesStore{}
+var _ api.MatchesService = &matchesDB{}
 
 type Policy struct {
 	Configs []MatchConfig

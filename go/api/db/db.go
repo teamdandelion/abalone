@@ -1,4 +1,4 @@
-package datastore
+package db
 
 import (
 	"github.com/BurntSushi/migration"
@@ -18,9 +18,9 @@ func Open(dialect string, addr string) (*api.Services, error) {
 	}
 
 	return &api.Services{
-		Matches: &matchesStore{&db},
-		Players: &playersStore{&db},
-		Users:   &usersStore{&db},
+		Matches: &matchesDB{&db},
+		Players: &playersDB{&db},
+		Users:   &usersDB{&db},
 		DB:      &db,
 	}, nil
 }
