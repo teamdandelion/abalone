@@ -1,10 +1,10 @@
 package db
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
-	"encoding/json"
-	"bytes"
 
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
@@ -162,7 +162,7 @@ func run(matches *matchesDB, g api.Game) error {
 		GameHadState: func(s *game.State) error {
 			//get count
 			var count int
-			err := db.Table("records").Where("game_id = ?", g.ID).Count(&count).Error
+			err := matches.db.Table("records").Where("game_id = ?", g.ID).Count(&count).Error
 			if err != nil {
 				return err
 			}
@@ -178,7 +178,7 @@ func run(matches *matchesDB, g api.Game) error {
 				TurnNum: int64(count + 1),
 				State:   buf.String(),
 			}
-			if err := db.Create(&r).Error; err != nil {
+			if err := matches.db.Create(&r).Error; err != nil {
 				return err
 			}
 			return nil
