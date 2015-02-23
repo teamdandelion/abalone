@@ -20,9 +20,15 @@ boot2docker ip
 Set the `open` entry to look something like this...
 
 ```
-    open = "postgres://postgres:password@192.168.59.103/abalone?sslmode=disable"
+    open = "postgres://postgres:password@192.168.59.103/abdb_dev?sslmode=disable"
 ```
 
 Ensure the username, password, and database name match what you have in your
 local environment. In the example above, u, p, and d are `postgres`,
 `password`, and `abalone` respectively.
+
+Finally, create the database. In this case, we'll create `abdb_dev`. In can be
+anything you'd like. Just make sure it matches the "open" string shown above:
+```
+createdb abdb_dev -h $(boot2docker ip) -p 5432 -U postgres
+```
