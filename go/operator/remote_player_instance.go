@@ -27,6 +27,17 @@ func (i *RemotePlayerInstance) Play(s *game.State, limit time.Duration) (*game.S
 	return gameFromAI(i.Host, s)
 }
 
+func (i *RemotePlayerInstance) Ping() error {
+	resp, err := http.Get("http://" + i.Host + api.PingPath)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("expected /ping to return 200 but got %v", resp.StatusCode)
+	}
+	return nil
+}
+
 func gameFromAI(host string, state *game.State) (*game.State, error) {
 	mr := api.MoveRequest{
 		State:      *state,
