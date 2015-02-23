@@ -3,12 +3,28 @@ package api
 import "github.com/danmane/abalone/go/game"
 
 type Game struct {
-	Winner  Player
-	States  []*game.State
-	Outcome Victory
+	ID int64 `gorm:"column:id"`
 
-	First  Player
-	Second Player
+	MatchId int64 `gorm:"column:match_id"`
+	WhiteId int64 `gorm:"column:white_player_id"`
+	BlackId int64 `gorm:"column:black_player_id"`
+
+	Status string `gorm:"column:status"`
+
+	CommonDBFields
+}
+
+type GameStatus string
+
+const (
+	GameScheduled GameStatus = "scheduled"
+	GameDraw      GameStatus = "draw"
+	GameBlackWins GameStatus = "black_wins"
+	GameWhiteWins GameStatus = "white_wins"
+)
+
+func (s GameStatus) String() string {
+	return string(s)
 }
 
 type GameResult struct {

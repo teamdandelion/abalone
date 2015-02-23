@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"fmt"
+	"log"
 
 	api "github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
@@ -21,33 +22,9 @@ func (s *matchesStore) Run(playerID1, playerID2 int64) (*api.Match, error) {
 	if err := s.db.Create(&matchrequest).Error; err != nil {
 		return nil, err
 	}
-	var players []api.Player
-	if err := s.db.Where([]int64{playerID1, playerID2}).Find(&players).Error; err != nil {
+	if err := ExecuteMatch(s.db, matchrequest); err != nil {
 		return nil, err
 	}
-	if len(players) != 2 {
-		return nil, fmt.Errorf("error retrieving players. %d player(s) found", len(players))
-	}
-	go func() {
-		a := players[0]
-		b := players[1]
-		whiteAgent := operator.RemotePlayerInstance{
-			APIPlayer: a,
-			Host:      a.Host,
-		}
-		blackAgent := operator.RemotePlayerInstance{
-			APIPlayer: b,
-			Host:      b.Host,
-		}
-		_ = operator.ExecuteGame(&whiteAgent, &blackAgent, operator.Config{
-			Start: game.Standard,
-			Limit: api.DefaultMoveLimit,
-			GameHadState: func(*game.State) {
-			},
-		})
-
-		// TODO handle game creation
-	}()
 	return &matchrequest, nil
 }
 
@@ -64,3 +41,140 @@ func (s *matchesStore) Delete(id int64) error {
 }
 
 var _ api.MatchesService = &matchesStore{}
+
+type Policy struct {
+	Configs []MatchConfig
+}
+
+type MatchConfig struct {
+	Start game.State
+}
+
+func ExecuteMatch(db *gorm.DB, m api.Match) error {
+
+	const (
+		policyNumGames = 2
+	)
+
+	var games []api.Game
+	if err := db.Where(api.Match{ID: m.ID}).Find(&games).Error; err != nil {
+		return err
+	}
+
+	constraints := struct {
+		PID1AsWhite bool
+		PID1AsBlack bool
+
+		PID2AsWhite bool
+		PID2AsBlack bool
+	}{}
+
+	for _, g := range games {
+		if g.WhiteId == m.PID1 {
+			constraints.PID1AsWhite = true
+		}
+		if g.BlackId == m.PID1 {
+			constraints.PID1AsBlack = true
+		}
+		if g.BlackId == m.PID2 {
+			constraints.PID2AsBlack = true
+		}
+		if g.WhiteId == m.PID2 {
+			constraints.PID2AsWhite = true
+		}
+	}
+
+	// player one is white doesn't equal player two as black
+	// or vice-versa
+	if (constraints.PID1AsWhite != constraints.PID2AsBlack) || (constraints.PID1AsBlack != constraints.PID2AsWhite) {
+		return fmt.Errorf("couldn't run games. database inconsistency detected. match: %+v, constraints: %+v", m, constraints)
+	}
+
+	// https://www.youtube.com/watch?v=zyu2jAD6sdo
+
+	if !constraints.PID1AsWhite {
+		// run game where player 1 is white
+		g := api.Game{
+			Status:  api.GameScheduled.String(),
+			WhiteId: m.PID1,
+			BlackId: m.PID2,
+			MatchId: m.ID,
+		}
+		if err := db.Create(&g).Error; err != nil {
+			return err
+		}
+		go func() {
+			if err := run(db, g); err != nil {
+				log.Println(err)
+			}
+		}()
+	}
+
+	if !constraints.PID2AsWhite {
+		// run game where player 2 is white
+		g := api.Game{
+			Status:  api.GameScheduled.String(),
+			WhiteId: m.PID2,
+			BlackId: m.PID1,
+			MatchId: m.ID,
+		}
+		if err := db.Create(&g).Error; err != nil {
+			return err
+		}
+		go func() {
+			if err := run(db, g); err != nil {
+				log.Println(err)
+			}
+		}()
+	}
+
+	if len(games) < policyNumGames {
+		// Create enough games
+	}
+
+	return nil
+}
+
+func run(db *gorm.DB, g api.Game) error {
+
+	var white api.Player
+	if err := db.First(&white, g.WhiteId).Error; err != nil {
+		return err
+	}
+	var black api.Player
+	if err := db.First(&black, g.BlackId).Error; err != nil {
+		return err
+	}
+
+	whiteAgent := operator.RemotePlayerInstance{
+		APIPlayer: white,
+		Host:      white.Host,
+	}
+	blackAgent := operator.RemotePlayerInstance{
+		APIPlayer: black,
+		Host:      black.Host,
+	}
+	result := operator.ExecuteGame(&whiteAgent, &blackAgent, operator.Config{
+		Start: game.Standard,
+		Limit: api.DefaultMoveLimit,
+		GameHadState: func(*game.State) {
+		},
+	})
+
+	var status api.GameStatus
+	switch result.Outcome {
+	case game.WhiteWins:
+		status = api.GameWhiteWins
+	case game.BlackWins:
+		status = api.GameBlackWins
+	case game.Tie:
+		status = api.GameDraw
+	default:
+		return fmt.Errorf("unhandled case. TODO %s", result.Outcome)
+	}
+
+	if err := db.Where(api.Game{ID: g.ID}).Update("status", status.String()).Error; err != nil {
+		return err
+	}
+	return nil
+}

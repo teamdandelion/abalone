@@ -8,7 +8,7 @@ type Player struct {
 
 	ID int64 `gorm:"column:id"`
 
-	AuthorId int64
+	AuthorId int64 `gorm:"column:user_id"`
 
 	CommonDBFields
 }
