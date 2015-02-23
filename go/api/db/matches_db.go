@@ -3,6 +3,8 @@ package db
 import (
 	"fmt"
 	"log"
+	"encoding/json"
+	"bytes"
 
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
@@ -157,7 +159,29 @@ func run(matches *matchesDB, g api.Game) error {
 	result := operator.ExecuteGame(whiteAgent, blackAgent, operator.Config{
 		Start: game.Standard,
 		Limit: api.DefaultMoveLimit,
-		GameHadState: func(*game.State) {
+		GameHadState: func(s *game.State) error {
+			//get count
+			var count int
+			err := db.Table("records").Where("game_id = ?", g.ID).Count(&count).Error
+			if err != nil {
+				return err
+			}
+			//jsonify state
+			var buf bytes.Buffer
+			if err := json.NewEncoder(&buf).Encode(s); err != nil {
+				return err
+			}
+
+			////make and save record
+			r := api.Record{
+				GameID:  g.ID,
+				TurnNum: int64(count + 1),
+				State:   buf.String(),
+			}
+			if err := db.Create(&r).Error; err != nil {
+				return err
+			}
+			return nil
 		},
 	})
 

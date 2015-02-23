@@ -19,7 +19,7 @@ type Config struct {
 
 	// GameHadState is called after every state transition. It allows clients
 	// to subscribe to updates while the game is in progress.
-	GameHadState func(*game.State)
+	GameHadState func(*game.State) error
 }
 
 func ExecuteGame(whiteAgent, blackAgent PlayerInstance, config Config) api.GameResult {
