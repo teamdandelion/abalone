@@ -28,10 +28,6 @@
 			"Rev": "844911ce078544c0d950b86ef09e6d19270ed33a"
 		},
 		{
-			"ImportPath": "github.com/briantigerchow/gamecenter",
-			"Rev": "faded444af8306c71263f068c936106d75e1cb44"
-		},
-		{
 			"ImportPath": "github.com/cenkalti/backoff",
 			"Rev": "9831e1e25c874e0a0601b6dc43641071414eec7a"
 		},
