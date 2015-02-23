@@ -22,6 +22,7 @@ unsupported/hs/docsets
 go/cmd/abalone_relayd/abalone_relayd
 go/cmd/abalone_example_ai/abalone_example_ai
 go/cmd/abalone_gameoperator/abalone_gameoperator
+go/cmd/abalone_ai_validator/abalone_ai_validator
 
 
 
