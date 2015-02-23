@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/user"
 	"path"
 
 	"github.com/codegangsta/negroni"
@@ -17,7 +16,6 @@ import (
 	"github.com/danmane/abalone/go/api/router"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -32,15 +30,11 @@ func run() error {
 		staticPath = flag.String("static", "./static", "serve static files located in this directory")
 		host       = flag.String("host", ":8080", "address:port for HTTP listener")
 		env        = flag.String("env", string(config.EnvDevelopment), fmt.Sprintf("alternately %s", config.EnvProduction))
+		dir        = flag.String("dir", "/var/abalone_httpd", "directory where configs and players are kept")
 	)
 	flag.Parse()
 
-	user, err := user.Current()
-	if err != nil {
-		return err
-	}
-
-	configDir := path.Join(user.HomeDir, ".abalone")
+	configDir := *dir
 	configFilename := path.Join(configDir, "config.toml")
 	configPlayersDir := path.Join(configDir, "players")
 
