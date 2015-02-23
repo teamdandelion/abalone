@@ -4,6 +4,7 @@ This is a AI programming competition for the classic board game [Abalone](http:/
 
 Installation:
 ---
+```
 go get github.com/danmane/abalone/...
 cd $GOPATH/github.com/danmane/abalone/go
 go get ./...
@@ -11,7 +12,7 @@ go build ./...
 cd $GOPATH/github.com/danmane/abalone/frontend
 npm install
 bower install
-
+```
 
 ### To play locally against yourself or another human
 ```
