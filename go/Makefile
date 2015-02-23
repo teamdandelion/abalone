@@ -2,6 +2,7 @@ all:
 	# nop
 
 vendor: godep
+	go get ./...
 	godep save ./...
 
 godep:
