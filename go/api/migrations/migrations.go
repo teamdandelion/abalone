@@ -65,9 +65,6 @@ var Migrations = []migration.Migrator{
 	},
 	func(txn migration.LimitedTx) error {
 
-		// TODO how to know when game is complete?
-		// TODO where to store states?
-		// TODO how to respresent black, white
 		// TODO how to represent initial state/game configuration
 
 		q := `
@@ -87,6 +84,28 @@ var Migrations = []migration.Migrator{
 			FOREIGN KEY (white_player_id) REFERENCES players (id) ON DELETE RESTRICT,
 			FOREIGN KEY (black_player_id) REFERENCES players (id) ON DELETE RESTRICT,
 			CONSTRAINT games_pkey PRIMARY KEY (id)
+		);
+		`
+		if _, err := txn.Exec(q); err != nil {
+			return err
+		}
+		return nil
+	},
+	func(txn migration.LimitedTx) error {
+
+		q := `
+		CREATE TABLE records
+		(
+			game_id bigint NOT NULL,
+			turn_num bigint NOT NULL,
+
+			created_at timestamp with time zone,
+			updated_at timestamp with time zone,
+
+			state bytea NOT NULL,
+
+			FOREIGN KEY (game_id) REFERENCES games (id) ON DELETE RESTRICT,
+			CONSTRAINT records_pkey PRIMARY KEY (game_id, turn_num)
 		);
 		`
 		if _, err := txn.Exec(q); err != nil {
