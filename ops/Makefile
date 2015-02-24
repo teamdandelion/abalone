@@ -1,5 +1,6 @@
 http_check_status:
 	ansible http -m shell -a "initctl status abalone_httpd"
+	ansible http -m shell -a "tail /var/abalone/log"
 
 localhost_bootstrap:
 	ansible-playbook ./playbooks/localhost_bootstrap.yml
@@ -17,14 +18,14 @@ build/abalone_httpd: build $(HTTPD_SRC_DIR)
 build:
 	mkdir build
 
-httpd_auto_deploy: build/abalone_httpd http_deploy
+httpd_auto_deploy: build/abalone_httpd httpd_deploy
 
 httpd_deploy: $(HTTPD_BINARY)
 
 	# the vault password is used to decrypt the file that contains the database
 	# password. The database password is required to execute this task.
 	#
-	$(PLAY) playbooks/httpd_deploy.yml --ask-vault-pass
+	ansible-playbook playbooks/httpd_deploy.yml --ask-vault-pass
 
 configure_servers:
 	ansible-playbook app.yml --ask-vault-pass

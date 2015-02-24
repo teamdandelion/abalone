@@ -2,9 +2,11 @@
 - hosts: http
   tasks:
       - include_vars: ../roles/postgres/vars/db_password.yml
+      - include_vars: ../roles/postgres/vars/main.yml
       - name: "copy binary"
         copy: src=../build/abalone_httpd dest=/usr/local/bin/abalone_httpd mode=0777
-      - service:
+      - name: "restart the service"
+        service:
           name: abalone_httpd
           state: restarted
-          args: "PGDSN={{ db_password }}"
+          args: "PGDSN=postgres://{{ db_user }}:{{ db_password }}@localhost/{{ db_name }}?sslmode=disable"
