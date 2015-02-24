@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"path"
 
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
@@ -13,8 +14,9 @@ import (
 )
 
 type matchesDB struct {
-	db        *gorm.DB
-	scheduler operator.PortScheduler
+	db              *gorm.DB
+	scheduler       operator.PortScheduler
+	filestoragePath string
 }
 
 func (s *matchesDB) Run(playerID1, playerID2 int64) (*api.Match, error) {
@@ -149,11 +151,11 @@ func run(matches *matchesDB, g api.Game) error {
 	if err := matches.db.First(&black, g.BlackId).Error; err != nil {
 		return err
 	}
-	whiteAgent, err := operator.NewPlayerProcessInstance(white, matches.scheduler)
+	whiteAgent, err := operator.NewPlayerProcessInstance(white, path.Join(matches.filestoragePath, white.Path), matches.scheduler)
 	if err != nil {
 		return err
 	}
-	blackAgent, err := operator.NewPlayerProcessInstance(black, matches.scheduler)
+	blackAgent, err := operator.NewPlayerProcessInstance(black, path.Join(matches.filestoragePath, black.Path), matches.scheduler)
 	if err != nil {
 		return err
 	}

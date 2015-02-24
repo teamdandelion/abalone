@@ -37,25 +37,23 @@ func (i *PlayerProcessInstance) Close() error {
 	return nil
 }
 
-func Validate(path string, scheduler PortScheduler) error {
+func Validate(pathToExecutable string, scheduler PortScheduler) error {
 	var player api.Player
-	player.Path = path
-	ppi, err := NewPlayerProcessInstance(player, scheduler)
+	ppi, err := NewPlayerProcessInstance(player, pathToExecutable, scheduler)
 	if err != nil {
-		fmt.Printf("ai at path %v\n failed validating", path)
+		fmt.Printf("ai at path %v\n failed validating", pathToExecutable)
 		return err
 	}
-	defer ppi.Close()
-	return nil
+	return ppi.Close()
 }
 
-func NewPlayerProcessInstance(player api.Player, scheduler PortScheduler) (*PlayerProcessInstance, error) {
+func NewPlayerProcessInstance(player api.Player, executable string, scheduler PortScheduler) (*PlayerProcessInstance, error) {
 	port, err := scheduler.GetPort()
 	if err != nil {
 		return nil, err
 	}
 	host := fmt.Sprintf("localhost:%v", port)
-	aiCmd := exec.Command(player.Path, fmt.Sprintf("-port=%v", port))
+	aiCmd := exec.Command(executable, fmt.Sprintf("-port=%v", port))
 	aiCmd.Stdout = os.Stdout
 	aiCmd.Stderr = os.Stderr
 

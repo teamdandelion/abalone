@@ -3,6 +3,7 @@ package handlers
 import (
 	"flag"
 	"net/http/httptest"
+	"os"
 
 	"testing"
 
@@ -23,7 +24,7 @@ func NewTestServer(t *testing.T) *httptest.Server {
 	if *pgaddr == "" {
 		t.SkipNow()
 	}
-	ds, err := db.Open(dialect, *pgaddr)
+	ds, err := db.Open(dialect, *pgaddr, os.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
