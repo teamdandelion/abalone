@@ -30,8 +30,8 @@ httpd_auto_deploy: build/abalone_httpd httpd_deploy
 
 httpd_deploy: $(HTTPD_BINARY)
 
-	# the vault password is used to decrypt the file that contains the database
-	# password. The database password is required to execute this task.
+	# The vault password decrypts the file that contains the database password.
+	# This task requires the database password.
 	#
 	ansible-playbook playbooks/httpd_deploy.yml --ask-vault-pass
 
