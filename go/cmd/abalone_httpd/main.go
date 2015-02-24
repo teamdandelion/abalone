@@ -45,7 +45,7 @@ func run() error {
 	const driver = "postgres" // only supported database
 	log.Printf("using database %s with config %s", driver, *pgaddr)
 
-	ds, err := db.Open(driver, *pgaddr)
+	ds, err := db.Open(driver, *pgaddr, configPlayersDir)
 	if err != nil {
 		return err
 	}

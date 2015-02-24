@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/codegangsta/cli"
@@ -15,7 +16,7 @@ import (
 const (
 	argName   = "name"
 	argVer    = "version"
-	argPath   = "path"
+	argExe    = "exe"
 	argAuthor = "author"
 )
 
@@ -43,7 +44,7 @@ var PlayersCmd = cli.Command{
 					Value: 1,
 				},
 				cli.StringFlag{
-					Name:  "path",
+					Name:  argExe,
 					Usage: "path where binary executable for player is found",
 				},
 				cli.IntFlag{
@@ -92,29 +93,31 @@ func CreatePlayersHandler(c *cli.Context) error {
 	}
 	v := c.Int(argVer)
 
-	if !c.IsSet(argPath) {
-		return ErrArgRequired(argPath)
-	}
-	h := c.String(argPath)
-
 	if !c.IsSet(argAuthor) {
 		return ErrArgRequired(argAuthor)
 	}
 	a := c.Int(argAuthor)
 
-	req := api.Player{
-		Name:     n,
-		Version:  int64(v),
-		Path:     h,
-		AuthorId: int64(a),
+	if !c.IsSet(argExe) { // validated last since all other args are simpler to validate
+		return ErrArgRequired(argExe)
 	}
-
-	client := client.NewClient(client.BaseURL(c.GlobalString("httpd")))
-	player, err := client.Players.Create(int64(a), req)
+	f, err := os.Open(c.String(argExe))
 	if err != nil {
 		return err
 	}
-	return printPlayers(c.App.Writer, []api.Player{*player})
+	defer f.Close()
+
+	player := api.Player{
+		Name:     n,
+		Version:  int64(v),
+		AuthorId: int64(a),
+	}
+	client := client.NewClient(client.BaseURL(c.GlobalString("httpd")))
+	created, err := client.Players.Upload(int64(a), player, f)
+	if err != nil {
+		return err
+	}
+	return printPlayers(c.App.Writer, []api.Player{*created})
 }
 
 func ListPlayersHandler(c *cli.Context) error {

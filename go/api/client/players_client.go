@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
 	api "github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/api/router"
+	"github.com/danmane/abalone/go/thirdparty/httputil2"
 )
 
 type playersClient struct {
@@ -51,6 +53,36 @@ func (s *playersClient) Create(userID int64, p api.Player) (*api.Player, error) 
 	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, newHTTPError(resp)
+	}
+	var player api.Player
+	if err := json.NewDecoder(resp.Body).Decode(&player); err != nil {
+		return nil, err
+	}
+	return &player, nil
+}
+
+func (s *playersClient) Upload(userID int64, p api.Player, executable io.Reader) (*api.Player, error) {
+	params := map[string]string{
+		"name":      p.Name,
+		"version":   strconv.FormatInt(p.Version, 10),
+		"author_id": strconv.FormatInt(userID, 10),
+	}
+	path, err := router.NewAPIRouter().Get(router.PlayersCreate).URL()
+	if err != nil {
+		return nil, err
+	}
+	url := s.client.BaseURL + path.String()
+
+	req, err := httputil2.NewFileUploadRequest(url, params, "exe", "exe", executable)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, httputil2.NewHTTPError(resp)
 	}
 	var player api.Player
 	if err := json.NewDecoder(resp.Body).Decode(&player); err != nil {
