@@ -1,6 +1,6 @@
 ---
 - name: "create static asset dir"
-  file: name=/var/abalone/public state=directory
+  file: name={{ static_path }} state=directory
 - name: "copy upstart config"
   copy: src=abalone_httpd.conf dest=/etc/init/abalone_httpd.conf
 - name: "ensure the latest upstart is installed"
