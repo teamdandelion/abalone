@@ -45,6 +45,16 @@ Playbooks can be found in the `playbooks` directory.
 
 **tasks**
 
-Tasks, defined in the `Makefile`, describe operations that we wish to perform
-on remote servers. We use tasks to configure servers, perform status checks,
-deploy releases, etc. See the `Makefile` for details.
+Tasks, defined in the `Makefile`, are abstractions over roles and playbooks. In
+short, tasks describe the high-level operations that we wish to perform on
+remote servers. Typical tasks include configuring servers, performing status
+checks, deploying releases, etc.
+
+See the `Makefile` for details.
+
+# credentials
+
+To gain access to the servers, we'll need to add your SSH keys to the servers.
+
+Add your public SSH key to `roles/common/files/authorized_keys` and ping
+@briantigerchow to have your keys sync'd up to the remote servers.
