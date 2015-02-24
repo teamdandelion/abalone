@@ -26,5 +26,8 @@ httpd_deploy: $(HTTPD_BINARY)
 	#
 	$(PLAY) playbooks/httpd_deploy.yml --ask-vault-pass
 
+configure_servers:
+	ansible-playbook app.yml --ask-vault-pass
+
 clean:
 	rm -rf build
