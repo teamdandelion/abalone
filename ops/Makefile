@@ -15,8 +15,15 @@ build/abalone_httpd: build $(HTTPD_SRC_DIR)
 	# ensure that the binary is compiled for linux/amd64
 	file $(HTTPD_BINARY) | grep "ELF 64"
 
+build/public:
+	cd ../fe2 && ./node_modules/.bin/gulp compile
+	cp -r ../fe2/build build/public
+
 build:
 	mkdir build
+
+frontend_deploy: build/public
+	ansible-playbook ./playbooks/frontend_deploy.yml
 
 httpd_auto_deploy: build/abalone_httpd httpd_deploy
 

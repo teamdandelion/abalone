@@ -78,3 +78,4 @@ gulp.task('server', function() {
 })
 
 gulp.task('default', ['watch', 'js', 'css', 'img', 'html', 'server'])
+gulp.task('compile', ['js', 'css', 'img', 'html'])
