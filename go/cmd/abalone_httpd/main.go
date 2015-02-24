@@ -30,7 +30,7 @@ func run() error {
 		staticPath = flag.String("static", "./static", "serve static files located in this directory")
 		host       = flag.String("host", ":8080", "address:port for HTTP listener")
 		env        = flag.String("env", string(config.EnvDevelopment), fmt.Sprintf("alternately %s", config.EnvProduction))
-		dir        = flag.String("dir", "/var/abalone_httpd", "directory where configs and players are kept")
+		dir        = flag.String("dir", "/var/abalone", "directory where configs and players are kept")
 	)
 	flag.Parse()
 
