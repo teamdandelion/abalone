@@ -20,6 +20,8 @@ func MountHandlers(r *mux.Router, ds *api.Services) {
 	r.Get(routes.UsersCreate).HandlerFunc(CreateUsersHandler(ds))
 	r.Get(routes.UsersDelete).HandlerFunc(DeleteUsersHandler(ds))
 
+	r.Get(routes.Games).HandlerFunc(ListGamesHandler(ds))
+
 	r.Get(routes.APIBaseRoute).Path("/{rest:.*}").HandlerFunc(http.NotFound)
 }
 

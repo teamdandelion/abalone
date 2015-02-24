@@ -19,6 +19,7 @@ func Open(dialect string, addr string, filestoragePath string) (*api.Services, e
 	}
 
 	return &api.Services{
+		Games: &gamesDB{&db},
 		Matches: &matchesDB{
 			db:              &db,
 			scheduler:       operator.NewScheduler(16000, 2000),

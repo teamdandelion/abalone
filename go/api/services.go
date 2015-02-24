@@ -7,11 +7,16 @@ import (
 )
 
 type Services struct {
+	Games   GamesService
 	Matches MatchesService
 	Players PlayersService
 	Users   UsersService
 
 	DB *gorm.DB
+}
+
+type GamesService interface {
+	List() ([]Game, error)
 }
 
 type PlayersService interface {
