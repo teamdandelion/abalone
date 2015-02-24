@@ -15,6 +15,7 @@ build/abalone_httpd: build $(HTTPD_SRC_DIR)
 	# ensure that the binary is compiled for linux/amd64
 	file $(HTTPD_BINARY) | grep "ELF 64"
 
+.PHONY: build/public
 build/public:
 	cd ../fe2 && ./node_modules/.bin/gulp compile
 	cp -r ../fe2/build build/public
