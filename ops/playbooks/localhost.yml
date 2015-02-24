@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  tasks:
+      - name: "install pycrypto for vault"
+        pip: name=pycrypto state=present

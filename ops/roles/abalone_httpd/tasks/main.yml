@@ -1,0 +1,11 @@
+---
+- name: "create conf dir"
+  file: name=/var/abalone state=directory
+- name: "create static asset dir"
+  file: name=/var/abalone/public state=directory
+- name: "copy config.toml"
+  copy: src=config.toml dest=/var/abalone/config.toml
+- name: "copy upstart config"
+  copy: src=abalone_httpd.conf dest=/etc/init/abalone_httpd.conf
+- name: "ensure the latest upstart is installed"
+  apt: pkg=upstart state=latest

@@ -1,0 +1,12 @@
+---
+- hosts: http
+  roles:
+    - common
+    - docker
+    - abalone_httpd
+
+- hosts: db
+  roles:
+    - common
+    - docker
+    - postgres
