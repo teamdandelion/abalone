@@ -1,25 +1,24 @@
 package operator
 
 import (
+	"errors"
 	"fmt"
-	"github.com/danmane/abalone/go/api"
-	"github.com/danmane/abalone/go/game"
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/game"
 )
 
+// PlayerProcessInstance is not thread-safe
 type PlayerProcessInstance struct {
-	APIPlayer api.Player
-	Path      string
 	remote    RemotePlayerInstance
-	aiCmd     *exec.Cmd
-	port      int
-	scheduler PortScheduler
+	closeFunc func() error
 }
 
 func (i *PlayerProcessInstance) Player() api.Player {
-	return i.APIPlayer
+	return i.remote.Player()
 }
 
 func (i *PlayerProcessInstance) Play(s *game.State, limit time.Duration) (*game.State, error) {
@@ -27,11 +26,14 @@ func (i *PlayerProcessInstance) Play(s *game.State, limit time.Duration) (*game.
 }
 
 func (i *PlayerProcessInstance) Close() error {
-	err := i.aiCmd.Process.Kill()
+	if i.closeFunc == nil {
+		return errors.New("player process is already closed")
+	}
+	err := i.closeFunc()
 	if err != nil {
 		return err
 	}
-	i.scheduler.ReleasePort(i.port)
+	i.closeFunc = nil
 	return nil
 }
 
@@ -68,11 +70,15 @@ func NewPlayerProcessInstance(player api.Player, scheduler PortScheduler) (*Play
 	}
 
 	return &PlayerProcessInstance{
-		APIPlayer: player,
-		Path:      player.Path,
-		port:      port,
-		remote:    rpi,
-		aiCmd:     aiCmd,
-		scheduler: scheduler,
+		remote: rpi,
+
+		closeFunc: func() error {
+			err := aiCmd.Process.Kill()
+			if err != nil {
+				return err
+			}
+			scheduler.ReleasePort(port)
+			return nil
+		},
 	}, nil
 }
