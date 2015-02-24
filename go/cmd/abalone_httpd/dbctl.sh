@@ -16,11 +16,19 @@ fi
 if [ "$1" == "dbreset" ]
 then
 
-    # stop the server if one already exists
+    echo ""
+    echo STOPPING/REMOVING EXISTING CONTAINER
+    echo ====================================
+    echo ""
+
     docker stop $name > /dev/null || true
     docker rm   $name > /dev/null || true
 
-    # run the postgreql server in a daemonized docker container
+    echo ""
+    echo RUNNING POSTGRESQL DOCKER CONTAINER
+    echo ===================================
+    echo ""
+
     docker run -d -p $port:5432 -e "POSTGRES_PASSWORD=$dbpass" --name $name $img
 
     with_connection_to_postgresql_server () {
@@ -41,10 +49,24 @@ then
         sleep 1
     done
 
-    # connect to the running server and create the database
+    echo ""
+    echo CREATING DATABASE [$dbname]
+    echo ===========================
+
     with_connection_to_postgresql_server createdb $dbname -h $name -U $dbuser
 
-    echo using password: $dbpass
+    echo ""
+    echo INFO
+    echo ====
+    echo Docker Image ----- $img
+    echo Docker Container - $name
+    echo ""
+    echo DB Name ---------- $dbname
+    echo DB User ---------- $dbuser
+    echo DB Password ------ $dbpass
+    echo DB IP ------------ $(boot2docker ip)
+    echo DB Port ---------- $port
+    echo ""
 
-    echo ip of database server is $(boot2docker ip)
+    exit 0
 fi
