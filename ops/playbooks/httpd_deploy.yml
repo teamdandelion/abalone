@@ -1,13 +1,15 @@
 ---
 - hosts: http
+  vars:
+      binary: /usr/local/bin/abalone_httpd
   tasks:
       - include_vars: ../roles/postgres/vars/db_password.yml
       - include_vars: ../roles/postgres/vars/main.yml
       - include_vars: ../roles/abalone_httpd/vars/main.yml
       - name: "copy binary"
-        copy: src=../build/abalone_httpd dest=/usr/local/bin/abalone_httpd mode=0777
+        copy: src=../build/abalone_httpd dest={{ binary }} mode=0777
       - name: "restart the service"
         service:
           name: abalone_httpd
           state: restarted
-          args: "PGDSN=postgres://{{ db_user }}:{{ db_password }}@localhost/{{ db_name }}?sslmode=disable STATIC={{ static_path }}"
+          args: "BINARY={{ binary }} PGDSN=postgres://{{ db_user }}:{{ db_password }}@localhost/{{ db_name }}?sslmode=disable STATIC={{ static_path }}"
