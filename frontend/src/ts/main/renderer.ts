@@ -1,27 +1,24 @@
 module Main {
-    export class Renderer implements PlayerAgent {
+    export class Renderer {
         private svg: D3.Selection;
         private board: D3.Selection;
-        private whitePieces: D3.Selection;
+        private whitePieces: D3.Selection; // where white's marbles are draw
         private blackPieces: D3.Selection;
-        private whiteNumPieces: D3.Selection;
+        private whiteNumPieces: D3.Selection; // display for remaining # of pieces that white controls
         private blackNumPieces: D3.Selection;
-        private overlay: D3.Selection;
-        private eventLayer: D3.Selection;
-        private coordinateLayer: D3.Selection;
-        private grid: D3.Selection;
-        private hexesOnEdge: number;
-        private height: number;
-        private width: number;
-        private hexSize: number;
-        private marbleTracker: MarbleTracker;
+        public eventBox: D3.Selection; // box to catch drags and keypresses and proxy accordingly
+                                         // public so external consumers can setup event listening on renderer
+        private coordinateLayer: D3.Selection; // debug layer to show coordinates on each hex 
+        private grid: D3.Selection; // background layer where hexes are drawn
+        private hexesOnEdge: number; // parameter that determines number of hexes on the board
+        private height: number; // height in pixels of board 
+        private width: number; // width in pixels of board 
+        private hexSize: number; // size of each hex in pixels (radius)
 
         constructor(svg: D3.Selection, hexesOnEdge=5) {
             this.svg = svg;
-            this.marbleTracker = new MarbleTracker();
             this.autoGetWidthHeight();
             this.hexesOnEdge = hexesOnEdge;
-            this.overlay = this.svg.append("g").classed("overlay", true);
             this.board = this.svg.append("g").classed("board", true);
             this.grid = this.board.append("g").classed("grid", true);
             this.whitePieces = this.board.append("g").classed("white", true);
@@ -33,7 +30,7 @@ module Main {
             this.blackNumPieces = this.board.append("text")
                 .attr("x", 50).attr("y", 200)
                 .classed("score-display", true).classed("black", true);
-            this.eventLayer = this.svg.append("rect")
+            this.eventBox = this.svg.append("rect")
                                     .attr({width: this.width, height: this.height})
                                     .style({fill: "black", opacity: 0})
                                     .classed("hitbox", true);
@@ -98,7 +95,6 @@ module Main {
         }
 
         public drawGame(g: Abalone.Game) {
-            this.marbleTracker.update(g);
             this.drawPieces(g.board);
             var whiteIsNext = g.nextPlayer === Abalone.Player.White;
             this.whitePieces.classed("faded", !whiteIsNext);
@@ -115,10 +111,9 @@ module Main {
         private addPieces(selection: D3.Selection, pieces: Abalone.Hex[]) {
             var xf = (d,i) => this.qr2xy(d)[0];
             var yf = (d,i) => this.qr2xy(d)[1];
-            var keyedPieces = this.marbleTracker.getKeyedPieces(pieces);
             var update = selection
                 .selectAll("circle")
-                .data(keyedPieces, (kp) => kp.id);
+                .data(pieces, (kp) => kp.id);
             update
                 .enter()
                     .append("circle")
@@ -164,11 +159,11 @@ module Main {
             return {q: rx, r: rz};
         }
 
-        private drawOverlay(segment: Abalone.Segment, isDragging: boolean, game: Abalone.Game) {
+        public drawOverlay(segment: Abalone.Segment, isDragging: boolean, game: Abalone.Game) {
             this.highlightHexes(Abalone.segPieces(segment), "selected");
             if (segment != null && !isDragging) {
                 this.highlightHexes(moveHexes(segment, game), "moves");
-            } else {
+            } else {1
                 this.highlightHexes([], "moves");
             }
         }
@@ -206,65 +201,10 @@ module Main {
                     .text((d) => "(" + d.q.toString() + "," + d.r.toString() + ")");
         }
 
-        private hoveredHex(): Abalone.Hex {
-            var location = d3.mouse(this.eventLayer.node());
+        public hoveredHex(): Abalone.Hex {
+            var location = d3.mouse(this.eventBox.node());
             var hex = this.hexFromXY(location[0], location[1]);
             return hex;
-        }
-
-        public play(g: Abalone.Game, cb: (g: Abalone.Game) => void): void {
-            var selectedPieces: Abalone.Segment;
-
-            var disabled = false;
-            var dragInProgress = false;
-            var originHex = null;
-
-            var finish = (m: Abalone.Move) => {
-                this.drawOverlay(null, false, g);
-                disabled = true;
-                var result = Abalone.update(g, m);
-                console.log("renderer/play/finish:", result);
-                cb(result);
-            }
-
-            var dragstart = () => {
-                if (disabled) return;
-                originHex = this.hoveredHex();
-                if (selectedPieces != null) {
-                    var move = generateMove(selectedPieces, originHex);
-                    if (move != null && Abalone.validMove(g, move)) {
-                        finish(move);
-                    } else {
-                        selectedPieces = null;
-                    }
-                } else {
-                    if ((selectedPieces = Abalone.getSegment(g, originHex)) != null) {
-                        dragInProgress = true;
-                        this.drawOverlay(selectedPieces, true, g);
-                    }
-                }
-            }
-
-            var drag = () => {
-                if (disabled) return;
-                var currentHex = this.hoveredHex();
-                selectedPieces = Abalone.getSegment(g, originHex, currentHex);
-                this.drawOverlay(selectedPieces, true, g);
-            }
-
-            var dragend = () => {
-                if (disabled) return;
-                var currentHex = this.hoveredHex();
-                selectedPieces = Abalone.getSegment(g, originHex, currentHex);
-                this.drawOverlay(selectedPieces, false, g);
-            }
-
-            this.eventLayer.call(
-                d3.behavior.drag()
-                    .on("dragstart", dragstart)
-                    .on("drag", drag)
-                    .on("dragend", dragend)
-            )
         }
     }
 

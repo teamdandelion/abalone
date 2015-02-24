@@ -14,6 +14,59 @@ module Abalone {
 		lossThreshold: number;
 	}
 
+	export function initializeIDs(game: Game) {
+		var i = 0;
+		game.board.whitePositions.forEach((h: Hex) => {
+			h.id = i++;
+		});
+		game.board.blackPositions.forEach((h: Hex) => {
+			h.id = i++;
+		});
+	}
+
+	// Given a new game state without any IDs, and a previous game state with IDs,
+	// deduce the IDs for the new game by assuming that a valid move transformed the 
+	// previous state into the current state. This enables the renderer to animate
+	// the transitions
+	export function deduceIDs(currentState: Game, lastState: Game) {
+		var idMap: any = {};
+		var getID = (h: Hex) => idMap[hexstr(h)] = h.id;
+		lastState.board.whitePositions.forEach(getID);
+		lastState.board.blackPositions.forEach(getID);
+		var generatingMove = findGeneratingMove(lastState, currentState);
+
+		function getPieceMovements(g: Game, m: Move) {
+			var ownPieces = segPieces(m.segment);
+			var enemyPieces = broadside(m) ? [] : inlineMoved(g.board, m);
+			return ownPieces.concat(enemyPieces)
+		}
+		var hexesToMove = getPieceMovements(lastState, generatingMove);
+		var staging: any = {};
+		hexesToMove.forEach((h) => {
+			var k = hexstr(h);
+			staging[k] = idMap[k];
+			delete idMap[k];
+		});
+		hexesToMove.forEach((h) => {
+			var originalK = hexstr(h);
+			var movedK = hexstr(adjacent(h, generatingMove.direction));
+			idMap[movedK] = staging[originalK];
+		});
+
+		var addID = (h: Hex) => h.id = idMap[hexstr(h)];
+		currentState.board.whitePositions.forEach(addID);
+		currentState.board.blackPositions.forEach(addID);
+	}
+
+	function removeIDs(game: Game) {
+		game.board.whitePositions.forEach((h: Hex) => {
+			delete h.id
+		});
+		game.board.blackPositions.forEach((h: Hex) => {
+			delete h.id
+		});
+	}
+
 	export function standardGame(): Game {
 		return {
 			lossThreshold : 8,
@@ -67,11 +120,11 @@ module Abalone {
             var i: number;
             var k: string;
             for (i = 0; i < a1.length; i++) {
-                k = JSON.stringify(a1[i])
+                k = hexstr(a1[i])
                 present[k] = true;
             }
             for (i = 0; i < a2.length; i++) {
-                k = JSON.stringify(a2[i])
+                k = hexstr(a2[i])
                 if (!present[k]) {
                     return false;
                 }
@@ -91,6 +144,7 @@ module Abalone {
 
 	export function serializeGame(g: Game): string {
 		var copiedState = copyJSON(g);
+		removeIDs(copiedState);
 		copiedState.nextPlayer = player2str(g.nextPlayer)
 		return JSON.stringify(copiedState);
 	}
@@ -135,7 +189,7 @@ module Abalone {
 		var pieces = getPieces(g.board, g.nextPlayer);
 		var presentSet: any = {};
 		var singletons = pieces.map((pos) => {
-			presentSet[JSON.stringify(pos)] = true;
+			presentSet[hexstr(pos)] = true;
 			return {basePos: pos, orientation: null, segLength: 1, player: g.nextPlayer}
 		});
 
@@ -144,7 +198,7 @@ module Abalone {
 			[Direction.TopRight, Direction.MidRight, Direction.BotRight].forEach((d) => {
 				var nextPiece = adjacent(pos, d);
 				var length = 2;
-				while (length <= g.marblesPerMove && presentSet[JSON.stringify(nextPiece)]) {
+				while (length <= g.marblesPerMove && presentSet[hexstr(nextPiece)]) {
 					twoOrMore.push({
 						basePos: pos, 
 						orientation: d, 
@@ -161,7 +215,7 @@ module Abalone {
 
 	export function getSegment(g: Game, origin: Hex, destination?: Hex): Segment {
 		function getProposedSegment(origin: Hex, destination?: Hex) {
-			if (destination == null || JSON.stringify(origin) === JSON.stringify(destination)) {
+			if (destination == null || hexstr(origin) === hexstr(destination)) {
 				return {basePos: origin, segLength: 1, player: g.nextPlayer, orientation: null};
 			}
 			var d = findDirection(origin, destination);
@@ -179,9 +233,9 @@ module Abalone {
 
 		var pieces = getPieces(g.board, g.nextPlayer);
 		var pieceSet: any = {};
-		pieces.forEach((p) => pieceSet[JSON.stringify(p)] = true);
+		pieces.forEach((p) => pieceSet[hexstr(p)] = true);
 		var pieceChecker = (p: Hex) => {
-			return pieceSet[JSON.stringify(p)];
+			return pieceSet[hexstr(p)];
 		}
 
 		if (proposedSegment && segPieces(proposedSegment).every(pieceChecker)) {

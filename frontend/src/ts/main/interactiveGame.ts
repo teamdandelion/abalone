@@ -1,3 +1,4 @@
+(<any> window).games = []
 module Main {
     var port = "1337"
     export class InteractiveGame {
@@ -11,8 +12,14 @@ module Main {
         }
         
         public gameLoop(game: Abalone.Game) {
+            (<any> window).games.push(game);
             if (this.lastState != null && !Abalone.validFuture(this.lastState, game)) {
                 debugger;
+            }
+            if (this.lastState == null) {
+                Abalone.initializeIDs(game);
+            } else {
+                Abalone.deduceIDs(game, this.lastState)
             }
             this.lastState = game;
             this.renderer.drawGame(game);
@@ -30,8 +37,18 @@ module Main {
             state = Abalone.standardGame();
         }
         var renderer = new Renderer(svg, state.board.edgeLength);
-        var interactiveGame = new InteractiveGame(renderer, renderer, renderer);
+        var white = new LocalPlayer(renderer)
+        var black = new LocalPlayer(renderer)
+        var interactiveGame = new InteractiveGame(renderer, white, black);
         interactiveGame.start(state);
+    }
+
+    export function replayGame(svg: D3.Selection, games: Abalone.Game[]) {
+        var renderer = new Renderer(svg);
+        var replayer = new GameReplayer(renderer, games);
+        (<any>window).r = replayer;
+        replayer.play();
+
     }
 
     export function playRemoteGame(svg: D3.Selection): void {
@@ -42,11 +59,11 @@ module Main {
             var white: PlayerAgent;
             var black: PlayerAgent;
             if (game.nextPlayer === Abalone.Player.White) {
-                white = renderer;
+                white = new LocalPlayer(renderer);
                 black = new RemotePlayer(port);
             } else {
                 white = new RemotePlayer(port);
-                black = renderer;
+                black = new LocalPlayer(renderer);
             }
             var interactiveGame = new InteractiveGame(renderer, white, black);
             interactiveGame.start(game);

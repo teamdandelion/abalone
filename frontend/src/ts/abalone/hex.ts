@@ -2,6 +2,7 @@ module Abalone {
 	export interface Hex {
 		q: number;
 		r: number;
+		id?: number; // track which hex is which, for animations
 	}
 	
 	export function hexIndex(hexes: Hex[], x: Hex): number {
@@ -17,6 +18,10 @@ module Abalone {
 			out = out.concat(ring(r));
 		}
 		return out;
+	}
+
+	export function hexstr(h: Hex): string {
+		return "<" + h.q.toString() + "," + h.r.toString() + ">"
 	}
 
 	export function ring(rad: number): Hex[] {

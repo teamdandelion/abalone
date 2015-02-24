@@ -15,10 +15,9 @@
     <script src="build/main.js"></script>
     <script>
     window.onload = function() {
-      d3.json("a_game.json", (err, json) => {
-        
+      d3.json("a_game.json", function(err, json) {
+        Main.replayGame(d3.select("svg"), json)
       });
-      Main.playRemoteGame(d3.select("svg"));
     }</script>
 
   </head>
