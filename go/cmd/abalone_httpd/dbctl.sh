@@ -1,3 +1,5 @@
+#! /bin/bash
+
 name=pg
 img=postgres:9.4.1
 port=5432
