@@ -35,6 +35,9 @@ func ListPlayersHandler(ds *api.Services) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		if players == nil {
+			players = make([]api.Player, 0)
+		}
 		if err := json.NewEncoder(w).Encode(&players); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
