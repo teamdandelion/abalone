@@ -19,7 +19,7 @@ then
     docker rm   $name > /dev/null || true
 
     # run the postgreql server in a daemonized docker container
-    docker run -v -d -p $port:5432 -e "POSTGRES_PASSWORD=$dbpass" --name $name $img
+    docker run -d -p $port:5432 -e "POSTGRES_PASSWORD=$dbpass" --name $name $img
 
     with_connection_to_postgresql_server () {
         docker run --rm --link $name:$name -e "PGPASSWORD=$dbpass" $img $@
