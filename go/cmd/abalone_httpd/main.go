@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/codegangsta/negroni"
 	api "github.com/danmane/abalone/go/api"
-	"github.com/danmane/abalone/go/api/config"
 	db "github.com/danmane/abalone/go/api/db"
 	"github.com/danmane/abalone/go/api/handlers"
 	"github.com/danmane/abalone/go/api/router"
@@ -29,13 +27,12 @@ func run() error {
 		debug      = flag.Bool("debug", false, "")
 		staticPath = flag.String("static", "./static", "serve static files located in this directory")
 		host       = flag.String("host", ":8080", "address:port for HTTP listener")
-		env        = flag.String("env", string(config.EnvDevelopment), fmt.Sprintf("alternately %s", config.EnvProduction))
-		dir        = flag.String("dir", "/var/abalone", "directory where configs and players are kept")
+		pgaddr     = flag.String("postgres", "postgres://postgres:password@localhost/abalone?sslmode=disable", "postgres connection info")
+		dir        = flag.String("dir", "/var/abalone", "directory where players are kept")
 	)
 	flag.Parse()
 
 	configDir := *dir
-	configFilename := path.Join(configDir, "config.toml")
 	configPlayersDir := path.Join(configDir, "players")
 
 	if err := os.MkdirAll(configDir, os.ModePerm); err != nil {
@@ -44,18 +41,11 @@ func run() error {
 	if err := os.MkdirAll(configPlayersDir, os.ModePerm); err != nil {
 		return err
 	}
-	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
-		// create initial config
-		return fmt.Errorf("please place config.toml in abalone config directory: %s", configDir)
-	}
 
-	dbconf, err := config.DBConfig(config.Environment(*env), configFilename)
-	if err != nil {
-		return err
-	}
-	log.Printf("using database %s with config %s", dbconf.Driver, dbconf.Open)
+	const driver = "postgres" // only supported database
+	log.Printf("using database %s with config %s", driver, *pgaddr)
 
-	ds, err := db.Open(dbconf.Driver, dbconf.Open)
+	ds, err := db.Open(driver, *pgaddr)
 	if err != nil {
 		return err
 	}
