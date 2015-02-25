@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"path"
 
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
@@ -13,8 +14,9 @@ import (
 )
 
 type matchesDB struct {
-	db        *gorm.DB
-	scheduler operator.PortScheduler
+	db              *gorm.DB
+	scheduler       operator.PortScheduler
+	filestoragePath string
 }
 
 func (s *matchesDB) Run(playerID1, playerID2 int64) (*api.Match, error) {
@@ -55,7 +57,11 @@ type MatchConfig struct {
 
 func ExecuteMatch(mdb *matchesDB, m api.Match) error {
 
+	// this method is choc-full'o opportunities to mix up variables (1 and 2).
+	// be careful and avoid mutable state.
+
 	const (
+		// TODO assert there are only |policyNumGames| games in the match
 		policyNumGames = 2
 	)
 
@@ -64,39 +70,41 @@ func ExecuteMatch(mdb *matchesDB, m api.Match) error {
 		return err
 	}
 
-	constraints := struct {
-		PID1AsWhite bool
-		PID1AsBlack bool
+	// constraints represents the idea that we want to find enough games such
+	// that both players had a chance to play as white
 
-		PID2AsWhite bool
-		PID2AsBlack bool
+	constraints := struct {
+		Player1AsWhite bool
+		Player1AsBlack bool
+
+		Player2AsWhite bool
+		Player2AsBlack bool
 	}{}
 
 	for _, g := range games {
 		if g.WhiteId == m.PID1 {
-			constraints.PID1AsWhite = true
+			constraints.Player1AsWhite = true
 		}
 		if g.BlackId == m.PID1 {
-			constraints.PID1AsBlack = true
+			constraints.Player1AsBlack = true
 		}
 		if g.BlackId == m.PID2 {
-			constraints.PID2AsBlack = true
+			constraints.Player2AsBlack = true
 		}
 		if g.WhiteId == m.PID2 {
-			constraints.PID2AsWhite = true
+			constraints.Player2AsWhite = true
 		}
 	}
 
-	// player one is white doesn't equal player two as black
-	// or vice-versa
-	if (constraints.PID1AsWhite != constraints.PID2AsBlack) || (constraints.PID1AsBlack != constraints.PID2AsWhite) {
+	// this block of code checks for cases where one player played as white,
+	// but the other didn't play as black (and vice-versa)
+	if (constraints.Player1AsWhite != constraints.Player2AsBlack) || (constraints.Player1AsBlack != constraints.Player2AsWhite) {
 		return fmt.Errorf("couldn't run games. database inconsistency detected. match: %+v, constraints: %+v", m, constraints)
 	}
 
 	// https://www.youtube.com/watch?v=zyu2jAD6sdo
 
-	if !constraints.PID1AsWhite {
-		// run game where player 1 is white
+	if !constraints.Player1AsWhite {
 		g := api.Game{
 			Status:  api.GameScheduled.String(),
 			WhiteId: m.PID1,
@@ -113,8 +121,7 @@ func ExecuteMatch(mdb *matchesDB, m api.Match) error {
 		}()
 	}
 
-	if !constraints.PID2AsWhite {
-		// run game where player 2 is white
+	if !constraints.Player2AsWhite {
 		g := api.Game{
 			Status:  api.GameScheduled.String(),
 			WhiteId: m.PID2,
@@ -131,10 +138,6 @@ func ExecuteMatch(mdb *matchesDB, m api.Match) error {
 		}()
 	}
 
-	if len(games) < policyNumGames {
-		// Create enough games
-	}
-
 	return nil
 }
 
@@ -148,11 +151,11 @@ func run(matches *matchesDB, g api.Game) error {
 	if err := matches.db.First(&black, g.BlackId).Error; err != nil {
 		return err
 	}
-	whiteAgent, err := operator.NewPlayerProcessInstance(white, matches.scheduler)
+	whiteAgent, err := operator.NewPlayerProcessInstance(white, path.Join(matches.filestoragePath, white.Path), matches.scheduler)
 	if err != nil {
 		return err
 	}
-	blackAgent, err := operator.NewPlayerProcessInstance(black, matches.scheduler)
+	blackAgent, err := operator.NewPlayerProcessInstance(black, path.Join(matches.filestoragePath, black.Path), matches.scheduler)
 	if err != nil {
 		return err
 	}

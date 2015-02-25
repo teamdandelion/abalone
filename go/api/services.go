@@ -1,8 +1,13 @@
 package api
 
-import "github.com/jinzhu/gorm"
+import (
+	"io"
+
+	"github.com/jinzhu/gorm"
+)
 
 type Services struct {
+	Games   GamesService
 	Matches MatchesService
 	Players PlayersService
 	Users   UsersService
@@ -10,7 +15,12 @@ type Services struct {
 	DB *gorm.DB
 }
 
+type GamesService interface {
+	List() ([]Game, error)
+}
+
 type PlayersService interface {
+	Upload(userID int64, p Player, executable io.Reader) (*Player, error)
 	Create(userID int64, p Player) (*Player, error)
 	List() ([]Player, error)
 	Delete(id int64) error

@@ -8,7 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func Open(dialect string, addr string) (*api.Services, error) {
+func Open(dialect string, addr string, filestoragePath string) (*api.Services, error) {
 	conn, err := migration.Open(dialect, addr, migrations.Migrations)
 	if err != nil {
 		return nil, err
@@ -19,11 +19,13 @@ func Open(dialect string, addr string) (*api.Services, error) {
 	}
 
 	return &api.Services{
+		Games: &gamesDB{&db},
 		Matches: &matchesDB{
-			db:        &db,
-			scheduler: operator.NewScheduler(16000, 2000),
+			db:              &db,
+			scheduler:       operator.NewScheduler(16000, 2000),
+			filestoragePath: filestoragePath,
 		},
-		Players: &playersDB{&db},
+		Players: &playersDB{&db, filestoragePath},
 		Users:   &usersDB{&db},
 		DB:      &db,
 	}, nil

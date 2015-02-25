@@ -1,0 +1,12 @@
+---
+- include_vars: db_password.yml
+- name: "create container dir"
+  file: name={{ container_dir }} state=directory
+- name: "ensure postgres container is running"
+  docker: image=postgres name=pg ports={{ pg_port }}:{{ pg_port }} volumes={{ container_dir }}:/var/lib/postgresql/data
+- name: "ensure database exists"
+  docker: 
+      image: postgres
+      links: "{{ pg_container }}:{{ pg_container }}"
+      command: "createdb {{ db_name }} -h {{ pg_container }} -p {{ pg_port }} -U {{ db_user }}"
+      env: "PGPASSWORD={{ db_password }}"

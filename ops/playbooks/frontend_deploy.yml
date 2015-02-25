@@ -1,0 +1,10 @@
+---
+- hosts: http
+  tasks:
+      - include_vars: ../roles/abalone_httpd/vars/main.yml
+      - name: "sync static assets to folder on server"
+
+        # the trailing slash after public/ is critical. it ensures that the
+        # _contents_ of the directory become the contents of |dest|
+
+        synchronize: src=../build/public/ dest={{ static_path }} delete=yes

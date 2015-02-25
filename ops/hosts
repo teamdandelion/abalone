@@ -1,0 +1,7 @@
+[http]
+104.236.132.232 ansible_ssh_user=root
+162.243.152.164 ansible_ssh_user=root
+
+[db]
+104.236.132.232
+162.243.152.164

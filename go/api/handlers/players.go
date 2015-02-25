@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/danmane/abalone/go/api"
 )
@@ -10,12 +11,32 @@ import (
 // CreatePlayersHandler creates a new AI player running on a remote host
 func CreatePlayersHandler(ds *api.Services) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var p api.Player
-		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		file, _, err := r.FormFile("exe")
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		created, err := ds.Players.Create(p.AuthorId, p)
+		defer file.Close()
+
+		authorID, err := strconv.ParseInt(r.FormValue("author_id"), 10, 64)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		version, err := strconv.ParseInt(r.FormValue("version"), 10, 64)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		name := r.FormValue("name")
+		player := api.Player{
+			Name:     name,
+			Version:  version,
+			AuthorId: authorID,
+		}
+
+		created, err := ds.Players.Upload(authorID, player, file)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -34,6 +55,9 @@ func ListPlayersHandler(ds *api.Services) http.HandlerFunc {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
+		}
+		if players == nil {
+			players = make([]api.Player, 0)
 		}
 		if err := json.NewEncoder(w).Encode(&players); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

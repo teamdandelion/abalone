@@ -20,7 +20,7 @@ type APIClient struct {
 }
 
 const (
-	DefaultBaseURL = "http://localhost:8080" // TODO(btc): http://api.foo.ai
+	DefaultBaseURL = "http://104.236.132.232" // TODO(btc): setup a domain like http://api.foo.ai
 )
 
 func NewClient(opts ...Option) *api.Services {

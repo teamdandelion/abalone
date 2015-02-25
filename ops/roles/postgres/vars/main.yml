@@ -1,0 +1,6 @@
+---
+pg_port: 5432
+pg_container: pg
+db_name: abalone
+db_user: postgres
+container_dir: /containers/pg/data

@@ -1,0 +1,5 @@
+---
+- name: "install mosh"
+  apt: name=mosh state=latest
+- name: "copy authorized keys"
+  copy: src=authorized_keys dest=/root/.ssh/authorized_keys

@@ -2,23 +2,25 @@ package operator
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
 )
 
 type PortScheduler struct {
-	numPortsAvailable int
-	offset            int
-	occupiedPorts     map[int]struct{}
-	mu                sync.Mutex
+	mu              sync.Mutex
+	numManagedPorts int
+	basePort        int
+	occupiedPorts   map[int]struct{}
 }
 
 func (ps *PortScheduler) GetPort() (int, error) {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
-	for i := ps.offset; i < ps.offset+ps.numPortsAvailable; i++ {
-		if _, ok := ps.occupiedPorts[i]; !ok {
-			ps.occupiedPorts[i] = struct{}{}
-			return i, nil
+	for _, i := range rand.Perm(ps.numManagedPorts) {
+		potentialport := ps.basePort + i
+		if _, inUse := ps.occupiedPorts[potentialport]; !inUse {
+			ps.occupiedPorts[potentialport] = struct{}{}
+			return potentialport, nil
 		}
 	}
 	return 0, fmt.Errorf("Ports exhausted")
@@ -30,10 +32,10 @@ func (ps *PortScheduler) ReleasePort(port int) {
 	delete(ps.occupiedPorts, port)
 }
 
-func NewScheduler(offset, numPorts int) PortScheduler {
+func NewScheduler(basePort, numPorts int) PortScheduler {
 	return PortScheduler{
-		numPortsAvailable: numPorts,
-		offset:            offset,
-		occupiedPorts:     make(map[int]struct{}),
+		numManagedPorts: numPorts,
+		basePort:        basePort,
+		occupiedPorts:   make(map[int]struct{}),
 	}
 }
