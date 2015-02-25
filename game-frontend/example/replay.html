@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="google" value="notranslate">
+    <title>Abalone</title>
+    <link href="../abalone.css" type="text/css" rel="stylesheet" />
+    <style>
+      svg {
+        background-color : #DEF;
+      }
+    </style>
+    <script src="../bower_components/d3/d3.js"></script>
+    <script src="../bower_components/lodash/lodash.js"></script>
+    <script src="../abalone.js"></script>
+    <script src="main.js"></script>
+    <script>
+    window.onload = function() {
+      d3.json("a_game.json", function(err, json) {
+        replayGame(d3.select("svg"), json)
+      });
+    }</script>
+
+  </head>
+  <body>
+  <svg width="800" height="800"></svg>
+  </body>
+</html>
