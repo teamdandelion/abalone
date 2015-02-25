@@ -15,6 +15,21 @@ type Game struct {
 	CommonDBFields
 }
 
+type GameWithDetails struct {
+	ID int
+	MatchId int
+	White Player
+	WhiteID int
+	Black Player
+	BlackID int
+	Status string
+	Reason string
+}
+
+func (c GameWithDetails) TableName() string {
+    return "games"
+}
+
 type GameStatus string
 
 const (
