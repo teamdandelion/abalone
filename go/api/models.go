@@ -17,12 +17,16 @@ type Game struct {
 type GameWithDetails struct {
 	ID int
 	MatchId int
-	WhiteName string
-	WhiteVersion int
-	BlackName string
-	BlackVersion int
+	White Player
+	WhiteID int
+	Black Player
+	BlackID int
 	Status string
 	Reason string
+}
+
+func (c GameWithDetails) TableName() string {
+    return "games"
 }
 
 type GameStatus string
