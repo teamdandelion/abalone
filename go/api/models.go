@@ -9,6 +9,7 @@ type Game struct {
 	WhiteId int64 `gorm:"column:white_player_id"`
 	BlackId int64 `gorm:"column:black_player_id"`
 
+	Reason string `gorm:"column:reason"`
 	Status string `gorm:"column:status"`
 
 	CommonDBFields
