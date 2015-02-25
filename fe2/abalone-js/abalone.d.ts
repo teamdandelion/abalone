@@ -106,6 +106,7 @@ declare module Abalone {
         function validFuture(initial: Game, future: Game): boolean;
         function gameEq(g1: Game, g2: Game): boolean;
         function serializeGame(g: Game): string;
+        function parseJSON(s: any): Game;
         function deserializeGame(s: string): Game;
         function winner(g: Game): Outcome;
         function moves(g: Game): Move[];

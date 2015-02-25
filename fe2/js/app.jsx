@@ -26,6 +26,7 @@ var Nav = React.createClass({
         <NavItemLink eventKey={1} to="leaderboard"><i className="fa fa-trophy"></i> Leaderboard</NavItemLink>
         <NavItemLink eventKey={2} to="play"><i className="fa fa-gamepad"></i> Play</NavItemLink>
         <NavItemLink eventKey={3} to="upload"><i className="fa fa-upload"></i> Upload a Player</NavItemLink>
+        <NavItemLink eventKey={4} to="replay"><i className="fa fa-repeat"></i> Replay a Game</NavItemLink>
       </BSNav>
     )
   }
@@ -97,6 +98,66 @@ var PlayHandler = React.createClass({
         </div>
       </div>
     )
+  }
+})
+
+var ReplayChooser = React.createClass({
+  getInitialState: function() {
+    return {data: []};
+  },
+  loadGamesFromServer: function() {
+    $.ajax({
+      url: '/api/games',
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error("erorr getting api/games", status, err.toString());
+      }.bind(this)
+    })
+  },
+  componentDidMount: function() {
+    this.loadGamesFromServer()
+  },
+  render: function() {
+    return (
+      <div className="row">
+        <div className="col-sm-8 col-sm-offset-2">
+
+          <Nav activeKey={2} />
+
+          <div class="replayChooser">
+          <h1> Choose a Game </h1>
+          <GameList data={this.state.data}/>
+          </div>
+        </div>
+      </div>
+      );
+  }
+});
+
+var GameList = React.createClass({
+  render: function() {
+    var gameNodes = this.props.data.map(function (game) {
+      return (
+        <GameRow data={game}> </GameRow>
+      );
+    });
+    return (
+      <div className="gameList">
+        {gameNodes}
+      </div>
+    );
+  }
+});
+
+var GameRow = React.createClass({
+  render: function() {
+    var dest = "/viewGame/" + this.props.data.ID;
+    return (
+      <div className="gameRow"> <a href={dest}>{this.props.data.ID} {this.props.data.Status}</a> </div>
+      )
   }
 })
 
@@ -197,6 +258,63 @@ var UploadForm = React.createClass({
           disabled={this.props.disabled}>{this.props.btnMessage}</Button>
       </form>
     )
+  }
+})
+
+var GameViewer = React.createClass({
+  mixins: [Router.State],
+  render: function() {
+    return (
+      <div className="row">
+        <div className="col-sm-8 col-sm-offset-2">
+          <Nav activeKey={4} />
+          <GameReplayer id={this.getParams().gameId}> </GameReplayer>
+        </div>
+      </div>
+    );
+  }
+})
+
+var GameReplayer = React.createClass({
+  getInitialState: function() {
+    return {data: []};
+  },
+  // loadHistoryFromServer: function() {
+  //   var url = 'api/games/'+this.props.gameID+'/states';
+  //   $.ajax({
+  //     url: url,
+  //     dataType: 'json',
+  //     success: function(data) {
+  //       this.setState({data: data});
+  //     }.bind(this),
+  //     error: function(xhr, status, err) {
+  //       console.error("error getting game states at", url, status, err.toString())
+  //     }.bind(this)
+  //   })
+  // },
+  componentDidMount: function() {
+    var renderer = new Abalone.Frontend.Renderer("#replayerSVG");
+    // loadHistoryFromServer();
+    this.props.replayer = new Abalone.Frontend.GameReplayer(renderer, []);
+    var url = "/api/games/" + this.props.id +"/states"
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      success: function(data) {
+        data.forEach(Abalone.Engine.parseJSON)
+        this.props.replayer.setHistory(data);
+        this.props.replayer.play();
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.log(xhr.responseText);
+        console.error("error getting game at", url, status, err.toString())
+      }.bind(this)
+    });
+  },
+  render: function() {
+    return (
+      <svg id="replayerSVG" width="800" height="800"> </svg>
+    );
   }
 })
 
@@ -305,6 +423,8 @@ module.exports = (
     <Route name="leaderboard" path="/leaderboard" handler={LeaderboardHandler} />
     <Route name="play" path="/play" handler={PlayHandler} />
     <Route name="upload" path="/upload" handler={UploadHandler} />
+    <Route name="replay" path="/replay" handler={ReplayChooser} />
+    <Route name="viewGame" path="/viewGame/:gameId" handler={GameViewer} />
     <DefaultRoute handler={LeaderboardHandler} />
   </Route>
 )

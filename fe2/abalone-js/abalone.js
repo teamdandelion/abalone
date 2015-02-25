@@ -434,6 +434,11 @@ var Abalone;
             return JSON.stringify(copiedState);
         }
         Engine.serializeGame = serializeGame;
+        function parseJSON(s) {
+            s.nextPlayer = Engine.str2player(s.nextPlayer);
+            return s;
+        }
+        Engine.parseJSON = parseJSON;
         function deserializeGame(s) {
             var g = JSON.parse(s);
             if (g.state != null) {
@@ -785,6 +790,7 @@ var Abalone;
             function Renderer(svg, hexesOnEdge) {
                 if (hexesOnEdge === void 0) { hexesOnEdge = 5; }
                 this.svg = svg.node ? svg : d3.select(svg);
+                this.svg.classed("abalone", true);
                 this.autoGetWidthHeight();
                 this.hexesOnEdge = hexesOnEdge;
                 this.board = this.svg.append("g").classed("board", true);

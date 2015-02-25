@@ -18,6 +18,7 @@ export module Frontend {
 
         constructor(svg: any, hexesOnEdge=5) {
             this.svg = svg.node ? svg : d3.select(svg);
+            this.svg.classed("abalone", true)
             this.autoGetWidthHeight();
             this.hexesOnEdge = hexesOnEdge;
             this.board = this.svg.append("g").classed("board", true);

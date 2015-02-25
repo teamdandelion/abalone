@@ -17,8 +17,9 @@ var paths = {
   build: 'build/',
   main: ['./js/main.js'],
   js: ['js/**/*.js', 'js/**/*.jsx'],
+  js_lib: ['abalone-js/abalone.js', 'abalone-js/bower_components/d3/d3.js'],
   img: ['static/**/*.png'],
-  css: ['less/**/*.less'],
+  css: ['less/**/*.less', 'abalone-js/abalone.css'],
   html: ['html/**/*.html'],
 }
 
@@ -26,16 +27,17 @@ gulp.task('clean', function(cb) {
   del([paths.build], cb)
 })
 
-gulp.task('js', function() {
+gulp.task('js-main', function() {
   return browserify(paths.main)
     .transform(reactify)
     .bundle()
     .pipe(source('bundle.min.js'))
-    // .pipe(sourcemaps.init())
-    // .pipe(g_if('*.jsx', react()))
-    // .pipe(uglify())
-    // .pipe(concat('bundle.min.js'))
-    // .pipe(sourcemaps.write())
+    .pipe(gulp.dest('build/static'))
+})
+
+gulp.task('js-libs', function() {
+  return gulp.src(paths.js_lib)
+    .pipe(concat('lib.js'))
     .pipe(gulp.dest('build/static'))
 })
 
@@ -62,7 +64,8 @@ gulp.task('html', function() {
 })
 
 gulp.task('watch', function() {
-  gulp.watch(paths.js, ['js'])
+  gulp.watch(paths.js, ['js-main'])
+  gulp.watch(paths.js_lib, ['js-lib'])
   gulp.watch(paths.css, ['css'])
   gulp.watch(paths.img, ['img'])
   gulp.watch(paths.html, ['html'])
@@ -77,5 +80,5 @@ gulp.task('server', function() {
   })
 })
 
-gulp.task('default', ['watch', 'js', 'css', 'img', 'html', 'server'])
+gulp.task('default', ['watch', 'js-main', 'js-libs', 'css', 'img', 'html', 'server'])
 gulp.task('compile', ['js', 'css', 'img', 'html'])
