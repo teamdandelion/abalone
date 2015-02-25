@@ -2,6 +2,7 @@
 /// <reference path="player.ts" />
 
 module Abalone {
+export module Engine {
 	export interface Board {
 		whitePositions: Hex[];
 		blackPositions: Hex[];
@@ -59,4 +60,5 @@ module Abalone {
 				])
 		}
 	}
+}
 }

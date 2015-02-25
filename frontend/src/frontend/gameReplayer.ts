@@ -1,14 +1,23 @@
-module Main {
+module Abalone {
+export module Frontend {
 	export class GameReplayer {
 		public delay = 1000; // ms per step
 		private controlLayer: D3.Selection;
 		private playing = false;
 		private idx = 0;
+		private history: Engine.Game[];
 
-		constructor(private renderer: Renderer, private history: Abalone.Game[]) {
-			Abalone.initializeIDs(this.history[0]);
-			for (var i=1; i<this.history.length; i++) {
-			    Abalone.deduceIDs(this.history[i], this.history[i-1]);
+		constructor(private renderer: Renderer, history: Engine.Game[]) {
+			this.setHistory(history)
+		}
+
+		public setHistory(history: Engine.Game[]) {
+			this.history = history;
+			if (this.history.length > 0) {
+				Engine.initializeIDs(this.history[0]);
+				for (var i=1; i<this.history.length; i++) {
+				    Engine.deduceIDs(this.history[i], this.history[i-1]);
+				}
 			}
 		}
 
@@ -74,4 +83,5 @@ module Main {
 		}
 
 	}
+}
 }

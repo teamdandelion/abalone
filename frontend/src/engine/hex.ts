@@ -1,4 +1,5 @@
 module Abalone {
+export module Engine {
 	export interface Hex {
 		q: number;
 		r: number;
@@ -100,5 +101,5 @@ module Abalone {
 			case Direction.TopLeft:  return {q: q  , r: r-1};
 		}
 	}
-
+}
 }

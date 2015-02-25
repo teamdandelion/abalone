@@ -1,6 +1,7 @@
 var assert = chai.assert;
 
 module Abalone {
+export module Engine {
 
 describe("Hex", () => {
 	it("hexagonal grid seems to work", () => {
@@ -40,4 +41,5 @@ describe("Hex", () => {
 
 	});
 });
+}
 }

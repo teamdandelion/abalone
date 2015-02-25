@@ -1,4 +1,5 @@
-module Main {
+module Abalone {
+export module Frontend {
     export class Renderer {
         private svg: D3.Selection;
         private board: D3.Selection;
@@ -15,8 +16,8 @@ module Main {
         private width: number; // width in pixels of board 
         private hexSize: number; // size of each hex in pixels (radius)
 
-        constructor(svg: D3.Selection, hexesOnEdge=5) {
-            this.svg = svg;
+        constructor(svg: any, hexesOnEdge=5) {
+            this.svg = svg.node ? svg : d3.select(svg);
             this.autoGetWidthHeight();
             this.hexesOnEdge = hexesOnEdge;
             this.board = this.svg.append("g").classed("board", true);
@@ -87,28 +88,28 @@ module Main {
             this.drawBoard();
         }
 
-        private qr2xy(h: Abalone.Hex): [number, number] {
+        private qr2xy(h: Engine.Hex): [number, number] {
             return [
                 this.hexSize * Math.sqrt(3) * (h.q + h.r/2) + this.width/2, 
                 this.hexSize * 3/2 * h.r + this.height/2
                 ];
         }
 
-        public drawGame(g: Abalone.Game) {
+        public drawGame(g: Engine.Game) {
             this.drawPieces(g.board);
-            var whiteIsNext = g.nextPlayer === Abalone.Player.White;
+            var whiteIsNext = g.nextPlayer === Engine.Player.White;
             this.whitePieces.classed("faded", !whiteIsNext);
             this.blackPieces.classed("faded", whiteIsNext);
         }
 
-        private drawPieces(b: Abalone.Board) {
+        private drawPieces(b: Engine.Board) {
             this.addPieces(this.whitePieces, b.whitePositions);
             this.addPieces(this.blackPieces, b.blackPositions);
             this.whiteNumPieces.text(b.whitePositions.length);
             this.blackNumPieces.text(b.blackPositions.length);
         }
 
-        private addPieces(selection: D3.Selection, pieces: Abalone.Hex[]) {
+        private addPieces(selection: D3.Selection, pieces: Engine.Hex[]) {
             var xf = (d,i) => this.qr2xy(d)[0];
             var yf = (d,i) => this.qr2xy(d)[1];
             var update = selection
@@ -128,7 +129,7 @@ module Main {
 
         }
 
-        private hexFromXY(x: number, y: number): Abalone.Hex {
+        private hexFromXY(x: number, y: number): Engine.Hex {
             x = x - this.width/2;
             y = y - this.height/2;
             var q = (x * Math.sqrt(3)/3 - y/3) / this.hexSize;
@@ -136,7 +137,7 @@ module Main {
             return this.hexRound(q,r);
         }
 
-        private hexRound(q: number, r: number): Abalone.Hex {
+        private hexRound(q: number, r: number): Engine.Hex {
             var x = q;
             var z = r;
             var y = -x-z;
@@ -159,8 +160,8 @@ module Main {
             return {q: rx, r: rz};
         }
 
-        public drawOverlay(segment: Abalone.Segment, isDragging: boolean, game: Abalone.Game) {
-            this.highlightHexes(Abalone.segPieces(segment), "selected");
+        public drawOverlay(segment: Engine.Segment, isDragging: boolean, game: Engine.Game) {
+            this.highlightHexes(Engine.segPieces(segment), "selected");
             if (segment != null && !isDragging) {
                 this.highlightHexes(moveHexes(segment, game), "moves");
             } else {1
@@ -168,7 +169,7 @@ module Main {
             }
         }
 
-        private highlightHexes(hexes: Abalone.Hex[], classToApply: string) {
+        private highlightHexes(hexes: Engine.Hex[], classToApply: string) {
             var hexSet: any = {};
             hexes.forEach((h) => hexSet[JSON.stringify(h)]=true);
             var isHighlighted = (d: any) => hexSet[JSON.stringify(d)];
@@ -176,7 +177,7 @@ module Main {
         }
 
         private drawBoard() {
-            var hexes = Abalone.hexagonalGrid(this.hexesOnEdge);
+            var hexes = Engine.hexagonalGrid(this.hexesOnEdge);
             var pointsFn = (d) => {
                 var xy = this.qr2xy(d);
                 return hexPointString(this.hexSize, xy[0], xy[1]);
@@ -201,26 +202,26 @@ module Main {
                     .text((d) => "(" + d.q.toString() + "," + d.r.toString() + ")");
         }
 
-        public hoveredHex(): Abalone.Hex {
+        public hoveredHex(): Engine.Hex {
             var location = d3.mouse(this.eventBox.node());
             var hex = this.hexFromXY(location[0], location[1]);
             return hex;
         }
     }
 
-export function moveHexes(s: Abalone.Segment, g: Abalone.Game): Abalone.Hex[] {
+export function moveHexes(s: Engine.Segment, g: Engine.Game): Engine.Hex[] {
     return adjacentHexDirs(s)
         .filter((hd) => {
             var d = hd[1];
             var move = {segment: s, direction: d};
-            return Abalone.validMove(g, move);
+            return Engine.validMove(g, move);
         })
         .map((hd) => hd[0]);
 }
 
-export function generateMove(s: Abalone.Segment, target: Abalone.Hex): Abalone.Move {
+export function generateMove(s: Engine.Segment, target: Engine.Hex): Engine.Move {
     var possibilities = adjacentHexDirs(s);
-    var foundDir: Abalone.Direction;
+    var foundDir: Engine.Direction;
     possibilities.forEach((hd) => {
         var hex = hd[0];
         var dir = hd[1];
@@ -232,16 +233,16 @@ export function generateMove(s: Abalone.Segment, target: Abalone.Hex): Abalone.M
     return move;
 }
 
-function vanguard(pos: Abalone.Hex, d: Abalone.Direction): [Abalone.Hex, Abalone.Direction][] {
-    return <any> Abalone.nearbyDirections(d).map((dir) => [Abalone.adjacent(pos, dir), dir]);
+function vanguard(pos: Engine.Hex, d: Engine.Direction): [Engine.Hex, Engine.Direction][] {
+    return <any> Engine.nearbyDirections(d).map((dir) => [Engine.adjacent(pos, dir), dir]);
 }
 
-function adjacentHexDirs(s: Abalone.Segment): [Abalone.Hex, Abalone.Direction][] {
+function adjacentHexDirs(s: Engine.Segment): [Engine.Hex, Engine.Direction][] {
     if (s.orientation == null) {
-        return <any> Abalone.directions.map((d) => [Abalone.adjacent(s.basePos, d), d]);
+        return <any> Engine.directions.map((d) => [Engine.adjacent(s.basePos, d), d]);
     } else {
-        var front = vanguard(s.basePos, Abalone.opposite(s.orientation));
-        var back = vanguard(_.last(Abalone.segPieces(s)), s.orientation);
+        var front = vanguard(s.basePos, Engine.opposite(s.orientation));
+        var back = vanguard(_.last(Engine.segPieces(s)), s.orientation);
         return front.concat(back);
     }
 }
@@ -258,5 +259,6 @@ function hexPointString(size, x, y) {
 function hexCorner(x, y, size, i) {
     var angle = 2 * Math.PI / 6 * (i + 0.5);
     return [x + size * Math.cos(angle), y + size * Math.sin(angle)];
+}
 }
 }

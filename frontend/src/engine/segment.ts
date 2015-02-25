@@ -3,6 +3,7 @@
 /// <reference path="direction.ts" />
 
 module Abalone {
+export module Engine {
 	export interface Segment {
 		basePos: Hex;
 		orientation: Direction;
@@ -21,4 +22,5 @@ module Abalone {
 		}
 		return pieces;
 	}
+}
 }

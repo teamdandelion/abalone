@@ -2,6 +2,7 @@
 var assert = chai.assert;
 
 module Abalone {
+export module Engine {
 function board(white: number[][], black: number[][], rad: number): Board {
 	return {
 		whitePositions: tuplesToHexes(white), 
@@ -84,9 +85,9 @@ describe("Abalone", () => {
 		var whites3 = [[0,0], [0,1], [0, -2]];
 		var whiteblock = board(whites3, blacks1, 4);
 		var m = move({q: 0,r: 0}, Direction.BotRight, 2, Player.White, Direction.TopLeft);
-		assert.isNull(Abalone.inlineMoved(cantpush, m), "cant push equal # pieces");
-		assert.deepEqual(Abalone.inlineMoved(canpush, m), [{q: 0, r:-1}], "can push 1 piece");
-		assert.isNull(Abalone.inlineMoved(whiteblock, m), "push blocked by own piece");
+		assert.isNull(Abalone.Engine.inlineMoved(cantpush, m), "cant push equal # pieces");
+		assert.deepEqual(Abalone.Engine.inlineMoved(canpush, m), [{q: 0, r:-1}], "can push 1 piece");
+		assert.isNull(Abalone.Engine.inlineMoved(whiteblock, m), "push blocked by own piece");
 
 	});
 
@@ -103,11 +104,11 @@ describe("Abalone", () => {
 		assert.lengthOf(moves(marblesPerMove), 14, "marblesPerMove respected (1)");
 	});
 
-	describe("Abalone.update works", () => {
+	describe("Abalone.Engine.update works", () => {
 		it("basic moves update properly", () => {
 			var before = stdGameB([[0,0]], [], 5);
 			var m = move({q: 0, r: 0}, null, 0, Player.White, Direction.MidRight);
-			var after = Abalone.update(before, m);
+			var after = Abalone.Engine.update(before, m);
 			var expected = continueGame(before, [[1,0]], []);
 			assertGameEq(after, expected, "move updated");
 		});
@@ -121,8 +122,8 @@ describe("Abalone", () => {
 		});
 
 		it("stones can be pushed off the board", () => {
-			var moves = Abalone.moves(threeStoneGame);
-			var futures = Abalone.futures(threeStoneGame);
+			var moves = Abalone.Engine.moves(threeStoneGame);
+			var futures = Abalone.Engine.futures(threeStoneGame);
 			var found = futures.some((g) => gameEq(g, threeStoneGameAfterPush));
 			assert.isTrue(found, "game with stone pushed off board is in futures");
 		});
@@ -157,4 +158,5 @@ describe("Abalone", () => {
 		assert.lengthOf(hexagonalGrid(5), 61);
 	});
 });
+}
 }

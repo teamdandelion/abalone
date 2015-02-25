@@ -6,6 +6,7 @@
 /// <reference path="board.ts" />
 
 module Abalone {
+export module Engine {
 	export interface Game {
 		board: Board;
 		nextPlayer: Player;
@@ -289,6 +290,6 @@ module Abalone {
 	export function futures(g: Game): Game[] {
 		return moves(g).map((m) => update(g, m));
 	}
-
+}
 }
 

@@ -1,19 +1,20 @@
-module Main {
+module Abalone {
+export module Frontend {
 
 	export class LocalPlayer implements PlayerAgent {
 		constructor(private renderer: Renderer) {}
 
-		public play(g: Abalone.Game, cb: (g: Abalone.Game) => void): void {
-		    var selectedPieces: Abalone.Segment;
+		public play(g: Engine.Game, cb: (g: Engine.Game) => void): void {
+		    var selectedPieces: Engine.Segment;
 
 		    var disabled = false;
 		    var dragInProgress = false;
 		    var originHex = null;
 
-		    var finish = (m: Abalone.Move) => {
+		    var finish = (m: Engine.Move) => {
 		        this.renderer.drawOverlay(null, false, g);
 		        disabled = true;
-		        var result = Abalone.update(g, m);
+		        var result = Engine.update(g, m);
 		        console.log("renderer/play/finish:", result);
 		        cb(result);
 		    }
@@ -23,13 +24,13 @@ module Main {
 		        originHex = this.renderer.hoveredHex();
 		        if (selectedPieces != null) {
 		            var move = generateMove(selectedPieces, originHex);
-		            if (move != null && Abalone.validMove(g, move)) {
+		            if (move != null && Engine.validMove(g, move)) {
 		                finish(move);
 		            } else {
 		                selectedPieces = null;
 		            }
 		        } else {
-		            if ((selectedPieces = Abalone.getSegment(g, originHex)) != null) {
+		            if ((selectedPieces = Engine.getSegment(g, originHex)) != null) {
 		                dragInProgress = true;
 		                this.renderer.drawOverlay(selectedPieces, true, g);
 		            }
@@ -39,14 +40,14 @@ module Main {
 		    var drag = () => {
 		        if (disabled) return;
 		        var currentHex = this.renderer.hoveredHex();
-		        selectedPieces = Abalone.getSegment(g, originHex, currentHex);
+		        selectedPieces = Engine.getSegment(g, originHex, currentHex);
 		        this.renderer.drawOverlay(selectedPieces, true, g);
 		    }
 
 		    var dragend = () => {
 		        if (disabled) return;
 		        var currentHex = this.renderer.hoveredHex();
-		        selectedPieces = Abalone.getSegment(g, originHex, currentHex);
+		        selectedPieces = Engine.getSegment(g, originHex, currentHex);
 		        this.renderer.drawOverlay(selectedPieces, false, g);
 		    }
 
@@ -58,4 +59,5 @@ module Main {
 		    )
 		}
     }
+}
 }

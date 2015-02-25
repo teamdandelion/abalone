@@ -3,6 +3,7 @@
 /// <reference path="direction.ts" />
 
 module Abalone {
+export module Engine {
 	export interface Move {
 		segment: Segment;
 		direction: Direction;
@@ -40,4 +41,5 @@ module Abalone {
 		}
 		return null;
 	}
+}
 }
