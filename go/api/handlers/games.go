@@ -29,6 +29,23 @@ func ListGamesHandler(ds *api.Services) http.HandlerFunc {
 	}
 }
 
+func ListDetailsGamesHandler(ds *api.Services) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		games, err := ds.Games.ListDetailled()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if games == nil {
+			games = make([]api.GameWithDetails, 0)
+		}
+		if err := json.NewEncoder(w).Encode(&games); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func ListGameStatesHandler(ds *api.Services) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		gidStr := mux.Vars(r)["game_id"]
@@ -66,3 +83,5 @@ func ListGameStatesHandler(ds *api.Services) http.HandlerFunc {
 		}
 	}
 }
+
+

@@ -14,6 +14,17 @@ type Game struct {
 	CommonDBFields
 }
 
+type GameWithDetails struct {
+	ID int
+	MatchId int
+	WhiteName string
+	WhiteVersion int
+	BlackName string
+	BlackVersion int
+	Status string
+	Reason string
+}
+
 type GameStatus string
 
 const (
