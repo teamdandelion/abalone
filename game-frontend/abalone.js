@@ -954,7 +954,9 @@ var Abalone;
             }
             else {
                 var front = vanguard(s.basePos, Abalone.Engine.opposite(s.orientation));
-                var back = vanguard(_.last(Abalone.Engine.segPieces(s)), s.orientation);
+                var pieces = Abalone.Engine.segPieces(s);
+                var lastPiece = pieces[pieces.length - 1];
+                var back = vanguard(lastPiece, s.orientation);
                 return front.concat(back);
             }
         }

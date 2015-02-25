@@ -26,9 +26,9 @@ go/cmd/abalone_ai_validator/abalone_ai_validator
 
 
 
-frontend/bower_components
-frontend/node_modules
-frontend/build
-frontend/.tscache
+game-frontend/bower_components
+game-frontend/node_modules
+game-frontend/build
+game-frontend/.tscache
 .DS_Store
 .cabal_sandbox
