@@ -1,16 +1,13 @@
 {
-  "name": "abalone-frontend",
-  "version": "0.0.1",
-  "description": "A frontend for an Abalone game implementation",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "name": "abalone-js",
+  "version": "1.0.0",
+  "description": "A game visualizer and player for an Abalone",
+  "main": "abalone.js",
   "repository": {
     "type": "git",
     "url": "github.com/danmane/abalone"
   },
-  "author": "dan mane",
+  "author": "Dan Mane",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/danmane/abalone/issues"
