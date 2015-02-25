@@ -113,4 +113,15 @@ var Migrations = []migration.Migrator{
 		}
 		return nil
 	},
+	func(txn migration.LimitedTx) error {
+
+		q := `
+		ALTER TABLE games
+		ADD COLUMN reason character varying(140);
+		`
+		if _, err := txn.Exec(q); err != nil {
+			return err
+		}
+		return nil
+	},
 }

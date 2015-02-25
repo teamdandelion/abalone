@@ -199,8 +199,13 @@ func run(matches *matchesDB, g api.Game) error {
 	default:
 		return fmt.Errorf("unhandled case. TODO %s", result.Outcome)
 	}
+	result.VictoryReason.String()
 
-	if err := matches.db.First(new(api.Game), g.ID).Update("status", status.String()).Error; err != nil {
+	updates := map[string]interface{}{
+		"status": status.String(),
+		"reason": result.VictoryReason.String(),
+	}
+	if err := matches.db.First(new(api.Game), g.ID).Updates(updates).Error; err != nil {
 		return err
 	}
 	return nil
