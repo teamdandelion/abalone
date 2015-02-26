@@ -28,10 +28,10 @@ func run() error {
 	app.Usage = "abalone management util"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "httpd",
-			Value: client.DefaultBaseURL,
-			Usage: "abalone_httpd listening addr:port",
-			EnvVar:   "ABCTL_HTTPD",
+			Name:   "httpd",
+			Value:  client.DefaultBaseURL,
+			Usage:  "abalone_httpd listening addr:port",
+			EnvVar: "ABCTL_HTTPD",
 		},
 	}
 	app.Commands = []cli.Command{
