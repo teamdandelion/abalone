@@ -44,8 +44,8 @@ var PlayersCmd = cli.Command{
 					Value: 1,
 				},
 				cli.StringFlag{
-					Name:  argExe,
-					Usage: "path where binary executable for player is found",
+					Name:  "exe, path, e, p",
+					Usage: "path where the player's executable binary can be found",
 				},
 				cli.IntFlag{
 					Name:  "author, a",
