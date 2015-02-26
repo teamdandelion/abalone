@@ -18,7 +18,8 @@ build/abalone_httpd: build $(HTTPD_SRC_DIR)
 .PHONY: build/public
 build/public:
 	cd ../fe2 && ./node_modules/.bin/gulp compile
-	cp -r ../fe2/build build/public
+	mkdir -p build/public
+	cp -r ../fe2/build/ build/public
 
 build:
 	mkdir build
