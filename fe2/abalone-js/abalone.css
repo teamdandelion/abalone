@@ -1,0 +1,30 @@
+.abalone .grid polygon {
+	fill: white;
+	stroke: gray;
+	stroke-width: 1;
+}
+
+.abalone .grid .selected {
+	fill: #9edae5;
+}
+
+.abalone .grid .moves {
+	fill: #f7b6d2;
+}
+
+
+.abalone .board .white {
+	fill: #ff7f0e;
+}
+
+.abalone .board .black {
+	fill: #1f77b4;
+}
+
+.abalone .board .faded circle {
+	opacity: 0.5;
+}
+
+.abalone .score-display {
+	font-size: 30px;
+}

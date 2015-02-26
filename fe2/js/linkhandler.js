@@ -1,5 +1,4 @@
 var Router = require('react-router')
-module.exports = linkHandler
 
 function linkHandler()  {
 
@@ -23,3 +22,4 @@ function linkHandler()  {
     return false
   });
 }
+module.exports = linkHandler

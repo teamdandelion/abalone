@@ -1,5 +1,5 @@
 {
-  "name": "abalone-frontend",
+  "name": "game-frontend",
   "version": "0.0.0",
   "homepage": "https://github.com/danmane/abalone",
   "authors": [
@@ -15,7 +15,6 @@
   ],
   "devDependencies": {
     "d3": "~3.5.5",
-    "lodash": "~3.0.1",
     "chai": "~1.10.0",
     "mocha": "~2.1.0"
   }

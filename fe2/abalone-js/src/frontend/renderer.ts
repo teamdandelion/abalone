@@ -18,6 +18,7 @@ export module Frontend {
 
         constructor(svg: any, hexesOnEdge=5) {
             this.svg = svg.node ? svg : d3.select(svg);
+            this.svg.classed("abalone", true)
             this.autoGetWidthHeight();
             this.hexesOnEdge = hexesOnEdge;
             this.board = this.svg.append("g").classed("board", true);
@@ -242,7 +243,9 @@ function adjacentHexDirs(s: Engine.Segment): [Engine.Hex, Engine.Direction][] {
         return <any> Engine.directions.map((d) => [Engine.adjacent(s.basePos, d), d]);
     } else {
         var front = vanguard(s.basePos, Engine.opposite(s.orientation));
-        var back = vanguard(_.last(Engine.segPieces(s)), s.orientation);
+        var pieces = Engine.segPieces(s);
+        var lastPiece = pieces[pieces.length-1];
+        var back = vanguard(lastPiece, s.orientation);
         return front.concat(back);
     }
 }

@@ -434,6 +434,11 @@ var Abalone;
             return JSON.stringify(copiedState);
         }
         Engine.serializeGame = serializeGame;
+        function parseJSON(s) {
+            s.nextPlayer = Engine.str2player(s.nextPlayer);
+            return s;
+        }
+        Engine.parseJSON = parseJSON;
         function deserializeGame(s) {
             var g = JSON.parse(s);
             if (g.state != null) {
@@ -573,13 +578,14 @@ var Abalone;
     var Frontend;
     (function (Frontend) {
         var GameReplayer = (function () {
-            function GameReplayer(renderer, history) {
-                this.renderer = renderer;
+            function GameReplayer() {
                 this.delay = 1000;
                 this.playing = false;
                 this.idx = 0;
-                this.setHistory(history);
             }
+            GameReplayer.prototype.setRenderer = function (r) {
+                this.renderer = r;
+            };
             GameReplayer.prototype.setHistory = function (history) {
                 this.history = history;
                 if (this.history.length > 0) {
@@ -785,6 +791,7 @@ var Abalone;
             function Renderer(svg, hexesOnEdge) {
                 if (hexesOnEdge === void 0) { hexesOnEdge = 5; }
                 this.svg = svg.node ? svg : d3.select(svg);
+                this.svg.classed("abalone", true);
                 this.autoGetWidthHeight();
                 this.hexesOnEdge = hexesOnEdge;
                 this.board = this.svg.append("g").classed("board", true);
@@ -954,7 +961,9 @@ var Abalone;
             }
             else {
                 var front = vanguard(s.basePos, Abalone.Engine.opposite(s.orientation));
-                var back = vanguard(_.last(Abalone.Engine.segPieces(s)), s.orientation);
+                var pieces = Abalone.Engine.segPieces(s);
+                var lastPiece = pieces[pieces.length - 1];
+                var back = vanguard(lastPiece, s.orientation);
                 return front.concat(back);
             }
         }

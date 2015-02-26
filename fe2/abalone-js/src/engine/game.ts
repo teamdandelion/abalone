@@ -150,6 +150,11 @@ export module Engine {
 		return JSON.stringify(copiedState);
 	}
 
+	export function parseJSON(s: any): Game {
+		s.nextPlayer = str2player(s.nextPlayer)
+		return s;
+	}
+
 	export function deserializeGame(s: string): Game {
 		var g = JSON.parse(s);
 		if (g.state != null) {

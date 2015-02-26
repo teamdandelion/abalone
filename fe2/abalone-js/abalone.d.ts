@@ -106,6 +106,7 @@ declare module Abalone {
         function validFuture(initial: Game, future: Game): boolean;
         function gameEq(g1: Game, g2: Game): boolean;
         function serializeGame(g: Game): string;
+        function parseJSON(s: any): Game;
         function deserializeGame(s: string): Game;
         function winner(g: Game): Outcome;
         function moves(g: Game): Move[];
@@ -119,13 +120,13 @@ declare module Abalone {
 declare module Abalone {
     module Frontend {
         class GameReplayer {
-            private renderer;
             delay: number;
             private controlLayer;
             private playing;
             private idx;
             private history;
-            constructor(renderer: Renderer, history: Engine.Game[]);
+            private renderer;
+            setRenderer(r: Renderer): void;
             setHistory(history: Engine.Game[]): void;
             draw(): void;
             back(): void;
