@@ -17,7 +17,7 @@ type Services struct {
 
 type GamesService interface {
 	List() ([]Game, error)
-	ListDetailled() ([]*GameWithDetails, error)
+	ListDetailed() ([]*GameWithDetails, error)
 }
 
 type PlayersService interface {

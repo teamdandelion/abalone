@@ -17,7 +17,7 @@ func (s *gamesDB) List() ([]api.Game, error) {
 	return games, nil
 }
 
-func (s *gamesDB) ListDetailled() ([]*api.GameWithDetails, error) {
+func (s *gamesDB) ListDetailed() ([]*api.GameWithDetails, error) {
 	var games []*api.GameWithDetails
 	if err := s.db.Find(&games).Error; err != nil {
 		return nil, err

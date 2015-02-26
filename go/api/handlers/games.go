@@ -29,7 +29,7 @@ func ListGamesHandler(ds *api.Services) http.HandlerFunc {
 
 func ListDetailsGamesHandler(ds *api.Services) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		games, err := ds.Games.ListDetailled()
+		games, err := ds.Games.ListDetailed()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
