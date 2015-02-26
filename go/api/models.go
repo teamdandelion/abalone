@@ -19,9 +19,9 @@ type GameWithDetails struct {
 	ID int64
 	
 	MatchId int64 `gorm:"column:match_id"`
-	White Player 
+	WhitePlayer Player 
 	WhiteID int64 `gorm:"column:white_player_id"`
-	Black Player
+	BlackPlayer Player
 	BlackID int64 `gorm:"column:black_player_id"`
 	
 	Status string `gorm:"column:status"`

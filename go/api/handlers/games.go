@@ -37,7 +37,7 @@ func ListDetailsGamesHandler(ds *api.Services) http.HandlerFunc {
 			return
 		}
 		if games == nil {
-			games = make([]api.GameWithDetails, 0)
+			games = make([]*api.GameWithDetails, 0)
 		}
 		if err := json.NewEncoder(w).Encode(&games); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
