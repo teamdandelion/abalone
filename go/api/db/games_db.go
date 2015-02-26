@@ -24,8 +24,8 @@ func (s *gamesDB) ListDetailled() ([]*api.GameWithDetails, error) {
 	}
 	var ids []int64
 	for _, g := range games {
-		ids = append(ids, g.WhiteID)
-		ids = append(ids, g.BlackID)
+		ids = append(ids, g.WhiteId)
+		ids = append(ids, g.BlackId)
 	}
 	var players []api.Player
 	if err := s.db.Where(ids).Find(&players).Error; err != nil {
@@ -36,8 +36,8 @@ func (s *gamesDB) ListDetailled() ([]*api.GameWithDetails, error) {
 		playermap[p.ID] = &p
 	}
 	for _, g := range games {
-		g.WhitePlayer = *playermap[g.WhiteID]
-		g.BlackPlayer = *playermap[g.BlackID]
+		g.WhitePlayer = *playermap[g.WhiteId]
+		g.BlackPlayer = *playermap[g.BlackId]
 	}
 	return games, nil
 }
