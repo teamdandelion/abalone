@@ -19,21 +19,19 @@ var keyMirror = require('keymirror');
 var EventEmitter = require('events').EventEmitter;
 
 var Nav = React.createClass({
-
   render: function() {
     return (
       <BSNav bsStyle="tabs" activeKey={this.props.activeKey}  style={{"marginBottom": "60px"}}>
-        <NavItemLink eventKey={1} to="leaderboard"><i className="fa fa-trophy"></i> Leaderboard</NavItemLink>
-        <NavItemLink eventKey={2} to="play"><i className="fa fa-gamepad"></i> Play</NavItemLink>
-        <NavItemLink eventKey={3} to="upload"><i className="fa fa-upload"></i> Upload a Player</NavItemLink>
-        <NavItemLink eventKey={4} to="replay"><i className="fa fa-repeat"></i> Replay a Game</NavItemLink>
+        <NavItemLink to="leaderboard"><i className="fa fa-trophy"></i> Leaderboard</NavItemLink>
+        <NavItemLink to="play"><i className="fa fa-gamepad"></i> Play</NavItemLink>
+        <NavItemLink to="upload"><i className="fa fa-upload"></i> Upload a Player</NavItemLink>
+        <NavItemLink to="replay"><i className="fa fa-repeat"></i> Replay a Game</NavItemLink>
       </BSNav>
     )
   }
 })
 
 var App = React.createClass({
-
   render: function() {
     return (
       <div>
@@ -66,7 +64,12 @@ var App = React.createClass({
         <div className="navhr" style={{margin: "10px 0px 30px"}}></div>
 
         <div className="container">
-          <RouteHandler/>
+          <div className="row">
+            <div className="col-sm-8 col-sm-offset-2">
+            <Nav />
+              <RouteHandler/>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -76,13 +79,7 @@ var App = React.createClass({
 var LeaderboardHandler = React.createClass({
   render: function() {
     return (
-      <div className="row">
-        <div className="col-sm-8 col-sm-offset-2">
-
-          <Nav activeKey={1} />
-
-        </div>
-      </div>
+     <p> This is the Leaderboard </p>   
     )
   }
 })
@@ -90,13 +87,8 @@ var LeaderboardHandler = React.createClass({
 var PlayHandler = React.createClass({
   render: function() {
     return (
-      <div className="row">
-        <div className="col-sm-8 col-sm-offset-2">
-
-          <Nav activeKey={2} />
-
-        </div>
-      </div>
+     <p> This is the Play Area </p>   
+      
     )
   }
 })
@@ -122,17 +114,10 @@ var ReplayChooser = React.createClass({
   },
   render: function() {
     return (
-      <div className="row">
-        <div className="col-sm-8 col-sm-offset-2">
-
-          <Nav activeKey={2} />
-
-          <div class="replayChooser">
-          <h1> Choose a Game </h1>
-          <GameList data={this.state.data}/>
-          </div>
+        <div class="replayChooser">
+        <h1> Choose a Game </h1>
+        <GameList data={this.state.data}/>
         </div>
-      </div>
       );
   }
 });
@@ -204,14 +189,8 @@ var UploadHandler = React.createClass({
       );
     }
     return (
-      <div className="row">
-        <div className="col-sm-8 col-sm-offset-2">
-
-          <Nav activeKey={3} />
-
-          { view }
-
-        </div>
+      <div>
+      { view }
       </div>
     )
   }
@@ -227,7 +206,7 @@ var UploadPanel = React.createClass({
       </div>
     )
   }
-})
+});
 
 var UploadForm = React.createClass({
   handleSubmit: function(e) {
@@ -265,12 +244,7 @@ var GameViewer = React.createClass({
   mixins: [Router.State],
   render: function() {
     return (
-      <div className="row">
-        <div className="col-sm-8 col-sm-offset-2">
-          <Nav activeKey={4} />
-          <GameReplayer id={this.getParams().gameId}> </GameReplayer>
-        </div>
-      </div>
+        <GameReplayer id={this.getParams().gameId}> </GameReplayer>
     );
   }
 })
@@ -279,22 +253,8 @@ var GameReplayer = React.createClass({
   getInitialState: function() {
     return {data: []};
   },
-  // loadHistoryFromServer: function() {
-  //   var url = 'api/games/'+this.props.gameID+'/states';
-  //   $.ajax({
-  //     url: url,
-  //     dataType: 'json',
-  //     success: function(data) {
-  //       this.setState({data: data});
-  //     }.bind(this),
-  //     error: function(xhr, status, err) {
-  //       console.error("error getting game states at", url, status, err.toString())
-  //     }.bind(this)
-  //   })
-  // },
   componentDidMount: function() {
     var renderer = new Abalone.Frontend.Renderer("#replayerSVG");
-    // loadHistoryFromServer();
     this.props.replayer = new Abalone.Frontend.GameReplayer(renderer, []);
     var url = "/api/games/" + this.props.id +"/states"
     $.ajax({
@@ -425,6 +385,6 @@ module.exports = (
     <Route name="upload" path="/upload" handler={UploadHandler} />
     <Route name="replay" path="/replay" handler={ReplayChooser} />
     <Route name="viewGame" path="/viewGame/:gameId" handler={GameViewer} />
-    <DefaultRoute handler={LeaderboardHandler} />
+    <DefaultRoute name="leaderboardDefault" handler={LeaderboardHandler} />
   </Route>
 )
