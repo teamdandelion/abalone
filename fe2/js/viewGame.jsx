@@ -27,20 +27,28 @@ var GameViewer = React.createClass({
   render: function() {
     return (
       <div>
-        <i onClick={this.props.replayer.play.bind(this.props.replayer)} className="fa fa-play fa-4x"></i>
-         
-        <i onClick={this.props.replayer.pause.bind(this.props.replayer)} className="fa fa-pause fa-4x"></i>
-         
-        <i onClick={this.props.replayer.play.bind(this.props.replayer)} className="fa fa-pause fa-4x"></i>
-         
-        <i onClick={this.props.replayer.back.bind(this.props.replayer)} className="fa fa-backward fa-4x"></i>
-         
-        <i onClick={this.props.replayer.forward.bind(this.props.replayer)} className="fa fa-forward fa-4x"></i>
-         
-        <i onClick={this.props.replayer.skipToEnd.bind(this.props.replayer)} className="fa fa-fast-forward fa-4x"></i>
-         
-        <i onClick={this.props.replayer.restart.bind(this.props.replayer)} className="fa fa-fast-backward fa-4x"></i>
-         
+        <div className="container controlsContainer">
+          <div className="row">
+            <div className="col-md-2">
+              <i onClick={this.props.replayer.play.bind(this.props.replayer)} className="fa fa-play fa-4x"></i>
+            </div>
+            <div className="col-md-2">
+              <i onClick={this.props.replayer.pause.bind(this.props.replayer)} className="fa fa-pause fa-4x"></i>
+            </div>
+            <div className="col-md-2">
+              <i onClick={this.props.replayer.back.bind(this.props.replayer)} className="fa fa-backward fa-4x"></i>
+            </div>
+            <div className="col-md-2">
+              <i onClick={this.props.replayer.forward.bind(this.props.replayer)} className="fa fa-forward fa-4x"></i>
+            </div>
+            <div className="col-md-2">
+              <i onClick={this.props.replayer.skipToEnd.bind(this.props.replayer)} className="fa fa-fast-forward fa-4x"></i>
+            </div>
+            <div className="col-md-2">
+              <i onClick={this.props.replayer.restart.bind(this.props.replayer)} className="fa fa-fast-backward fa-4x"></i>
+            </div>
+          </div>
+        </div>
         <svg id="replayerSVG" width="600" height="600"> </svg>
       </div>
     );
