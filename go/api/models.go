@@ -16,14 +16,17 @@ type Game struct {
 }
 
 type GameWithDetails struct {
-	ID int
-	MatchId int
-	White Player
-	WhiteID int
+	ID int64
+	
+	MatchId int64 `gorm:"column:match_id"`
+	White Player 
+	WhiteID int64 `gorm:"column:white_player_id"`
 	Black Player
-	BlackID int
-	Status string
-	Reason string
+	BlackID int64 `gorm:"column:black_player_id"`
+	
+	Status string `gorm:"column:status"`
+	CommonDBFields
+	Reason string `gorm:"column:reason"`
 }
 
 func (c GameWithDetails) TableName() string {

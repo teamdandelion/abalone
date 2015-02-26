@@ -19,13 +19,22 @@ func (s *gamesDB) List() ([]api.Game, error) {
 
 func (s *gamesDB) ListDetailled() ([]api.GameWithDetails, error) {
 	var games []api.GameWithDetails
-	var whites []api.Player
-	var blacks []api.Player
-	if err := s.db.Model(&games).Related(&whites, "WhiteID").Error; err !=  nil{
+	if err := s.db.Find(&games).Error; err != nil {
 		return nil, err
 	}
-	if err := s.db.Model(&games).Related(&blacks, "BlackID").Error; err !=  nil{
+	var players []api.Player
+	if err := s.db.Find(&players).Error; err != nil {
 		return nil, err
+	}
+	for i := range games {
+		for j := range players {
+			if games[i].WhiteID == players[j].ID {
+				games[i].White = players[j]
+			}
+			if games[i].BlackID == players[j].ID {
+				games[i].Black = players[j]
+			}
+		}
 	}
 	return games, nil
 }

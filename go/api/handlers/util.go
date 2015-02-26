@@ -20,8 +20,8 @@ func MountHandlers(r *mux.Router, ds *api.Services) {
 	r.Get(routes.UsersCreate).HandlerFunc(CreateUsersHandler(ds))
 	r.Get(routes.UsersDelete).HandlerFunc(DeleteUsersHandler(ds))
 
-	r.Get(routes.Games).HandlerFunc(ListGamesHandler(ds))
-	r.Get(routes.GamesDetails).HandlerFunc(ListDetailsGamesHandler(ds))
+	r.Get(routes.Games).HandlerFunc(ListDetailsGamesHandler(ds))
+	r.Get(routes.GamesSimp).HandlerFunc(ListGamesHandler(ds))
 
 	r.Get(routes.GameStates).HandlerFunc(ListGameStatesHandler(ds))
 	r.Get(routes.States).HandlerFunc(ListGameStatesHandler(ds)) // alias
