@@ -6,9 +6,10 @@ export module Frontend {
 		private playing = false;
 		private idx = 0;
 		private history: Engine.Game[];
+		private renderer: Renderer;
 
-		constructor(private renderer: Renderer, history: Engine.Game[]) {
-			this.setHistory(history)
+		public setRenderer(r: Renderer) {
+			this.renderer = r;
 		}
 
 		public setHistory(history: Engine.Game[]) {

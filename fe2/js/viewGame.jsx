@@ -3,9 +3,12 @@ var Router = require('react-router')
 
 var GameViewer = React.createClass({
   mixins: [Router.State],
+  componentWillMount: function() {
+    this.props.replayer = new Abalone.Frontend.GameReplayer();
+  },
   componentDidMount: function() {
     var renderer = new Abalone.Frontend.Renderer("#replayerSVG");
-    this.props.replayer = new Abalone.Frontend.GameReplayer(renderer, []);
+    this.props.replayer.setRenderer(renderer);
     var url = "/api/games/" + this.getParams().gameId +"/states";
     $.ajax({
       url: url,
@@ -23,7 +26,23 @@ var GameViewer = React.createClass({
   },
   render: function() {
     return (
-      <svg id="replayerSVG" width="800" height="800"> </svg>
+      <div>
+        <i onClick={this.props.replayer.play.bind(this.props.replayer)} className="fa fa-play fa-4x"></i>
+         
+        <i onClick={this.props.replayer.pause.bind(this.props.replayer)} className="fa fa-pause fa-4x"></i>
+         
+        <i onClick={this.props.replayer.play.bind(this.props.replayer)} className="fa fa-pause fa-4x"></i>
+         
+        <i onClick={this.props.replayer.back.bind(this.props.replayer)} className="fa fa-backward fa-4x"></i>
+         
+        <i onClick={this.props.replayer.forward.bind(this.props.replayer)} className="fa fa-forward fa-4x"></i>
+         
+        <i onClick={this.props.replayer.skipToEnd.bind(this.props.replayer)} className="fa fa-fast-forward fa-4x"></i>
+         
+        <i onClick={this.props.replayer.restart.bind(this.props.replayer)} className="fa fa-fast-backward fa-4x"></i>
+         
+        <svg id="replayerSVG" width="600" height="600"> </svg>
+      </div>
     );
   }
 })

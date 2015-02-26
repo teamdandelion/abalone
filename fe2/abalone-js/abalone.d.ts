@@ -120,13 +120,13 @@ declare module Abalone {
 declare module Abalone {
     module Frontend {
         class GameReplayer {
-            private renderer;
             delay: number;
             private controlLayer;
             private playing;
             private idx;
             private history;
-            constructor(renderer: Renderer, history: Engine.Game[]);
+            private renderer;
+            setRenderer(r: Renderer): void;
             setHistory(history: Engine.Game[]): void;
             draw(): void;
             back(): void;

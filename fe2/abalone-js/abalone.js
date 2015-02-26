@@ -578,13 +578,14 @@ var Abalone;
     var Frontend;
     (function (Frontend) {
         var GameReplayer = (function () {
-            function GameReplayer(renderer, history) {
-                this.renderer = renderer;
+            function GameReplayer() {
                 this.delay = 1000;
                 this.playing = false;
                 this.idx = 0;
-                this.setHistory(history);
             }
+            GameReplayer.prototype.setRenderer = function (r) {
+                this.renderer = r;
+            };
             GameReplayer.prototype.setHistory = function (history) {
                 this.history = history;
                 if (this.history.length > 0) {
