@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"time"
 
 	"github.com/danmane/abalone/go/api"
@@ -54,15 +55,15 @@ func NewPlayerProcessInstance(player api.Player, executable string, scheduler *P
 	if err != nil {
 		return nil, err
 	}
-	host := fmt.Sprintf("localhost:%v", port)
 	aiCmd := exec.Command(executable, fmt.Sprintf("-port=%v", port))
 	aiCmd.Stdout = os.Stdout
 	aiCmd.Stderr = os.Stderr
 
 	if err := aiCmd.Start(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("couldn't execute binary. compiled for %s?: %v", runtime.GOOS, err)
 	}
 
+	host := fmt.Sprintf("localhost:%v", port)
 	rpi := RemotePlayerInstance{APIPlayer: player, Host: host}
 	if err := rpi.Ping(); err != nil {
 		fmt.Println("ping failure")
