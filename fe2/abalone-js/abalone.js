@@ -788,12 +788,19 @@ var Abalone;
     var Frontend;
     (function (Frontend) {
         var Renderer = (function () {
-            function Renderer(svg, hexesOnEdge) {
+            function Renderer(svg, hexesOnEdge, width, height) {
                 if (hexesOnEdge === void 0) { hexesOnEdge = 5; }
                 this.showDebugCoordinates = false;
+                this.showNumPieces = false;
                 this.svg = svg.node ? svg : d3.select(svg);
                 this.svg.classed("abalone", true);
-                this.autoGetWidthHeight();
+                if (width == null || height == null) {
+                    this.autoGetWidthHeight();
+                }
+                else {
+                    this.width = width;
+                    this.height = height;
+                }
                 this.hexesOnEdge = hexesOnEdge;
                 this.board = this.svg.append("g").classed("board", true);
                 this.grid = this.board.append("g").classed("grid", true);
@@ -834,7 +841,7 @@ var Abalone;
             Renderer.prototype.resize = function (width, height) {
                 this.width = width;
                 this.height = height;
-                this.hexSize = Math.min(width, height) / this.hexesOnEdge / 4;
+                this.hexSize = Math.min(width, height) / this.hexesOnEdge / 3.2;
                 this.drawBoard();
             };
             Renderer.prototype.qr2xy = function (h) {
@@ -852,8 +859,10 @@ var Abalone;
             Renderer.prototype.drawPieces = function (b) {
                 this.addPieces(this.whitePieces, b.whitePositions);
                 this.addPieces(this.blackPieces, b.blackPositions);
-                this.whiteNumPieces.text(b.whitePositions.length);
-                this.blackNumPieces.text(b.blackPositions.length);
+                if (this.showNumPieces) {
+                    this.whiteNumPieces.text(b.whitePositions.length);
+                    this.blackNumPieces.text(b.blackPositions.length);
+                }
             };
             Renderer.prototype.addPieces = function (selection, pieces) {
                 var _this = this;

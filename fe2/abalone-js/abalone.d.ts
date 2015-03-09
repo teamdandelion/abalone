@@ -196,7 +196,8 @@ declare module Abalone {
             private width;
             private hexSize;
             private showDebugCoordinates;
-            constructor(svg: any, hexesOnEdge?: number);
+            private showNumPieces;
+            constructor(svg: any, hexesOnEdge?: number, width?: number, height?: number);
             private autoGetWidthHeight();
             resize(width: any, height: any): void;
             private qr2xy(h);

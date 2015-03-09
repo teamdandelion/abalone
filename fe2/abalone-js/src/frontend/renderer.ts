@@ -16,17 +16,24 @@ export module Frontend {
         private width: number; // width in pixels of board 
         private hexSize: number; // size of each hex in pixels (radius)
         private showDebugCoordinates = false;
+        private showNumPieces = false;
 
-        constructor(svg: any, hexesOnEdge=5) {
+        constructor(svg: any, hexesOnEdge=5, width?: number, height?: number) {
             this.svg = svg.node ? svg : d3.select(svg);
             this.svg.classed("abalone", true)
-            this.autoGetWidthHeight();
+            if (width == null || height == null) {
+                this.autoGetWidthHeight();
+            } else {
+                this.width = width;
+                this.height = height;
+            }
             this.hexesOnEdge = hexesOnEdge;
             this.board = this.svg.append("g").classed("board", true);
             this.grid = this.board.append("g").classed("grid", true);
             this.whitePieces = this.board.append("g").classed("white", true);
             this.blackPieces = this.board.append("g").classed("black", true);
             this.coordinateLayer = this.board.append("g").classed("coordinate-layer", true);
+
             this.whiteNumPieces = this.board.append("text")
                 .attr("x", 50).attr("y", this.height-100)
                 .classed("score-display", true).classed("white", true);
@@ -86,7 +93,7 @@ export module Frontend {
         public resize(width, height) {
             this.width = width;
             this.height = height;
-            this.hexSize = Math.min(width, height) / this.hexesOnEdge / 4;
+            this.hexSize = Math.min(width, height) / this.hexesOnEdge / 3.2;
             this.drawBoard();
         }
 
@@ -107,8 +114,10 @@ export module Frontend {
         private drawPieces(b: Engine.Board) {
             this.addPieces(this.whitePieces, b.whitePositions);
             this.addPieces(this.blackPieces, b.blackPositions);
-            this.whiteNumPieces.text(b.whitePositions.length);
-            this.blackNumPieces.text(b.blackPositions.length);
+            if (this.showNumPieces) {
+                this.whiteNumPieces.text(b.whitePositions.length);
+                this.blackNumPieces.text(b.blackPositions.length);
+            }
         }
 
         private addPieces(selection: D3.Selection, pieces: Engine.Hex[]) {
