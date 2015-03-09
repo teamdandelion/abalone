@@ -9,6 +9,7 @@ import (
 
 	"github.com/briantigerchow/go-multihash/multihash"
 	"github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/operator"
 )
 
 type playersDB struct {
@@ -41,7 +42,9 @@ func (s *playersDB) Upload(userID int64, p api.Player, executable io.Reader) (*a
 		return nil, err
 	}
 
-	// TODO(btc): test the player before saving
+	if err := operator.Validate(exePath, s.Ports); err != nil {
+		return nil, err
+	}
 
 	p.AuthorId = userID
 	p.Path = hashOfExe
