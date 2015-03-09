@@ -32,6 +32,8 @@ func Open(dialect string, addr string, filestoragePath string) (*api.Services, e
 	}, nil
 }
 
+// resources bundles up all of the components required by the various DB
+// structs.
 type resources struct {
 	DB              *gorm.DB
 	Ports           *operator.PortScheduler
