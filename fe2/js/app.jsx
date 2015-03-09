@@ -38,9 +38,6 @@ var App = React.createClass({
             <Nav />
         </div>
 
-        {/* underline */}
-        <div className="navhr" style={{margin: "10px 0px 30px"}}></div>
-
         <div className="container">
           <div className="row">
             <div className="col-sm-8 col-sm-offset-2">
