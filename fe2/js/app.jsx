@@ -19,7 +19,7 @@ var GameViewer = require('./viewGame.jsx')
 var Nav = React.createClass({
   render: function() {
     return (
-      <BSNav bsStyle="tabs" activeKey={this.props.activeKey}  style={{"marginBottom": "60px"}}>
+      <BSNav bsStyle="tabs" activeKey={this.props.activeKey}  style={{"marginBottom": "20px"}}>
         <NavItemLink to="leaderboard"><i className="fa fa-trophy"></i> Leaderboard</NavItemLink>
         <NavItemLink to="play"><i className="fa fa-gamepad"></i> Play</NavItemLink>
         <NavItemLink to="upload"><i className="fa fa-upload"></i> Upload a Player</NavItemLink>
@@ -34,28 +34,8 @@ var App = React.createClass({
     return (
       <div>
         <div className="container">
-          <nav className="navbar" role="navigation">
 
-            <div className="navbar-header">
-              <button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
-                <span className="sr-only">Toggle navigation</span>
-                <span className="icon-bar"></span>
-                <span className="icon-bar"></span>
-                <span className="icon-bar"></span>
-              </button>
-            </div>
-
-            <div className="collapse navbar-collapse" id="navbar-collapse">
-              <ul className="nav navbar-nav navbar-right">
-                <li><a href="https://github.com/danmane/abalone" target="_blank"
-                    data-toggle="tooltip" data-placement="bottom"
-                    title="Github Repository"><i className="single fa fa-github"></i></a></li>
-                <li><a href="https://github.com/danmane/abalone/issues/new" target="_blank"
-                    data-toggle="tooltip" data-placement="bottom"
-                    title="Report Bugs"><i className="single fa fa-bug"></i></a></li>
-              </ul>
-            </div>
-          </nav>
+            <Nav />
         </div>
 
         {/* underline */}
@@ -64,7 +44,7 @@ var App = React.createClass({
         <div className="container">
           <div className="row">
             <div className="col-sm-8 col-sm-offset-2">
-            <Nav />
+            
               <RouteHandler/>
             </div>
           </div>
