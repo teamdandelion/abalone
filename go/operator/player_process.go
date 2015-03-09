@@ -44,6 +44,8 @@ func Validate(pathToExecutable string, scheduler PortScheduler) error {
 		fmt.Printf("ai at path %v\n failed validating", pathToExecutable)
 		return err
 	}
+	// TODO(btc): note that this functon won't close the player when an error
+	// is returned (above). need to ensure port is released and process is killed.
 	return ppi.Close()
 }
 
