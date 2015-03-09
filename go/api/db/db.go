@@ -18,15 +18,22 @@ func Open(dialect string, addr string, filestoragePath string) (*api.Services, e
 		return nil, err
 	}
 
+	r := &resources{
+		DB:              &db,
+		Ports:           operator.NewScheduler(16000, 2000),
+		FilestoragePath: filestoragePath,
+	}
 	return &api.Services{
-		Games: &gamesDB{&db},
-		Matches: &matchesDB{
-			db:              &db,
-			scheduler:       operator.NewScheduler(16000, 2000),
-			filestoragePath: filestoragePath,
-		},
-		Players: &playersDB{&db, filestoragePath},
-		Users:   &usersDB{&db},
+		Games:   &gamesDB{r},
+		Matches: &matchesDB{r},
+		Players: &playersDB{r},
+		Users:   &usersDB{r},
 		DB:      &db,
 	}, nil
+}
+
+type resources struct {
+	DB              *gorm.DB
+	Ports           *operator.PortScheduler
+	FilestoragePath string
 }

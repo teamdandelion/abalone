@@ -1,17 +1,14 @@
 package db
 
-import (
-	api "github.com/danmane/abalone/go/api"
-	"github.com/jinzhu/gorm"
-)
+import api "github.com/danmane/abalone/go/api"
 
 type gamesDB struct {
-	db *gorm.DB
+	*resources
 }
 
 func (s *gamesDB) List() ([]api.Game, error) {
 	var games []api.Game
-	if err := s.db.Find(&games).Error; err != nil {
+	if err := s.DB.Find(&games).Error; err != nil {
 		return nil, err
 	}
 	return games, nil
@@ -19,7 +16,7 @@ func (s *gamesDB) List() ([]api.Game, error) {
 
 func (s *gamesDB) ListDetailed() ([]*api.GameWithDetails, error) {
 	var games []*api.GameWithDetails
-	if err := s.db.Find(&games).Error; err != nil {
+	if err := s.DB.Find(&games).Error; err != nil {
 		return nil, err
 	}
 	var ids []int64
@@ -28,7 +25,7 @@ func (s *gamesDB) ListDetailed() ([]*api.GameWithDetails, error) {
 		ids = append(ids, g.BlackId)
 	}
 	var players []api.Player
-	if err := s.db.Where(ids).Find(&players).Error; err != nil {
+	if err := s.DB.Where(ids).Find(&players).Error; err != nil {
 		return nil, err
 	}
 	playermap := make(map[int64]*api.Player)

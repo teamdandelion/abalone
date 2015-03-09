@@ -10,13 +10,10 @@ import (
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
 	"github.com/danmane/abalone/go/operator"
-	"github.com/jinzhu/gorm"
 )
 
 type matchesDB struct {
-	db              *gorm.DB
-	scheduler       operator.PortScheduler
-	filestoragePath string
+	*resources
 }
 
 func (s *matchesDB) Run(playerID1, playerID2 int64) (*api.Match, error) {
@@ -24,7 +21,7 @@ func (s *matchesDB) Run(playerID1, playerID2 int64) (*api.Match, error) {
 		PID1: playerID1,
 		PID2: playerID2,
 	}
-	if err := s.db.Create(&matchrequest).Error; err != nil {
+	if err := s.DB.Create(&matchrequest).Error; err != nil {
 		return nil, err
 	}
 	if err := ExecuteMatch(s, matchrequest); err != nil {
@@ -35,14 +32,14 @@ func (s *matchesDB) Run(playerID1, playerID2 int64) (*api.Match, error) {
 
 func (s *matchesDB) List() ([]api.Player, error) {
 	var players []api.Player
-	if err := s.db.Find(&players).Error; err != nil {
+	if err := s.DB.Find(&players).Error; err != nil {
 		return nil, err
 	}
 	return players, nil
 }
 
 func (s *matchesDB) Delete(id int64) error {
-	return s.db.Delete(api.Player{ID: id}).Error
+	return s.DB.Delete(api.Player{ID: id}).Error
 }
 
 var _ api.MatchesService = &matchesDB{}
@@ -66,7 +63,7 @@ func ExecuteMatch(mdb *matchesDB, m api.Match) error {
 	)
 
 	var games []api.Game
-	if err := mdb.db.Where(api.Match{ID: m.ID}).Find(&games).Error; err != nil {
+	if err := mdb.DB.Where(api.Match{ID: m.ID}).Find(&games).Error; err != nil {
 		return err
 	}
 
@@ -111,7 +108,7 @@ func ExecuteMatch(mdb *matchesDB, m api.Match) error {
 			BlackId: m.PID2,
 			MatchId: m.ID,
 		}
-		if err := mdb.db.Create(&g).Error; err != nil {
+		if err := mdb.DB.Create(&g).Error; err != nil {
 			return err
 		}
 		go func() {
@@ -128,7 +125,7 @@ func ExecuteMatch(mdb *matchesDB, m api.Match) error {
 			BlackId: m.PID1,
 			MatchId: m.ID,
 		}
-		if err := mdb.db.Create(&g).Error; err != nil {
+		if err := mdb.DB.Create(&g).Error; err != nil {
 			return err
 		}
 		go func() {
@@ -144,18 +141,18 @@ func ExecuteMatch(mdb *matchesDB, m api.Match) error {
 func run(matches *matchesDB, g api.Game) error {
 
 	var white api.Player
-	if err := matches.db.First(&white, g.WhiteId).Error; err != nil {
+	if err := matches.DB.First(&white, g.WhiteId).Error; err != nil {
 		return err
 	}
 	var black api.Player
-	if err := matches.db.First(&black, g.BlackId).Error; err != nil {
+	if err := matches.DB.First(&black, g.BlackId).Error; err != nil {
 		return err
 	}
-	whiteAgent, err := operator.NewPlayerProcessInstance(white, path.Join(matches.filestoragePath, white.Path), matches.scheduler)
+	whiteAgent, err := operator.NewPlayerProcessInstance(white, path.Join(matches.FilestoragePath, white.Path), matches.Ports)
 	if err != nil {
 		return err
 	}
-	blackAgent, err := operator.NewPlayerProcessInstance(black, path.Join(matches.filestoragePath, black.Path), matches.scheduler)
+	blackAgent, err := operator.NewPlayerProcessInstance(black, path.Join(matches.FilestoragePath, black.Path), matches.Ports)
 	if err != nil {
 		return err
 	}
@@ -165,7 +162,7 @@ func run(matches *matchesDB, g api.Game) error {
 		GameHadState: func(s *game.State) error {
 			//get count
 			var count int
-			err := matches.db.Table("records").Where("game_id = ?", g.ID).Count(&count).Error
+			err := matches.DB.Table("records").Where("game_id = ?", g.ID).Count(&count).Error
 			if err != nil {
 				return err
 			}
@@ -181,7 +178,7 @@ func run(matches *matchesDB, g api.Game) error {
 				TurnNum: int64(count + 1),
 				State:   buf.String(),
 			}
-			if err := matches.db.Create(&r).Error; err != nil {
+			if err := matches.DB.Create(&r).Error; err != nil {
 				return err
 			}
 			return nil
@@ -205,7 +202,7 @@ func run(matches *matchesDB, g api.Game) error {
 		"status": status.String(),
 		"reason": result.VictoryReason.String(),
 	}
-	if err := matches.db.First(new(api.Game), g.ID).Updates(updates).Error; err != nil {
+	if err := matches.DB.First(new(api.Game), g.ID).Updates(updates).Error; err != nil {
 		return err
 	}
 	return nil

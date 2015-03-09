@@ -8,13 +8,11 @@ import (
 	"path"
 
 	"github.com/briantigerchow/go-multihash/multihash"
-	api "github.com/danmane/abalone/go/api"
-	"github.com/jinzhu/gorm"
+	"github.com/danmane/abalone/go/api"
 )
 
 type playersDB struct {
-	DB              *gorm.DB
-	filestoragePath string // TODO extract blobstore
+	*resources
 }
 
 func (s *playersDB) Create(userID int64, p api.Player) (*api.Player, error) {
@@ -35,9 +33,11 @@ func (s *playersDB) Upload(userID int64, p api.Player, executable io.Reader) (*a
 	if err != nil {
 		return nil, err
 	}
-	hashOfExe := mh.HexString()
 
-	if err := ioutil.WriteFile(path.Join(s.filestoragePath, hashOfExe), exeBytes, os.ModePerm); err != nil {
+	hashOfExe := mh.HexString()
+	exePath := path.Join(s.FilestoragePath, hashOfExe)
+
+	if err := ioutil.WriteFile(exePath, exeBytes, os.ModePerm); err != nil {
 		return nil, err
 	}
 
