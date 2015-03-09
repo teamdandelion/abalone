@@ -1,4 +1,5 @@
 var React = require('react')
+var Table = require('react-bootstrap').Table
 
 var ReplayChooser = React.createClass({
   getInitialState: function() {
@@ -21,7 +22,7 @@ var ReplayChooser = React.createClass({
   },
   render: function() {
     return (
-        <div class="replayChooser">
+        <div className="replayChooser">
         <h1> Choose a Game </h1>
         <GameList data={this.state.data}/>
         </div>
@@ -32,24 +33,41 @@ var ReplayChooser = React.createClass({
 var GameList = React.createClass({
   render: function() {
     var gameNodes = this.props.data.map(function (game) {
+      var dest = "/viewGame/" + game.ID;
       return (
-        <GameRow data={game}> </GameRow>
+        <tr>
+          <td>
+            <a href={dest}>
+              <i className="fa fa-youtube-play"> </i>
+            </a>
+          </td>
+          <td>{game.ID}</td>
+          <td>{game.Status}</td>
+          <td>{game.Reason}</td>
+          <td>{game.WhitePlayer.Name} v{game.WhitePlayer.Version}</td>
+          <td>{game.BlackPlayer.Name} v{game.BlackPlayer.Version}</td>
+        </tr>
       );
     });
     return (
       <div className="gameList">
-        {gameNodes}
+        <Table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>#</th>
+              <th>Result</th>
+              <th>Info</th>
+              <th>White</th>
+              <th>Black</th>
+            </tr>
+          </thead>
+          <tbody>
+            {gameNodes}
+          </tbody>
+        </Table>
       </div>
     );
-  }
-});
-
-var GameRow = React.createClass({
-  render: function() {
-    var dest = "/viewGame/" + this.props.data.ID;
-    return (
-      <div className="gameRow"> <a href={dest}>{this.props.data.ID} {this.props.data.Status}</a> </div>
-      )
   }
 });
 
