@@ -44,7 +44,8 @@ func ListDetailsGamesHandler(ds *api.Services) http.HandlerFunc {
 	}
 }
 
-type GameStatesAPIResponse struct {
+type GameResultDets struct {
+
 	White         *string
 	Black         *string
 	Outcome       string
@@ -68,9 +69,9 @@ func ListGameStatesHandler(ds *api.Services) http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("error parsing game_id: %s", err.Error()), http.StatusBadRequest)
 			return
 		}
-		var game GameStatesAPIResponse
+		var game GameResultDets
 		var records []api.Record
-		if err := ds.DB.Where(api.Record{GameID: gameID}).Order("turn_num asc").Find(&records).Pluck("state", &game.States).Error; err != nil {
+		if err := ds.DB.Where(api.Record{GameID: gameID}).Order("turn_num asc").Find(&records).Pluck("state",&game.States).Error; err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -94,3 +95,4 @@ func ListGameStatesHandler(ds *api.Services) http.HandlerFunc {
 		}
 	}
 }
+
