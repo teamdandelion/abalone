@@ -29,17 +29,22 @@ func (s *playersDB) Upload(userID int64, p api.Player, executable io.Reader) (*a
 
 	var buf bytes.Buffer
 	io.Copy(&buf, executable)
-	hash, err := multihash.Sum(buf.Bytes(), multihash.SHA2_256)
+	exeBytes := buf.Bytes()
+
+	mh, err := multihash.Sum(exeBytes, multihash.SHA2_256)
 	if err != nil {
 		return nil, err
 	}
-	hashstr := hash.HexString()
-	if err := ioutil.WriteFile(path.Join(s.filestoragePath, hashstr), buf.Bytes(), os.ModePerm); err != nil {
+	hashOfExe := mh.HexString()
+
+	if err := ioutil.WriteFile(path.Join(s.filestoragePath, hashOfExe), exeBytes, os.ModePerm); err != nil {
 		return nil, err
 	}
 
+	// TODO(btc): test the player before saving
+
 	p.AuthorId = userID
-	p.Path = hash.HexString()
+	p.Path = hashOfExe
 	if err := s.DB.Create(&p).Error; err != nil {
 		return nil, err
 	}
