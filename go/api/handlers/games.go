@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/danmane/abalone/go/api"
+	"github.com/danmane/abalone/go/game"
 	"github.com/gorilla/mux"
 )
 
@@ -44,15 +46,6 @@ func ListDetailsGamesHandler(ds *api.Services) http.HandlerFunc {
 	}
 }
 
-type GameResultDets struct {
-
-	White         *string
-	Black         *string
-	Outcome       string
-	VictoryReason string
-	States        []string `sql:"-"`
-}
-
 func ListGameStatesHandler(ds *api.Services) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		gidStr := mux.Vars(r)["game_id"]
@@ -69,30 +62,26 @@ func ListGameStatesHandler(ds *api.Services) http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("error parsing game_id: %s", err.Error()), http.StatusBadRequest)
 			return
 		}
-		var game GameResultDets
+
 		var records []api.Record
-		if err := ds.DB.Where(api.Record{GameID: gameID}).Order("turn_num asc").Find(&records).Pluck("state",&game.States).Error; err != nil {
+		if err := ds.DB.Where(api.Record{GameID: gameID}).Order("turn_num asc").Find(&records).Error; err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		if err := ds.DB.Raw(` SELECT 
-			ROW_TO_JSON(whiteplayer) AS White,
-			ROW_TO_JSON(blackplayer) AS Black,
-    		g.status AS Outcome,
-    		g.reason AS VictoryReason
-    		FROM games g
-			LEFT JOIN players whiteplayer ON whiteplayer.id = g.white_player_id
-			LEFT JOIN players blackplayer ON blackplayer.id = g.black_player_id
-			WHERE (g.id = ?`, gameID).Scan(&game).Error; err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+		states := make([]*game.State, len(records), len(records))
+		for i, r := range records {
+			var s game.State
+			if err := json.NewDecoder(strings.NewReader(r.State)).Decode(&s); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			states[i] = &s
 		}
-
-		if err := json.NewEncoder(w).Encode(game); err != nil {
+		if err := json.NewEncoder(w).Encode(states); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 }
+
 
