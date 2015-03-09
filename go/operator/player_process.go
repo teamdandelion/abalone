@@ -37,7 +37,7 @@ func (i *PlayerProcessInstance) Close() error {
 	return nil
 }
 
-func Validate(pathToExecutable string, scheduler PortScheduler) error {
+func Validate(pathToExecutable string, scheduler *PortScheduler) error {
 	var player api.Player
 	ppi, err := NewPlayerProcessInstance(player, pathToExecutable, scheduler)
 	if err != nil {
@@ -49,7 +49,7 @@ func Validate(pathToExecutable string, scheduler PortScheduler) error {
 	return ppi.Close()
 }
 
-func NewPlayerProcessInstance(player api.Player, executable string, scheduler PortScheduler) (*PlayerProcessInstance, error) {
+func NewPlayerProcessInstance(player api.Player, executable string, scheduler *PortScheduler) (*PlayerProcessInstance, error) {
 	port, err := scheduler.GetPort()
 	if err != nil {
 		return nil, err

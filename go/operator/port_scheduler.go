@@ -32,8 +32,8 @@ func (ps *PortScheduler) ReleasePort(port int) {
 	delete(ps.occupiedPorts, port)
 }
 
-func NewScheduler(basePort, numPorts int) PortScheduler {
-	return PortScheduler{
+func NewScheduler(basePort, numPorts int) *PortScheduler {
+	return &PortScheduler{
 		numManagedPorts: numPorts,
 		basePort:        basePort,
 		occupiedPorts:   make(map[int]struct{}),
