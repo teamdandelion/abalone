@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 
@@ -45,6 +46,7 @@ func (s *playersDB) Upload(userID int64, p api.Player, executable io.Reader) (*a
 	if err := operator.Validate(exePath, s.Ports); err != nil {
 		return nil, err
 	}
+	log.Printf("successfully validated %s", p)
 
 	p.AuthorId = userID
 	p.Path = hashOfExe
