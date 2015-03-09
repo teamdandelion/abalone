@@ -15,6 +15,7 @@ export module Frontend {
         private height: number; // height in pixels of board 
         private width: number; // width in pixels of board 
         private hexSize: number; // size of each hex in pixels (radius)
+        private showDebugCoordinates = false;
 
         constructor(svg: any, hexesOnEdge=5) {
             this.svg = svg.node ? svg : d3.select(svg);
@@ -194,13 +195,16 @@ export module Frontend {
             var xf = (d,i) => this.qr2xy(d)[0] - 5;
             var yf = (d,i) => this.qr2xy(d)[1] - 5;
 
-            var textUpdate = this.coordinateLayer.selectAll("text").data(hexes);
-            textUpdate
-                .enter()
-                    .append("text")
-                    .attr("x", xf)
-                    .attr("y", yf)
-                    .text((d) => "(" + d.q.toString() + "," + d.r.toString() + ")");
+            if (this.showDebugCoordinates) {
+                var textUpdate = this.coordinateLayer.selectAll("text").data(hexes);
+                textUpdate
+                    .enter()
+                        .append("text")
+                        .attr("x", xf)
+                        .attr("y", yf)
+                        .text((d) => "(" + d.q.toString() + "," + d.r.toString() + ")");
+                
+            }
         }
 
         public hoveredHex(): Engine.Hex {

@@ -790,6 +790,7 @@ var Abalone;
         var Renderer = (function () {
             function Renderer(svg, hexesOnEdge) {
                 if (hexesOnEdge === void 0) { hexesOnEdge = 5; }
+                this.showDebugCoordinates = false;
                 this.svg = svg.node ? svg : d3.select(svg);
                 this.svg.classed("abalone", true);
                 this.autoGetWidthHeight();
@@ -919,8 +920,10 @@ var Abalone;
                 update.exit().remove();
                 var xf = function (d, i) { return _this.qr2xy(d)[0] - 5; };
                 var yf = function (d, i) { return _this.qr2xy(d)[1] - 5; };
-                var textUpdate = this.coordinateLayer.selectAll("text").data(hexes);
-                textUpdate.enter().append("text").attr("x", xf).attr("y", yf).text(function (d) { return "(" + d.q.toString() + "," + d.r.toString() + ")"; });
+                if (this.showDebugCoordinates) {
+                    var textUpdate = this.coordinateLayer.selectAll("text").data(hexes);
+                    textUpdate.enter().append("text").attr("x", xf).attr("y", yf).text(function (d) { return "(" + d.q.toString() + "," + d.r.toString() + ")"; });
+                }
             };
             Renderer.prototype.hoveredHex = function () {
                 var location = d3.mouse(this.eventBox.node());
