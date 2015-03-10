@@ -1,12 +1,14 @@
 package leaderboard
 
 import (
+	"errors"
 	"fmt"
+	"math"
+	"sort"
+
 	"github.com/ChrisHines/GoSkills/skills"
 	"github.com/ChrisHines/GoSkills/skills/trueskill"
 	"github.com/danmane/abalone/go/game"
-	"math"
-	"sort"
 )
 
 type Rating struct {
@@ -57,7 +59,7 @@ type Result struct {
 	Outcome game.Outcome
 }
 
-func outcomeToRanks(o game.Outcome) []int {
+func outcomeToRanks(o game.Outcome) ([]int, error) {
 	var result []int
 	switch o {
 	case game.WhiteWins:
@@ -67,9 +69,9 @@ func outcomeToRanks(o game.Outcome) []int {
 	case game.Tie:
 		result = []int{1, 1}
 	default:
-		panic("got null outcome or other invalid outcome")
+		return nil, errors.New("got null outcome or other invalid outcome")
 	}
-	return result
+	return result, nil
 }
 
 func rating2srating(r Rating) skills.Rating {
@@ -83,8 +85,10 @@ func (r Rating) String() string {
 	return fmt.Sprintf("{μ:%.6g σ:%.6g}", r.Mean, r.Stddev)
 }
 
-func RateGames(numPlayers int, games []Result) Rankings {
-	// This function is messy because the API we are depending on (GoSkills) is pretty weird. Could be cleaned up by just moving the calculation logic into our own impl
+func RateGames(numPlayers int, games []Result) (Rankings, error) {
+	// TODO(dm): this function is messy because the API we are depending on
+	// (GoSkills) is pretty weird. Could be cleaned up by just moving the
+	// calculation logic into our own impl
 	ratings := DefaultRatings(numPlayers)
 	for _, r := range games {
 		whiteTeam := skills.NewTeam()
@@ -93,7 +97,11 @@ func RateGames(numPlayers int, games []Result) Rankings {
 		blackTeam.AddPlayer(r.BlackID, rating2srating(ratings[r.BlackID]))
 
 		var twoPlayerCalc trueskill.TwoPlayerCalc
-		newSkills := twoPlayerCalc.CalcNewRatings(gameInfo, []skills.Team{whiteTeam, blackTeam}, outcomeToRanks(r.Outcome)...)
+		ranks, err := outcomeToRanks(r.Outcome)
+		if err != nil {
+			return nil, err
+		}
+		newSkills := twoPlayerCalc.CalcNewRatings(gameInfo, []skills.Team{whiteTeam, blackTeam}, ranks...)
 		ratings[r.WhiteID] = srating2rating(newSkills[r.WhiteID])
 		ratings[r.BlackID] = srating2rating(newSkills[r.BlackID])
 	}
@@ -111,7 +119,7 @@ func RateGames(numPlayers int, games []Result) Rankings {
 		}
 		prevRating = ranks[i].Rating
 	}
-	return ranks
+	return ranks, nil
 }
 
 func (rankings Rankings) ProposeGame() []int64 {

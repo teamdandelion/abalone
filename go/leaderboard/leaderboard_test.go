@@ -27,7 +27,10 @@ var rankingTests = []struct {
 
 func Test_Rankings(t *testing.T) {
 	for _, test := range rankingTests {
-		rankings := RateGames(test.numPlayers, test.games)
+		rankings, err := RateGames(test.numPlayers, test.games)
+		if err != nil {
+			t.Fatal(err)
+		}
 		for _, r := range rankings {
 			if test.rankings[r.PlayerID] != r.Rank {
 				fmt.Printf("test: %v\n, \trankings: %v\n", test.name, rankings)
