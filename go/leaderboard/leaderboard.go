@@ -16,10 +16,10 @@ type Rating struct {
 
 var gameInfo = skills.DefaultGameInfo
 
-type Ratings map[int]Rating
+type Ratings map[int64]Rating
 
 type Ranking struct {
-	PlayerID int
+	PlayerID int64
 	Rating   Rating
 	Rank     int
 }
@@ -45,16 +45,16 @@ func (r Rankings) Less(i, j int) bool {
 
 func DefaultRatings(numPlayers int) Ratings {
 	out := make(Ratings)
-	for i := 0; i < numPlayers; i++ {
+	for i := int64(0); i < int64(numPlayers); i++ {
 		out[i] = Rating{Mean: gameInfo.InitialMean, Stddev: gameInfo.InitialStddev}
 	}
 	return out
 }
 
 type Result struct {
-	whiteID int
-	blackID int
-	outcome game.Outcome
+	WhiteID int64
+	BlackID int64
+	Outcome game.Outcome
 }
 
 func outcomeToRanks(o game.Outcome) []int {
@@ -88,14 +88,14 @@ func RateGames(numPlayers int, games []Result) Rankings {
 	ratings := DefaultRatings(numPlayers)
 	for _, r := range games {
 		whiteTeam := skills.NewTeam()
-		whiteTeam.AddPlayer(r.whiteID, rating2srating(ratings[r.whiteID]))
+		whiteTeam.AddPlayer(r.WhiteID, rating2srating(ratings[r.WhiteID]))
 		blackTeam := skills.NewTeam()
-		blackTeam.AddPlayer(r.blackID, rating2srating(ratings[r.blackID]))
+		blackTeam.AddPlayer(r.BlackID, rating2srating(ratings[r.BlackID]))
 
 		var twoPlayerCalc trueskill.TwoPlayerCalc
-		newSkills := twoPlayerCalc.CalcNewRatings(gameInfo, []skills.Team{whiteTeam, blackTeam}, outcomeToRanks(r.outcome)...)
-		ratings[r.whiteID] = srating2rating(newSkills[r.whiteID])
-		ratings[r.blackID] = srating2rating(newSkills[r.blackID])
+		newSkills := twoPlayerCalc.CalcNewRatings(gameInfo, []skills.Team{whiteTeam, blackTeam}, outcomeToRanks(r.Outcome)...)
+		ratings[r.WhiteID] = srating2rating(newSkills[r.WhiteID])
+		ratings[r.BlackID] = srating2rating(newSkills[r.BlackID])
 	}
 	ranks := make(Rankings, numPlayers)
 	for id, rating := range ratings {
@@ -114,25 +114,25 @@ func RateGames(numPlayers int, games []Result) Rankings {
 	return ranks
 }
 
-func (rankings Rankings) ProposeGame() []int {
+func (rankings Rankings) ProposeGame() []int64 {
 	if len(rankings) == 0 {
 		return nil
 	}
 	maxUncertainty := math.Inf(-1)
-	id1 := -1
-	idx1 := -1
+	var id1 int64 = -1
+	var idx1 int64 = -1
 	for i, rank := range rankings {
 		if rank.Rating.Stddev > maxUncertainty {
 			maxUncertainty = rank.Rating.Stddev
 			id1 = rank.PlayerID
-			idx1 = i
+			idx1 = int64(i)
 		}
 	}
-	var id2 int
+	var id2 int64
 	if idx1 == 0 {
 		id2 = rankings[1].PlayerID
 	} else {
 		id2 = rankings[idx1-1].PlayerID
 	}
-	return []int{id1, id2}
+	return []int64{id1, id2}
 }

@@ -15,13 +15,13 @@ var rankingTests = []struct {
 	name       string
 }{
 	{2, []Result{}, []int{1, 1}, "2p - no games"},
-	{2, []Result{Result{whiteID: 0, blackID: 1, outcome: game.Tie}}, []int{1, 1}, "2p - tie"},
-	{2, []Result{Result{whiteID: 0, blackID: 1, outcome: game.WhiteWins}}, []int{1, 2}, "2p - one wins"},
-	{3, []Result{Result{whiteID: 0, blackID: 1, outcome: game.BlackWins}}, []int{3, 1, 2}, "3p - one wins"},
+	{2, []Result{Result{WhiteID: 0, BlackID: 1, Outcome: game.Tie}}, []int{1, 1}, "2p - tie"},
+	{2, []Result{Result{WhiteID: 0, BlackID: 1, Outcome: game.WhiteWins}}, []int{1, 2}, "2p - one wins"},
+	{3, []Result{Result{WhiteID: 0, BlackID: 1, Outcome: game.BlackWins}}, []int{3, 1, 2}, "3p - one wins"},
 	{3, []Result{
-		Result{whiteID: 0, blackID: 1, outcome: game.BlackWins},
-		Result{whiteID: 1, blackID: 2, outcome: game.WhiteWins},
-		Result{whiteID: 0, blackID: 2, outcome: game.BlackWins},
+		Result{WhiteID: 0, BlackID: 1, Outcome: game.BlackWins},
+		Result{WhiteID: 1, BlackID: 2, Outcome: game.WhiteWins},
+		Result{WhiteID: 0, BlackID: 2, Outcome: game.BlackWins},
 	}, []int{3, 1, 2}, "3p - triangle of games"},
 }
 
@@ -57,7 +57,7 @@ func Benchmark_Rankings(b *testing.B) {
 	for i := 0; i < nPlayers; i++ {
 		for j := 0; j < gamesPerPlayer; j++ {
 			opponent := rand.Intn(nPlayers)
-			result := Result{whiteID: i, blackID: opponent, outcome: randOutcome()}
+			result := Result{WhiteID: int64(i), BlackID: int64(opponent), Outcome: randOutcome()}
 			results = append(results, result)
 		}
 	}
