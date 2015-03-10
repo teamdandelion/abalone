@@ -34,14 +34,13 @@ var App = React.createClass({
     return (
       <div>
         <div className="container">
-
-            <Nav />
+          <Nav />
         </div>
 
         <div className="container">
           <div className="row">
             <div className="col-sm-8 col-sm-offset-2">
-            
+
               <RouteHandler/>
             </div>
           </div>
