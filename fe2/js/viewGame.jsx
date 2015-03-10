@@ -7,8 +7,13 @@ var GameViewer = React.createClass({
     this.props.replayer = new Abalone.Frontend.GameReplayer();
   },
   componentDidMount: function() {
+    var edge = this.refs.svg.getDOMNode().offsetWidth;
+    d3.select("#replayerSVG").attr("height", edge).attr("width", edge)
+
+
     var renderer = new Abalone.Frontend.Renderer("#replayerSVG");
     this.props.replayer.setRenderer(renderer);
+
     var url = "/api/games/" + this.getParams().gameId +"/states";
     $.ajax({
       url: url,
@@ -27,8 +32,10 @@ var GameViewer = React.createClass({
   render: function() {
     return (
       <div>
-        <GameControls replayer={this.props.replayer}/>
-        <svg id="replayerSVG" width="600" height="600"> </svg>
+        <div className="svgContainer" ref="svgContainer">
+          <svg ref="svg" id="replayerSVG" width="100%" height="0" /> 
+          <GameControls replayer={this.props.replayer}/>
+        </div>
       </div>
     );
   }
@@ -38,26 +45,24 @@ var GameControls = React.createClass({
   render: function() {
     return (
         <div>
-          <div className="row">
-            <div className="col-md-2">
-              <i onClick={this.props.replayer.play.bind(this.props.replayer)} className="fa fa-play fa-2x"></i>
-            </div>
-            <div className="col-md-2">
-              <i onClick={this.props.replayer.pause.bind(this.props.replayer)} className="fa fa-pause fa-2x"></i>
-            </div>
-            <div className="col-md-2">
-              <i onClick={this.props.replayer.back.bind(this.props.replayer)} className="fa fa-backward fa-2x"></i>
-            </div>
-            <div className="col-md-2">
-              <i onClick={this.props.replayer.forward.bind(this.props.replayer)} className="fa fa-forward fa-2x"></i>
-            </div>
-            <div className="col-md-2">
-              <i onClick={this.props.replayer.restart.bind(this.props.replayer)} className="fa fa-fast-backward fa-2x"></i>
-            </div>
-            <div className="col-md-2">
-              <i onClick={this.props.replayer.skipToEnd.bind(this.props.replayer)} className="fa fa-fast-forward fa-2x"></i>
-            </div>
-          </div>
+              <span className="buttonspan"> 
+                <i onClick={this.props.replayer.restart.bind(this.props.replayer)} className="fa fa-fast-backward fa-2x"></i>
+              </span>
+              <span className="buttonspan"> 
+                <i onClick={this.props.replayer.back.bind(this.props.replayer)} className="fa fa-backward fa-2x"></i>
+              </span>
+              <span className="buttonspan"> 
+                <i onClick={this.props.replayer.play.bind(this.props.replayer)} className="fa fa-play fa-2x"></i>
+              </span>
+              <span className="buttonspan"> 
+                <i onClick={this.props.replayer.pause.bind(this.props.replayer)} className="fa fa-pause fa-2x"></i>
+              </span>
+              <span className="buttonspan"> 
+                <i onClick={this.props.replayer.forward.bind(this.props.replayer)} className="fa fa-forward fa-2x"></i>
+              </span>
+              <span className="buttonspan"> 
+                <i onClick={this.props.replayer.skipToEnd.bind(this.props.replayer)} className="fa fa-fast-forward fa-2x"></i>
+              </span>
         </div>
       )
   }
