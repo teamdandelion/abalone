@@ -19,9 +19,9 @@ var gameInfo = skills.DefaultGameInfo
 type Ratings map[int]Rating
 
 type Ranking struct {
-	playerID int
-	rating   Rating
-	rank     int
+	PlayerID int
+	Rating   Rating
+	Rank     int
 }
 
 type Rankings []Ranking
@@ -35,12 +35,12 @@ func (r Rankings) Swap(i, j int) {
 }
 
 func (r Rankings) Less(i, j int) bool {
-	if r[i].rating.Mean == r[j].rating.Mean {
+	if r[i].Rating.Mean == r[j].Rating.Mean {
 		// if mean is the same, the better player (i.e. one with the lower rank) will be the one we are more confident about
-		return r[i].rating.Stddev < r[j].rating.Stddev
+		return r[i].Rating.Stddev < r[j].Rating.Stddev
 	}
 	// otherwise, the better player (i.e. one with lower rank) is the one with the higher mean
-	return r[i].rating.Mean > r[j].rating.Mean
+	return r[i].Rating.Mean > r[j].Rating.Mean
 }
 
 func DefaultRatings(numPlayers int) Ratings {
@@ -99,17 +99,17 @@ func RateGames(numPlayers int, games []Result) Rankings {
 	}
 	ranks := make(Rankings, numPlayers)
 	for id, rating := range ratings {
-		ranks[id] = Ranking{playerID: id, rating: rating, rank: -1}
+		ranks[id] = Ranking{PlayerID: id, Rating: rating, Rank: -1}
 	}
 	sort.Sort(ranks)
 	var prevRating Rating
 	for i, _ := range ranks {
-		if prevRating == ranks[i].rating {
-			ranks[i].rank = ranks[i-1].rank
+		if prevRating == ranks[i].Rating {
+			ranks[i].Rank = ranks[i-1].Rank
 		} else {
-			ranks[i].rank = i + 1
+			ranks[i].Rank = i + 1
 		}
-		prevRating = ranks[i].rating
+		prevRating = ranks[i].Rating
 	}
 	return ranks
 }
@@ -122,17 +122,17 @@ func (rankings Rankings) ProposeGame() []int {
 	id1 := -1
 	idx1 := -1
 	for i, rank := range rankings {
-		if rank.rating.Stddev > maxUncertainty {
-			maxUncertainty = rank.rating.Stddev
-			id1 = rank.playerID
+		if rank.Rating.Stddev > maxUncertainty {
+			maxUncertainty = rank.Rating.Stddev
+			id1 = rank.PlayerID
 			idx1 = i
 		}
 	}
 	var id2 int
 	if idx1 == 0 {
-		id2 = rankings[1].playerID
+		id2 = rankings[1].PlayerID
 	} else {
-		id2 = rankings[idx1-1].playerID
+		id2 = rankings[idx1-1].PlayerID
 	}
 	return []int{id1, id2}
 }

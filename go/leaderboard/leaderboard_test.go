@@ -2,9 +2,10 @@ package leaderboard
 
 import (
 	"fmt"
-	"github.com/danmane/abalone/go/game"
 	"math/rand"
 	"testing"
+
+	"github.com/danmane/abalone/go/game"
 )
 
 var rankingTests = []struct {
@@ -28,9 +29,9 @@ func Test_Rankings(t *testing.T) {
 	for _, test := range rankingTests {
 		rankings := RateGames(test.numPlayers, test.games)
 		for _, r := range rankings {
-			if test.rankings[r.playerID] != r.rank {
+			if test.rankings[r.PlayerID] != r.Rank {
 				fmt.Printf("test: %v\n, \trankings: %v\n", test.name, rankings)
-				t.Errorf("%v: expected rank %v for id %v but got %v", test.name, test.rankings[r.playerID], r.playerID, r.rank)
+				t.Errorf("%v: expected rank %v for id %v but got %v", test.name, test.rankings[r.PlayerID], r.PlayerID, r.Rank)
 			}
 		}
 	}
