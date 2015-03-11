@@ -1,4 +1,4 @@
-package leaderboard
+package rankings
 
 import (
 	"errors"
@@ -130,9 +130,10 @@ func RateGames(players []int64, games []Result) (Rankings, error) {
 	return ranks, nil
 }
 
-func (rankings Rankings) ProposeGame() []int64 {
+// ProposeGame returns the IDs of two players who should play the next game.
+func (rankings Rankings) ProposeGame() (int64, int64, error) {
 	if len(rankings) == 0 {
-		return nil
+		return 0, 0, errors.New("cannot propose games when there are no rankings")
 	}
 	maxUncertainty := math.Inf(-1)
 	var id1 int64 = -1
@@ -150,7 +151,7 @@ func (rankings Rankings) ProposeGame() []int64 {
 	} else {
 		id2 = rankings[idx1-1].PlayerID
 	}
-	return []int64{id1, id2}
+	return id1, id2, nil
 }
 
 func checkGameParticipantsArePlayers(players []int64, games []Result) error {
