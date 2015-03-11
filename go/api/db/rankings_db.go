@@ -64,9 +64,9 @@ func (s *rankingsDB) List() ([]*api.Ranking, error) {
 
 	// with rankings in hand, transform into the API representation
 
-	playersByID := toPlayerMap(players)                  // for player name lookups
-	usersByAuthorID := toAuthorIndex(users)              // for author name lookups
-	winlossByPlayerID := computeWinLoss(consideredGames) // for win/loss info
+	playersByID := toPlayerMap(players)                           // for player name lookups
+	usersByAuthorID := toAuthorIndex(users)                       // for author name lookups
+	winlossByPlayerID := computeWinLoss(players, consideredGames) // for win/loss info
 
 	var out []*api.Ranking
 	for _, r := range rankings {
@@ -108,11 +108,10 @@ type winloss struct {
 	Losses int
 }
 
-func computeWinLoss(games []*api.Game) map[int64]*winloss {
+func computeWinLoss(players []api.Player, games []*api.Game) map[int64]*winloss {
 	wl := make(map[int64]*winloss)
-	for _, g := range games {
-		wl[g.BlackId] = new(winloss)
-		wl[g.WhiteId] = new(winloss)
+	for _, p := range players {
+		wl[p.ID] = new(winloss)
 	}
 	for _, g := range games {
 		var winner, loser int64
