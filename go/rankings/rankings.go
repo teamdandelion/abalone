@@ -77,6 +77,7 @@ func rating2srating(r Rating) skills.Rating {
 func srating2rating(s skills.Rating) Rating {
 	return Rating{Mean: s.Mean(), Stddev: s.Stddev()}
 }
+
 func (r Rating) String() string {
 	return fmt.Sprintf("{μ:%.6g σ:%.6g}", r.Mean, r.Stddev)
 }
