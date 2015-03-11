@@ -45,10 +45,10 @@ func (r Rankings) Less(i, j int) bool {
 	return r[i].Rating.Mean > r[j].Rating.Mean
 }
 
-func DefaultRatings(numPlayers int) Ratings {
+func DefaultRatings(players []int64) Ratings {
 	out := make(Ratings)
-	for i := int64(0); i < int64(numPlayers); i++ {
-		out[i] = Rating{Mean: gameInfo.InitialMean, Stddev: gameInfo.InitialStddev}
+	for _, p := range players {
+		out[p] = Rating{Mean: gameInfo.InitialMean, Stddev: gameInfo.InitialStddev}
 	}
 	return out
 }
@@ -85,11 +85,17 @@ func (r Rating) String() string {
 	return fmt.Sprintf("{μ:%.6g σ:%.6g}", r.Mean, r.Stddev)
 }
 
-func RateGames(numPlayers int, games []Result) (Rankings, error) {
+func RateGames(players []int64, games []Result) (Rankings, error) {
+
 	// TODO(dm): this function is messy because the API we are depending on
 	// (GoSkills) is pretty weird. Could be cleaned up by just moving the
 	// calculation logic into our own impl
-	ratings := DefaultRatings(numPlayers)
+
+	if err := checkGameParticipantsArePlayers(players, games); err != nil {
+		return nil, err
+	}
+
+	ratings := DefaultRatings(players)
 	for _, r := range games {
 		whiteTeam := skills.NewTeam()
 		whiteTeam.AddPlayer(r.WhiteID, rating2srating(ratings[r.WhiteID]))
@@ -105,6 +111,8 @@ func RateGames(numPlayers int, games []Result) (Rankings, error) {
 		ratings[r.WhiteID] = srating2rating(newSkills[r.WhiteID])
 		ratings[r.BlackID] = srating2rating(newSkills[r.BlackID])
 	}
+
+	numPlayers := len(players)
 	ranks := make(Rankings, numPlayers)
 	for id, rating := range ratings {
 		ranks[id] = Ranking{PlayerID: id, Rating: rating, Rank: -1}
@@ -143,4 +151,20 @@ func (rankings Rankings) ProposeGame() []int64 {
 		id2 = rankings[idx1-1].PlayerID
 	}
 	return []int64{id1, id2}
+}
+
+func checkGameParticipantsArePlayers(players []int64, games []Result) error {
+	playerset := make(map[int64]struct{})
+	for _, p := range players {
+		playerset[p] = struct{}{}
+	}
+	for _, g := range games {
+		ps := []int64{g.WhiteID, g.BlackID}
+		for _, p := range ps {
+			if _, ok := playerset[p]; !ok {
+				return fmt.Errorf("player %d participated in game, but isn't in list of players", p)
+			}
+		}
+	}
+	return nil
 }
