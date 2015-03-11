@@ -1,6 +1,10 @@
 package api
 
-import "github.com/danmane/abalone/go/game"
+import (
+	"fmt"
+
+	"github.com/danmane/abalone/go/game"
+)
 
 type Game struct {
 	ID int64 `gorm:"column:id"`
@@ -13,6 +17,34 @@ type Game struct {
 	Status string `gorm:"column:status"`
 
 	CommonDBFields
+}
+
+func (g *Game) Outcome() (game.Outcome, error) {
+
+	// TODO(btc): Game outcome and game status are somewhat redundant. Look for
+	// ways to simplify and merge these enums.
+
+	switch GameStatus(g.Status) {
+	// normal cases
+	case GameWhiteWins:
+		return game.WhiteWins, nil
+	case GameBlackWins:
+		return game.BlackWins, nil
+	case GameDraw:
+		return game.Tie, nil
+
+	case GameScheduled:
+		// TODO(btc): it is my understanding that NullOutcome is meant to be
+		// used for games in progress. Where the DB is concerned, GameScheduled
+		// is presently used for games that haven't terminated, so NullOutcome
+		// seems like an okay choice for now.
+		// We'll probably want to condense/share a single representation. This
+		// smells like trouble down the road.
+		return game.NullOutcome, nil
+
+	default:
+		return 0, fmt.Errorf("unrecognized outcome: %s", g.Status)
+	}
 }
 
 type GameWithDetails struct {
