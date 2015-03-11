@@ -1,6 +1,6 @@
 http_check_status: ansible
 	ansible http -m shell -a "initctl status abalone_httpd"
-	ansible http -m shell -a "tail /var/abalone/log"
+	ansible http -m shell -a "tail -n 100 /var/abalone/log"
 
 localhost_bootstrap: ansible
 	ansible-playbook ./playbooks/localhost_bootstrap.yml
