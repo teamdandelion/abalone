@@ -16,10 +16,6 @@ type Rating struct {
 	Stddev float64
 }
 
-var gameInfo = skills.DefaultGameInfo
-
-type Ratings map[int64]Rating
-
 type Ranking struct {
 	PlayerID int64
 	Rating   Rating
@@ -45,8 +41,8 @@ func (r Rankings) Less(i, j int) bool {
 	return r[i].Rating.Mean > r[j].Rating.Mean
 }
 
-func DefaultRatings(players []int64) Ratings {
-	out := make(Ratings)
+func DefaultRatings(players []int64) map[int64]Rating {
+	out := make(map[int64]Rating)
 	for _, p := range players {
 		out[p] = Rating{Mean: gameInfo.InitialMean, Stddev: gameInfo.InitialStddev}
 	}
@@ -169,3 +165,5 @@ func checkGameParticipantsArePlayers(players []int64, games []Result) error {
 	}
 	return nil
 }
+
+var gameInfo = skills.DefaultGameInfo
