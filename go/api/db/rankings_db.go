@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/danmane/abalone/go/api"
 	"github.com/danmane/abalone/go/game"
 	"github.com/danmane/abalone/go/rankings"
@@ -76,7 +78,7 @@ func (s *rankingsDB) List() ([]*api.Ranking, error) {
 		out = append(out, &api.Ranking{
 			Rank:   r.Rank,
 			Rating: r.Rating.Mean,
-			Player: player.Name,
+			Player: fmt.Sprintf("%s v%d", player.Name, player.Version),
 			Author: author,
 			Wins:   wl.Wins,
 			Losses: wl.Losses,
