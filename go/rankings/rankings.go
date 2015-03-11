@@ -65,7 +65,7 @@ func outcomeToRanks(o game.Outcome) ([]int, error) {
 	case game.Tie:
 		result = []int{1, 1}
 	default:
-		return nil, errors.New("got null outcome or other invalid outcome")
+		return nil, fmt.Errorf("got null outcome or other invalid outcome: %s", o)
 	}
 	return result, nil
 }
