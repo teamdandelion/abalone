@@ -78,7 +78,7 @@ func (s *rankingsDB) List() ([]*api.Ranking, error) {
 		out = append(out, &api.Ranking{
 			Rank:   r.Rank,
 			Rating: r.Rating.Mean,
-			Player: fmt.Sprintf("%s v%d", player.Name, player.Version),
+			Player: fmt.Sprintf("%s v%d.%d", player.Name, player.Version, player.ID),
 			Author: author,
 			Wins:   wl.Wins,
 			Losses: wl.Losses,
