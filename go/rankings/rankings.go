@@ -108,10 +108,9 @@ func RateGames(players []int64, games []Result) (Rankings, error) {
 		ratings[r.BlackID] = srating2rating(newSkills[r.BlackID])
 	}
 
-	numPlayers := len(players)
-	ranks := make(Rankings, numPlayers)
+	ranks := make(Rankings, 0)
 	for id, rating := range ratings {
-		ranks[id] = Ranking{PlayerID: id, Rating: rating, Rank: -1}
+		ranks = append(ranks, Ranking{PlayerID: id, Rating: rating, Rank: -1})
 	}
 	sort.Sort(ranks)
 	var prevRating Rating
