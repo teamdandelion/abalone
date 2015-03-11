@@ -87,18 +87,18 @@ func (s *rankingsDB) List() ([]*api.Ranking, error) {
 	return out, nil
 }
 
-func toPlayerMap(players []api.Player) map[int64]*api.Player {
-	m := make(map[int64]*api.Player)
+func toPlayerMap(players []api.Player) map[int64]api.Player {
+	m := make(map[int64]api.Player)
 	for _, p := range players {
-		m[p.ID] = &p
+		m[p.ID] = p
 	}
 	return m
 }
 
-func toAuthorIndex(users []api.User) map[int64]*api.User {
-	m := make(map[int64]*api.User)
+func toAuthorIndex(users []api.User) map[int64]api.User {
+	m := make(map[int64]api.User)
 	for _, u := range users {
-		m[u.ID] = &u
+		m[u.ID] = u
 	}
 	return m
 }
