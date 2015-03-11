@@ -23,13 +23,16 @@ func Open(dialect string, addr string, filestoragePath string) (*api.Services, e
 		Ports:           operator.NewScheduler(16000, 2000),
 		FilestoragePath: filestoragePath,
 	}
-	return &api.Services{
-		Games:   &gamesDB{r},
-		Matches: &matchesDB{r},
-		Players: &playersDB{r},
-		Users:   &usersDB{r},
-		DB:      &db,
-	}, nil
+	s := &api.Services{
+		Rankings: &rankingsDB{r},
+		Games:    &gamesDB{r},
+		Matches:  &matchesDB{r},
+		Players:  &playersDB{r},
+		Users:    &usersDB{r},
+		DB:       &db,
+	}
+	r.Services = s
+	return s, nil
 }
 
 // resources bundles up all of the components required by the various DB
@@ -38,4 +41,5 @@ type resources struct {
 	DB              *gorm.DB
 	Ports           *operator.PortScheduler
 	FilestoragePath string
+	Services        *api.Services
 }
