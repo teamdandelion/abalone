@@ -7,12 +7,26 @@ import (
 )
 
 type Services struct {
-	Games   GamesService
-	Matches MatchesService
-	Players PlayersService
-	Users   UsersService
+	Rankings RankingsService
+	Games    GamesService
+	Matches  MatchesService
+	Players  PlayersService
+	Users    UsersService
 
 	DB *gorm.DB
+}
+
+type RankingsService interface {
+	List() ([]*Ranking, error)
+}
+
+type Ranking struct {
+	Rank   int     `json:"rank"`
+	Player string  `json:"player"`
+	Author string  `json:"author"`
+	Rating float64 `json:"rating"`
+	Wins   int     `json:"wins"`
+	Losses int     `json:"losses"`
 }
 
 type GamesService interface {
