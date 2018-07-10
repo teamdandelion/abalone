@@ -39,7 +39,7 @@ localhost:9999/local.html
 cd frontend
 grunt&
 ./cmd/abalone_example_ai/abalone_example_ai& #defaults to port 3423, which signifies playing as white
-./cmd/abalone_relayd/abalone_relayd& #defaults to port 3423, which signifies playing as black
+./cmd/abalone_relayd/abalone_relayd& #defaults to port 3424, which signifies playing as black
 ./cmd/abalone_gameoperator/abalone_gameoperator
 navigate to localhost:9999/remote.html
 ```
